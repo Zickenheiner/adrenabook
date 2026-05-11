@@ -1,5 +1,6 @@
 import { Calendar, Users, Euro } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/core/components/ui/badge';
 import { Button } from '@/core/components/ui/button';
 import {
@@ -9,6 +10,7 @@ import {
   CardTitle,
 } from '@/core/components/ui/card';
 import { cn } from '@/core/utils/cn';
+import routes from '@/core/constants/routes';
 import type { ActivityDetailSlot } from '../../domain/entities/activity-detail.entity';
 
 interface Props {
@@ -31,6 +33,8 @@ function formatSlotTime(date: Date): string {
 }
 
 export default function ActivitySlots({ slots }: Props) {
+  const navigate = useNavigate();
+
   if (slots.length === 0) {
     return (
       <Card>
@@ -122,7 +126,14 @@ export default function ActivitySlots({ slots }: Props) {
                     })}
                   </div>
 
-                  <Button size="sm" disabled={isFull} className="shrink-0">
+                  <Button
+                    size="sm"
+                    disabled={isFull}
+                    className="shrink-0"
+                    onClick={() =>
+                      navigate(`${routes.bookingNew}?slotId=${slot.id}`)
+                    }
+                  >
                     Réserver
                   </Button>
                 </div>

@@ -17,6 +17,8 @@ import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/
 import ActivitySearchPage from '@/features/activity-search/presentation/pages/ActivitySearchPage';
 import ActivityDetailPage from '@/features/activity-detail/presentation/pages/ActivityDetailPage';
 import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPage';
+import BookingPage from '@/features/booking/presentation/pages/BookingPage';
+import BookingConfirmationPage from '@/features/booking/presentation/pages/BookingConfirmationPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -68,6 +70,11 @@ export default function Router() {
         <Route
           path={routes.proActivityCreate}
           element={<ProActivityCreatePage />}
+        />
+        <Route path={routes.bookingNew} element={<BookingPage />} />
+        <Route
+          path={routes.bookingConfirmation}
+          element={<BookingConfirmationPage />}
         />
       </Route>
     );

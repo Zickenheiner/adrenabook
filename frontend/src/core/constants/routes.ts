@@ -16,6 +16,8 @@ const routes = {
   activitySearch: '/activities/search',
   activityDetail: '/activities/:id',
   centerMap: '/centers/map',
+  bookingNew: '/bookings/new',
+  bookingConfirmation: '/bookings/:id/confirmation',
 };
 
 export default routes;

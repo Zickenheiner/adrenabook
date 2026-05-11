@@ -36,6 +36,10 @@ const endpoints = {
   centerMap: {
     map: '/centers/map',
   },
+  bookings: {
+    base: '/bookings',
+    byId: (id: string) => `/bookings/${id}`,
+  },
 };
 
 export default endpoints;
