@@ -4,6 +4,8 @@ import {
   HealthProfileResponseDto,
   LoginDto,
   LoginResponseDto,
+  NotificationPreferencesDto,
+  NotificationPreferencesResponseDto,
   PasswordResetConfirmDto,
   PasswordResetConfirmResponseDto,
   PasswordResetRequestDto,
@@ -39,4 +41,10 @@ export interface IUserService {
     userId: string,
     dto: HealthProfileDto,
   ): Promise<HealthProfileResponseDto>;
+
+  // ——— Preferences de notifications US-14 ———
+  updateNotificationPreferences(
+    userId: string,
+    dto: NotificationPreferencesDto,
+  ): Promise<NotificationPreferencesResponseDto>;
 }

@@ -12,6 +12,7 @@ import {
   IsNumber,
   IsArray,
   ValidateNested,
+  IsDefined,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -429,4 +430,96 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   lastName?: string;
+}
+
+// ——— Preferences de notifications US-14 ———
+
+/**
+ * NotificationPreferencesEmailDto — Preferences email
+ */
+export class NotificationPreferencesEmailDto {
+  @ApiProperty({
+    description: 'Recevoir les confirmations de reservation par email',
+    example: true,
+  })
+  @IsBoolean()
+  @IsDefined()
+  bookingConfirmation: boolean;
+
+  @ApiProperty({
+    description: 'Recevoir les rappels par email',
+    example: true,
+  })
+  @IsBoolean()
+  @IsDefined()
+  reminders: boolean;
+
+  @ApiProperty({
+    description: 'Recevoir les emails marketing',
+    example: false,
+  })
+  @IsBoolean()
+  @IsDefined()
+  marketing: boolean;
+}
+
+/**
+ * NotificationPreferencesSmsDto — Preferences SMS
+ */
+export class NotificationPreferencesSmsDto {
+  @ApiProperty({
+    description: 'Recevoir les confirmations de reservation par SMS',
+    example: true,
+  })
+  @IsBoolean()
+  @IsDefined()
+  bookingConfirmation: boolean;
+
+  @ApiProperty({
+    description: 'Recevoir les rappels par SMS',
+    example: true,
+  })
+  @IsBoolean()
+  @IsDefined()
+  reminders: boolean;
+}
+
+/**
+ * NotificationPreferencesDto — Mise a jour des preferences de notifications (US-14)
+ */
+export class NotificationPreferencesDto {
+  @ApiProperty({
+    description: 'Preferences de notifications par email',
+    type: NotificationPreferencesEmailDto,
+  })
+  @ValidateNested()
+  @Type(() => NotificationPreferencesEmailDto)
+  @IsDefined()
+  email: NotificationPreferencesEmailDto;
+
+  @ApiProperty({
+    description: 'Preferences de notifications par SMS',
+    type: NotificationPreferencesSmsDto,
+  })
+  @ValidateNested()
+  @Type(() => NotificationPreferencesSmsDto)
+  @IsDefined()
+  sms: NotificationPreferencesSmsDto;
+}
+
+/**
+ * NotificationPreferencesResponseDto — Reponse a la mise a jour des preferences (US-14)
+ */
+export class NotificationPreferencesResponseDto {
+  @ApiProperty({
+    description: 'Indique si les preferences ont ete mises a jour',
+    example: true,
+  })
+  updated: boolean;
+
+  @ApiProperty({
+    description: 'Preferences de notifications mises a jour',
+    type: NotificationPreferencesDto,
+  })
+  preferences: NotificationPreferencesDto;
 }

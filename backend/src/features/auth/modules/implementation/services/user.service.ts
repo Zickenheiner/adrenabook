@@ -33,6 +33,8 @@ import {
   HealthProfileResponseDto,
   LoginDto,
   LoginResponseDto,
+  NotificationPreferencesDto,
+  NotificationPreferencesResponseDto,
   PasswordResetConfirmDto,
   PasswordResetConfirmResponseDto,
   PasswordResetRequestDto,
@@ -444,6 +446,34 @@ export class UserService implements IUserService {
     }
 
     return { updated: true, fieldsEncrypted };
+  }
+
+  /**
+   * Mise a jour des preferences de notifications (US-14)
+   * - Stocke les preferences email/SMS dans le document utilisateur
+   * - Opt-out par canal supporte via les booleens de chaque preference
+   */
+  async updateNotificationPreferences(
+    userId: string,
+    dto: NotificationPreferencesDto,
+  ): Promise<NotificationPreferencesResponseDto> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    const updated = await this.userRepository.updateNotificationPreferences(
+      userId,
+      dto,
+    );
+
+    if (!updated) {
+      throw new InternalServerErrorException(
+        'Impossible de mettre a jour les preferences de notifications',
+      );
+    }
+
+    return { updated: true, preferences: dto };
   }
 
   // ——— Helpers ———

@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import {
   CreateUserDto,
   HealthProfileDto,
+  NotificationPreferencesDto,
   RegisterDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
@@ -192,6 +193,18 @@ export class UserRepository implements IUserRepository {
         { $unset: { refreshTokenHash: '' } },
         { new: true },
       )
+      .exec();
+    return !!updated;
+  }
+
+  // ——— Preferences de notifications US-14 ———
+
+  async updateNotificationPreferences(
+    id: string,
+    dto: NotificationPreferencesDto,
+  ): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { notificationPreferences: dto }, { new: true })
       .exec();
     return !!updated;
   }

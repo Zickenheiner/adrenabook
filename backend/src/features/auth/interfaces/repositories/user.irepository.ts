@@ -1,6 +1,7 @@
 import {
   CreateUserDto,
   HealthProfileDto,
+  NotificationPreferencesDto,
   RegisterDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
@@ -42,5 +43,11 @@ export interface IUserRepository {
     id: string,
     dto: HealthProfileDto,
     encryptedContraindications: string[] | undefined,
+  ): Promise<boolean>;
+
+  // ——— Preferences de notifications US-14 ———
+  updateNotificationPreferences(
+    id: string,
+    dto: NotificationPreferencesDto,
   ): Promise<boolean>;
 }

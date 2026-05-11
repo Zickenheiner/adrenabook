@@ -100,6 +100,35 @@ export class User {
     };
     medicalCertificateFileId?: string;
   };
+
+  // ——— Preferences de notifications US-14 ———
+
+  @Prop({
+    required: false,
+    type: {
+      email: {
+        bookingConfirmation: { type: Boolean, required: false, default: true },
+        reminders: { type: Boolean, required: false, default: true },
+        marketing: { type: Boolean, required: false, default: false },
+      },
+      sms: {
+        bookingConfirmation: { type: Boolean, required: false, default: true },
+        reminders: { type: Boolean, required: false, default: true },
+      },
+    },
+    _id: false,
+  })
+  notificationPreferences?: {
+    email: {
+      bookingConfirmation: boolean;
+      reminders: boolean;
+      marketing: boolean;
+    };
+    sms: {
+      bookingConfirmation: boolean;
+      reminders: boolean;
+    };
+  };
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

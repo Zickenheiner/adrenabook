@@ -44,6 +44,19 @@ export class UserEntity {
     medicalCertificateFileId?: string;
   };
 
+  // ——— Preferences de notifications US-14 ———
+  private notificationPreferences?: {
+    email: {
+      bookingConfirmation: boolean;
+      reminders: boolean;
+      marketing: boolean;
+    };
+    sms: {
+      bookingConfirmation: boolean;
+      reminders: boolean;
+    };
+  };
+
   constructor(_id: User) {
     this.id = _id;
   }
@@ -238,5 +251,41 @@ export class UserEntity {
       | undefined,
   ): void {
     this.healthProfile = value;
+  }
+
+  // ——— Preferences de notifications US-14 ———
+
+  getNotificationPreferences():
+    | {
+        email: {
+          bookingConfirmation: boolean;
+          reminders: boolean;
+          marketing: boolean;
+        };
+        sms: {
+          bookingConfirmation: boolean;
+          reminders: boolean;
+        };
+      }
+    | undefined {
+    return this.notificationPreferences;
+  }
+
+  setNotificationPreferences(
+    value:
+      | {
+          email: {
+            bookingConfirmation: boolean;
+            reminders: boolean;
+            marketing: boolean;
+          };
+          sms: {
+            bookingConfirmation: boolean;
+            reminders: boolean;
+          };
+        }
+      | undefined,
+  ): void {
+    this.notificationPreferences = value;
   }
 }
