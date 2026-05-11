@@ -7,6 +7,7 @@ import { AtStrategy } from '@core/strategies/at.strategy';
 import { HealthBaseModule } from '@features/health/health.module';
 import { UserBaseModule } from '@features/auth/modules/user.module';
 import { ProfessionalModule } from '@features/professional/professional.module';
+import { AdminModule } from '@features/admin/admin.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ProfessionalModule } from '@features/professional/professional.module';
     HealthBaseModule,
     UserBaseModule,
     ProfessionalModule,
+    AdminModule,
   ],
   providers: [
     AtStrategy,
