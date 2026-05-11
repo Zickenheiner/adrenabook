@@ -131,15 +131,25 @@ export default function LoginPage() {
               twoFactorRequired={twoFactorRequired}
             />
 
-            <p className="text-center text-sm text-muted-foreground">
-              Pas encore de compte ?{' '}
-              <Link
-                to={routes.register}
-                className="font-medium text-primary underline-offset-4 hover:underline"
-              >
-                Créer un compte
-              </Link>
-            </p>
+            <div className="space-y-3 text-center text-sm">
+              <p>
+                <Link
+                  to={routes.passwordResetRequest}
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </p>
+              <p className="text-muted-foreground">
+                Pas encore de compte ?{' '}
+                <Link
+                  to={routes.register}
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Créer un compte
+                </Link>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
