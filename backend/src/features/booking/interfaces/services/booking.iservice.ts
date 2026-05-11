@@ -1,5 +1,7 @@
 import {
   BookingResponseDto,
+  ConfirmPaymentDto,
+  ConfirmPaymentResponseDto,
   CreateBookingDto,
 } from '@features/booking/domains/dtos/booking.dto';
 
@@ -8,4 +10,8 @@ export interface IBookingService {
     dto: CreateBookingDto,
     userId: string,
   ): Promise<BookingResponseDto>;
+  confirmPayment(
+    id: string,
+    dto: ConfirmPaymentDto,
+  ): Promise<ConfirmPaymentResponseDto>;
 }

@@ -18,6 +18,10 @@ export class BookingEntity {
   private totalEur: number;
   private vatEur: number;
   private paymentIntentClientSecret: string;
+  private stripePaymentIntentId?: string;
+  private paidAmountEur?: number;
+  private remainingAmountEur?: number;
+  private finalPaymentDueAt?: Date;
 
   constructor(_id: Booking) {
     this.id = _id;
@@ -105,5 +109,39 @@ export class BookingEntity {
 
   setPaymentIntentClientSecret(value: string): void {
     this.paymentIntentClientSecret = value;
+  }
+
+  getStripePaymentIntentId(): string | undefined {
+    return this.stripePaymentIntentId;
+  }
+
+  getPaidAmountEur(): number | undefined {
+    return this.paidAmountEur;
+  }
+
+  getRemainingAmountEur(): number | undefined {
+    return this.remainingAmountEur;
+  }
+
+  getFinalPaymentDueAt(): Date | undefined {
+    return this.finalPaymentDueAt;
+  }
+
+  // ———————SETTER (new fields)———————
+
+  setStripePaymentIntentId(value: string): void {
+    this.stripePaymentIntentId = value;
+  }
+
+  setPaidAmountEur(value: number): void {
+    this.paidAmountEur = value;
+  }
+
+  setRemainingAmountEur(value: number): void {
+    this.remainingAmountEur = value;
+  }
+
+  setFinalPaymentDueAt(value: Date): void {
+    this.finalPaymentDueAt = value;
   }
 }

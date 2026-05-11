@@ -13,6 +13,7 @@ import { ActivityBaseModule } from '@features/activity/modules/activity.module';
 import { CenterBaseModule } from '@features/centers/modules/center.module';
 import { BookingBaseModule } from '@features/booking/modules/booking.module';
 import { WaiverBaseModule } from '@features/waiver/modules/waiver.module';
+import { PaymentBaseModule } from '@features/payment/modules/payment.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { WaiverBaseModule } from '@features/waiver/modules/waiver.module';
     CenterBaseModule,
     BookingBaseModule,
     WaiverBaseModule,
+    PaymentBaseModule,
   ],
   providers: [
     AtStrategy,

@@ -15,6 +15,18 @@ export class BookingMapper {
     entity.setTotalEur(doc.totalEur);
     entity.setVatEur(doc.vatEur);
     entity.setPaymentIntentClientSecret(doc.paymentIntentClientSecret);
+    if (doc.stripePaymentIntentId) {
+      entity.setStripePaymentIntentId(doc.stripePaymentIntentId);
+    }
+    if (doc.paidAmountEur !== undefined) {
+      entity.setPaidAmountEur(doc.paidAmountEur);
+    }
+    if (doc.remainingAmountEur !== undefined) {
+      entity.setRemainingAmountEur(doc.remainingAmountEur);
+    }
+    if (doc.finalPaymentDueAt) {
+      entity.setFinalPaymentDueAt(doc.finalPaymentDueAt);
+    }
     return entity;
   }
 }

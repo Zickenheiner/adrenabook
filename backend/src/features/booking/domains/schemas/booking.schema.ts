@@ -57,6 +57,18 @@ export class Booking {
 
   @Prop({ required: true, type: String })
   paymentIntentClientSecret: string;
+
+  @Prop({ required: false, type: String })
+  stripePaymentIntentId?: string;
+
+  @Prop({ required: false, type: Number })
+  paidAmountEur?: number;
+
+  @Prop({ required: false, type: Number })
+  remainingAmountEur?: number;
+
+  @Prop({ required: false, type: Date })
+  finalPaymentDueAt?: Date;
 }
 
 export const BookingSchema = SchemaFactory.createForClass(Booking);

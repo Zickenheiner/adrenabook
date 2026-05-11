@@ -1,5 +1,7 @@
 import {
   BookingResponseDto,
+  ConfirmPaymentDto,
+  ConfirmPaymentResponseDto,
   CreateBookingDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { IBookingService } from '@features/booking/interfaces/services/booking.iservice';
@@ -9,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
   Post,
   Req,
 } from '@nestjs/common';
@@ -16,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -58,5 +62,44 @@ export class BookingController {
     @Req() req: { user: { sub: string } },
   ): Promise<BookingResponseDto> {
     return this.bookingService.createBooking(dto, req.user.sub);
+  }
+
+  @ApiOperation({
+    summary: 'Confirmer le paiement Stripe (US-12)',
+    description:
+      "Confirme le paiement d'une reservation via un PaymentIntent Stripe. Applique un acompte de 30% (partial_paid) ou le paiement total (confirmed). Idempotent : rejet si la reservation est deja payee.",
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Identifiant de la reservation',
+  })
+  @ApiBody({
+    type: ConfirmPaymentDto,
+    description: 'PaymentIntent Stripe',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Paiement confirme',
+    type: ConfirmPaymentResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'PaymentIntent invalide ou montant incoherent',
+  })
+  @ApiResponse({ status: 401, description: 'Non authentifie' })
+  @ApiResponse({ status: 404, description: 'Reservation introuvable' })
+  @ApiResponse({
+    status: 409,
+    description: 'Paiement deja traite (idempotence)',
+  })
+  @Post(':id/confirm-payment')
+  @HttpCode(HttpStatus.OK)
+  async confirmPayment(
+    @Param('id') id: string,
+    @Body() dto: ConfirmPaymentDto,
+  ): Promise<ConfirmPaymentResponseDto> {
+    return this.bookingService.confirmPayment(id, dto);
   }
 }

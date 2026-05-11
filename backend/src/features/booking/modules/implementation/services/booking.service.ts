@@ -3,6 +3,8 @@ import { IBookingService } from '../../../interfaces/services/booking.iservice';
 import { IBookingRepository } from '@features/booking/interfaces/repositories/booking.irepository';
 import {
   BookingResponseDto,
+  ConfirmPaymentDto,
+  ConfirmPaymentResponseDto,
   CreateBookingDto,
 } from '@features/booking/domains/dtos/booking.dto';
 
@@ -27,5 +29,12 @@ export class BookingService implements IBookingService {
       vatEur: booking!.getVatEur(),
       paymentIntentClientSecret: booking!.getPaymentIntentClientSecret(),
     };
+  }
+
+  async confirmPayment(
+    id: string,
+    dto: ConfirmPaymentDto,
+  ): Promise<ConfirmPaymentResponseDto> {
+    return this.bookingRepository.confirmPayment(id, dto);
   }
 }

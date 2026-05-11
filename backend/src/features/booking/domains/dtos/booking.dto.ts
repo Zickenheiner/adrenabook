@@ -77,6 +77,50 @@ export class CreateBookingDto {
 
 export class UpdateBookingDto {}
 
+export class ConfirmPaymentDto {
+  @ApiProperty({
+    description: 'Identifiant du PaymentIntent Stripe',
+    example: 'pi_3OxxxxxxxxxxxxxxxxxxxxXX',
+  })
+  @IsString()
+  @IsNotEmpty()
+  paymentIntentId: string;
+}
+
+export class ConfirmPaymentResponseDto {
+  @ApiProperty({
+    description: 'Identifiant de la reservation',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  bookingId: string;
+
+  @ApiProperty({
+    description: 'Statut du paiement',
+    example: 'confirmed',
+    enum: ['confirmed', 'partial_paid'],
+  })
+  status: 'confirmed' | 'partial_paid';
+
+  @ApiProperty({
+    description: 'Montant paye en euros',
+    example: 36.0,
+  })
+  paidAmountEur: number;
+
+  @ApiProperty({
+    description: 'Montant restant a payer en euros',
+    example: 84.0,
+  })
+  remainingAmountEur: number;
+
+  @ApiProperty({
+    description: 'Date limite pour le paiement du solde (ISO 8601, J-7)',
+    example: '2026-06-04T10:00:00.000Z',
+    required: false,
+  })
+  finalPaymentDueAt?: string;
+}
+
 export class BookingResponseDto {
   @ApiProperty({
     description: 'Identifiant de la réservation créée',
