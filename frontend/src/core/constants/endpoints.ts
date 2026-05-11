@@ -40,6 +40,9 @@ const endpoints = {
     base: '/bookings',
     byId: (id: string) => `/bookings/${id}`,
   },
+  waiver: {
+    sign: (bookingId: string) => `/bookings/${bookingId}/waiver/sign`,
+  },
 };
 
 export default endpoints;

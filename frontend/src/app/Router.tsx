@@ -19,6 +19,7 @@ import ActivityDetailPage from '@/features/activity-detail/presentation/pages/Ac
 import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPage';
 import BookingPage from '@/features/booking/presentation/pages/BookingPage';
 import BookingConfirmationPage from '@/features/booking/presentation/pages/BookingConfirmationPage';
+import WaiverSignPage from '@/features/waiver/presentation/pages/WaiverSignPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -76,6 +77,7 @@ export default function Router() {
           path={routes.bookingConfirmation}
           element={<BookingConfirmationPage />}
         />
+        <Route path={routes.waiverSign} element={<WaiverSignPage />} />
       </Route>
     );
   };

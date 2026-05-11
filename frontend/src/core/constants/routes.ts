@@ -18,6 +18,7 @@ const routes = {
   centerMap: '/centers/map',
   bookingNew: '/bookings/new',
   bookingConfirmation: '/bookings/:id/confirmation',
+  waiverSign: '/bookings/:id/waiver',
 };
 
 export default routes;
