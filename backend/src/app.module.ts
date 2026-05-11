@@ -11,6 +11,7 @@ import { AdminModule } from '@features/admin/admin.module';
 import { SlotBaseModule } from '@features/slot/modules/slot.module';
 import { ActivityBaseModule } from '@features/activity/modules/activity.module';
 import { CenterBaseModule } from '@features/centers/modules/center.module';
+import { BookingBaseModule } from '@features/booking/modules/booking.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { CenterBaseModule } from '@features/centers/modules/center.module';
     SlotBaseModule,
     ActivityBaseModule,
     CenterBaseModule,
+    BookingBaseModule,
   ],
   providers: [
     AtStrategy,
