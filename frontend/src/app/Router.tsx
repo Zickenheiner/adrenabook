@@ -14,11 +14,13 @@ import AdminCenterReviewPage from '@/features/admin-kyc/presentation/pages/Admin
 import HealthProfilePage from '@/features/health-profile/presentation/pages/HealthProfilePage';
 import ProActivityListPage from '@/features/pro-activities/presentation/pages/ProActivityListPage';
 import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/ProActivityCreatePage';
+import ActivitySearchPage from '@/features/activity-search/presentation/pages/ActivitySearchPage';
 
 export default function Router() {
   const PublicRoutes = () => {
     return (
       <Route element={<Public redirect={routes.home} />}>
+        <Route path={routes.activitySearch} element={<ActivitySearchPage />} />
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
         <Route

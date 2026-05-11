@@ -24,6 +24,12 @@ const endpoints = {
     base: '/pro/activities',
     byId: (id: string) => `/pro/activities/${id}`,
   },
+  proSlots: {
+    create: (activityId: string) => `/pro/activities/${activityId}/slots`,
+  },
+  activitySearch: {
+    search: '/activities/search',
+  },
 };
 
 export default endpoints;
