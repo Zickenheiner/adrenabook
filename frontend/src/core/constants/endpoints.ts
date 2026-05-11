@@ -50,6 +50,9 @@ const endpoints = {
   invoice: {
     byBookingId: (bookingId: string) => `/bookings/${bookingId}/invoice`,
   },
+  notificationPreferences: {
+    update: '/users/me/notification-preferences',
+  },
 };
 
 export default endpoints;

@@ -23,6 +23,7 @@ import WaiverSignPage from '@/features/waiver/presentation/pages/WaiverSignPage'
 import PaymentPage from '@/features/payment/presentation/pages/PaymentPage';
 import PaymentSuccessPage from '@/features/payment/presentation/pages/PaymentSuccessPage';
 import InvoiceDownloadPage from '@/features/invoice/presentation/pages/InvoiceDownloadPage';
+import NotificationPreferencesPage from '@/features/notification-preferences/presentation/pages/NotificationPreferencesPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -86,6 +87,10 @@ export default function Router() {
         <Route
           path={routes.invoiceDownload}
           element={<InvoiceDownloadPage />}
+        />
+        <Route
+          path={routes.notificationPreferences}
+          element={<NotificationPreferencesPage />}
         />
       </Route>
     );
