@@ -12,6 +12,7 @@ import { SlotBaseModule } from '@features/slot/modules/slot.module';
 import { ActivityBaseModule } from '@features/activity/modules/activity.module';
 import { CenterBaseModule } from '@features/centers/modules/center.module';
 import { BookingBaseModule } from '@features/booking/modules/booking.module';
+import { WaiverBaseModule } from '@features/waiver/modules/waiver.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { BookingBaseModule } from '@features/booking/modules/booking.module';
     ActivityBaseModule,
     CenterBaseModule,
     BookingBaseModule,
+    WaiverBaseModule,
   ],
   providers: [
     AtStrategy,
