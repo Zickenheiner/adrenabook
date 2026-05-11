@@ -17,4 +17,12 @@ export interface IUserRepository {
   create(dto: CreateUserDto): Promise<boolean>;
   update(id: string, dto: UpdateUserDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;
+
+  // ——— Securite US-02 ———
+  incrementFailedAttempts(id: string): Promise<UserEntity | null>;
+  lockAccount(id: string, lockedUntil: Date): Promise<boolean>;
+  resetFailedAttempts(id: string): Promise<boolean>;
+  setTwoFactorCode(id: string, code: string, expiresAt: Date): Promise<boolean>;
+  clearTwoFactorCode(id: string): Promise<boolean>;
+  setRefreshTokenHash(id: string, hash: string): Promise<boolean>;
 }

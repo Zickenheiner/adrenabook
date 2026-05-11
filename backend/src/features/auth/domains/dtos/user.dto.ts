@@ -113,6 +113,88 @@ export class RegisterResponseDto {
 }
 
 /**
+ * LoginDto — Connexion securisee (US-02)
+ * Validation :
+ * - email RFC 5322
+ * - password non vide
+ * - twoFactorCode optionnel (requis si 2FA active sur le compte)
+ */
+export class LoginDto {
+  @ApiProperty({
+    description: "Email de l'utilisateur",
+    example: 'aventurier@example.com',
+  })
+  @IsEmail({}, { message: "L'email doit etre au format valide (RFC 5322)" })
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({
+    description: "Mot de passe de l'utilisateur",
+    example: 'MySecureP@ssw0rd!',
+  })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+
+  @ApiProperty({
+    description: 'Code 2FA recu par email (requis si 2FA active)',
+    example: '123456',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  twoFactorCode?: string;
+}
+
+/**
+ * UserPublicDto — Informations publiques retournees apres login
+ */
+export class UserPublicDto {
+  @ApiProperty({
+    description: "Identifiant unique de l'utilisateur",
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: "Email de l'utilisateur",
+    example: 'aventurier@example.com',
+  })
+  email: string;
+
+  @ApiProperty({
+    description: "Role de l'utilisateur",
+    example: 'aventurier',
+    enum: ['aventurier', 'professionnel', 'admin'],
+  })
+  role: 'aventurier' | 'professionnel' | 'admin';
+}
+
+/**
+ * LoginResponseDto — Reponse a la connexion reussie
+ */
+export class LoginResponseDto {
+  @ApiProperty({
+    description: 'JWT access token (duree de vie 15 minutes)',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  accessToken: string;
+
+  @ApiProperty({
+    description:
+      'Refresh token (duree de vie 7 jours, egalement defini en cookie httpOnly)',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  refreshToken: string;
+
+  @ApiProperty({
+    description: "Informations publiques de l'utilisateur connecte",
+    type: UserPublicDto,
+  })
+  user: UserPublicDto;
+}
+
+/**
  * DTOs CRUD legacy (non utilises par US-01 mais conserves pour la base)
  */
 export class CreateUserDto {

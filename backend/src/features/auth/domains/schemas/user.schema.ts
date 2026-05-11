@@ -43,6 +43,26 @@ export class User {
 
   @Prop({ required: false, type: String, default: 'Aventurier' })
   role: string;
+
+  // ——— Champs securite US-02 ———
+
+  @Prop({ required: true, type: Number, default: 0 })
+  failedLoginAttempts: number;
+
+  @Prop({ required: false, type: Date })
+  lockedUntil?: Date;
+
+  @Prop({ required: true, type: Boolean, default: false })
+  twoFactorEnabled: boolean;
+
+  @Prop({ required: false, type: String })
+  twoFactorCode?: string;
+
+  @Prop({ required: false, type: Date })
+  twoFactorCodeExpiresAt?: Date;
+
+  @Prop({ required: false, type: String })
+  refreshTokenHash?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -19,6 +19,14 @@ export class UserEntity {
   private emailVerificationToken?: string;
   private role: string;
 
+  // ——— Champs securite US-02 ———
+  private failedLoginAttempts: number;
+  private lockedUntil?: Date;
+  private twoFactorEnabled: boolean;
+  private twoFactorCode?: string;
+  private twoFactorCodeExpiresAt?: Date;
+  private refreshTokenHash?: string;
+
   constructor(_id: User) {
     this.id = _id;
   }
@@ -73,6 +81,30 @@ export class UserEntity {
     return this.role;
   }
 
+  getFailedLoginAttempts(): number {
+    return this.failedLoginAttempts;
+  }
+
+  getLockedUntil(): Date | undefined {
+    return this.lockedUntil;
+  }
+
+  getTwoFactorEnabled(): boolean {
+    return this.twoFactorEnabled;
+  }
+
+  getTwoFactorCode(): string | undefined {
+    return this.twoFactorCode;
+  }
+
+  getTwoFactorCodeExpiresAt(): Date | undefined {
+    return this.twoFactorCodeExpiresAt;
+  }
+
+  getRefreshTokenHash(): string | undefined {
+    return this.refreshTokenHash;
+  }
+
   // ———————SETTER———————
 
   setEmail(value: string): void {
@@ -113,5 +145,29 @@ export class UserEntity {
 
   setRole(value: string): void {
     this.role = value;
+  }
+
+  setFailedLoginAttempts(value: number): void {
+    this.failedLoginAttempts = value;
+  }
+
+  setLockedUntil(value: Date | undefined): void {
+    this.lockedUntil = value;
+  }
+
+  setTwoFactorEnabled(value: boolean): void {
+    this.twoFactorEnabled = value;
+  }
+
+  setTwoFactorCode(value: string | undefined): void {
+    this.twoFactorCode = value;
+  }
+
+  setTwoFactorCodeExpiresAt(value: Date | undefined): void {
+    this.twoFactorCodeExpiresAt = value;
+  }
+
+  setRefreshTokenHash(value: string | undefined): void {
+    this.refreshTokenHash = value;
   }
 }

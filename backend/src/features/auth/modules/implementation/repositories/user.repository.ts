@@ -52,6 +52,8 @@ export class UserRepository implements IUserRepository {
       emailVerified: false,
       emailVerificationToken,
       role: 'Aventurier',
+      failedLoginAttempts: 0,
+      twoFactorEnabled: false,
     });
     const created = await document.save();
     return created ? this.userMapper.toEntity(created) : null;
@@ -73,5 +75,69 @@ export class UserRepository implements IUserRepository {
   async delete(id: string): Promise<boolean> {
     const result = await this.userModel.findByIdAndDelete(id).exec();
     return !!result;
+  }
+
+  // ——— Securite US-02 ———
+
+  async incrementFailedAttempts(id: string): Promise<UserEntity | null> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { $inc: { failedLoginAttempts: 1 } },
+        { new: true },
+      )
+      .exec();
+    return updated ? this.userMapper.toEntity(updated) : null;
+  }
+
+  async lockAccount(id: string, lockedUntil: Date): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { lockedUntil }, { new: true })
+      .exec();
+    return !!updated;
+  }
+
+  async resetFailedAttempts(id: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { failedLoginAttempts: 0, $unset: { lockedUntil: '' } },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
+
+  async setTwoFactorCode(
+    id: string,
+    code: string,
+    expiresAt: Date,
+  ): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { twoFactorCode: code, twoFactorCodeExpiresAt: expiresAt },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
+
+  async clearTwoFactorCode(id: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { $unset: { twoFactorCode: '', twoFactorCodeExpiresAt: '' } },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
+
+  async setRefreshTokenHash(id: string, hash: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { refreshTokenHash: hash }, { new: true })
+      .exec();
+    return !!updated;
   }
 }
