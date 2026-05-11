@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, X, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
-import { cn } from '@/core/lib/utils';
+import { cn } from '@/core/utils/cn';
 
 interface Props {
   label: string;

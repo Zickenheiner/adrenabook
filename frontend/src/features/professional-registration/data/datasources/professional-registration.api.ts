@@ -1,6 +1,6 @@
 import endpoints from '@/core/constants/endpoints';
 import request from '@/core/config/api';
-import { METHODS } from '@/core/constants/methods';
+import methods from '@/core/constants/methods';
 import type {
   RegisterProfessionalRequestDto,
   RegisterProfessionalResponseDto,
@@ -16,7 +16,7 @@ class ProfessionalRegistrationApi {
   ): Promise<RegisterProfessionalResponseDto> {
     return request<RegisterProfessionalResponseDto>({
       url: this.baseUrl,
-      method: METHODS.POST,
+      method: methods.POST,
       data,
     });
   }

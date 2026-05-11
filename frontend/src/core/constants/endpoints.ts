@@ -12,6 +12,11 @@ const endpoints = {
   system: {
     health: '/health',
   },
+  adminCenters: {
+    review: (id: string) => `/admin/centers/${id}/review`,
+    list: '/admin/centers',
+    byId: (id: string) => `/admin/centers/${id}`,
+  },
 };
 
 export default endpoints;

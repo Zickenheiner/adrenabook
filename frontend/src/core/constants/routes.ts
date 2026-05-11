@@ -7,6 +7,8 @@ const routes = {
   professionalRegister: '/register/professional',
   professionalRegisterSuccess: '/register/professional/success',
   systemHealth: '/system/health',
+  adminCenterList: '/admin/centers',
+  adminCenterReview: '/admin/centers/:id/review',
 };
 
 export default routes;

@@ -1,4 +1,4 @@
-import { cn } from '@/core/lib/utils';
+import { cn } from '@/core/utils/cn';
 import { Check } from 'lucide-react';
 
 interface Step {

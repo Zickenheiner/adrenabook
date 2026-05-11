@@ -9,6 +9,8 @@ import PasswordResetRequestPage from '@/features/auth/presentation/pages/Passwor
 import PasswordResetConfirmPage from '@/features/auth/presentation/pages/PasswordResetConfirmPage';
 import ProfessionalRegistrationPage from '@/features/professional-registration/presentation/pages/ProfessionalRegistrationPage';
 import ProfessionalRegistrationSuccessPage from '@/features/professional-registration/presentation/pages/ProfessionalRegistrationSuccessPage';
+import AdminCenterListPage from '@/features/admin-kyc/presentation/pages/AdminCenterListPage';
+import AdminCenterReviewPage from '@/features/admin-kyc/presentation/pages/AdminCenterReviewPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -41,6 +43,14 @@ export default function Router() {
       <Route element={<Private redirect={routes.login} />}>
         <Route path={routes.home} element={<h1>Private Route</h1>} />
         <Route path={routes.systemHealth} element={<SystemHealthPage />} />
+        <Route
+          path={routes.adminCenterList}
+          element={<AdminCenterListPage />}
+        />
+        <Route
+          path={routes.adminCenterReview}
+          element={<AdminCenterReviewPage />}
+        />
       </Route>
     );
   };
