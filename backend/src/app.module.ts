@@ -8,6 +8,7 @@ import { HealthBaseModule } from '@features/health/health.module';
 import { UserBaseModule } from '@features/auth/modules/user.module';
 import { ProfessionalModule } from '@features/professional/professional.module';
 import { AdminModule } from '@features/admin/admin.module';
+import { SlotBaseModule } from '@features/slot/modules/slot.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AdminModule } from '@features/admin/admin.module';
     UserBaseModule,
     ProfessionalModule,
     AdminModule,
+    SlotBaseModule,
   ],
   providers: [
     AtStrategy,
