@@ -53,6 +53,9 @@ const endpoints = {
   notificationPreferences: {
     update: '/users/me/notification-preferences',
   },
+  bookingCancellation: {
+    cancel: (bookingId: string) => `/bookings/${bookingId}/cancel`,
+  },
 };
 
 export default endpoints;

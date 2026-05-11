@@ -24,6 +24,7 @@ import PaymentPage from '@/features/payment/presentation/pages/PaymentPage';
 import PaymentSuccessPage from '@/features/payment/presentation/pages/PaymentSuccessPage';
 import InvoiceDownloadPage from '@/features/invoice/presentation/pages/InvoiceDownloadPage';
 import NotificationPreferencesPage from '@/features/notification-preferences/presentation/pages/NotificationPreferencesPage';
+import BookingCancellationPage from '@/features/booking-cancellation/presentation/pages/BookingCancellationPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -91,6 +92,10 @@ export default function Router() {
         <Route
           path={routes.notificationPreferences}
           element={<NotificationPreferencesPage />}
+        />
+        <Route
+          path={routes.bookingCancellation}
+          element={<BookingCancellationPage />}
         />
       </Route>
     );

@@ -23,6 +23,7 @@ const routes = {
   paymentSuccess: '/bookings/:id/payment/success',
   invoiceDownload: '/bookings/:id/invoice',
   notificationPreferences: '/profile/notifications',
+  bookingCancellation: '/bookings/:id/cancel',
 };
 
 export default routes;
