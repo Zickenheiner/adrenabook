@@ -22,6 +22,7 @@ import BookingConfirmationPage from '@/features/booking/presentation/pages/Booki
 import WaiverSignPage from '@/features/waiver/presentation/pages/WaiverSignPage';
 import PaymentPage from '@/features/payment/presentation/pages/PaymentPage';
 import PaymentSuccessPage from '@/features/payment/presentation/pages/PaymentSuccessPage';
+import InvoiceDownloadPage from '@/features/invoice/presentation/pages/InvoiceDownloadPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -82,6 +83,10 @@ export default function Router() {
         <Route path={routes.waiverSign} element={<WaiverSignPage />} />
         <Route path={routes.paymentPage} element={<PaymentPage />} />
         <Route path={routes.paymentSuccess} element={<PaymentSuccessPage />} />
+        <Route
+          path={routes.invoiceDownload}
+          element={<InvoiceDownloadPage />}
+        />
       </Route>
     );
   };

@@ -21,6 +21,7 @@ const routes = {
   waiverSign: '/bookings/:id/waiver',
   paymentPage: '/bookings/:id/payment',
   paymentSuccess: '/bookings/:id/payment/success',
+  invoiceDownload: '/bookings/:id/invoice',
 };
 
 export default routes;

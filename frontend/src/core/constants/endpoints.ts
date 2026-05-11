@@ -47,6 +47,9 @@ const endpoints = {
     confirmPayment: (bookingId: string) =>
       `/bookings/${bookingId}/confirm-payment`,
   },
+  invoice: {
+    byBookingId: (bookingId: string) => `/bookings/${bookingId}/invoice`,
+  },
 };
 
 export default endpoints;
