@@ -33,6 +33,9 @@ const endpoints = {
   activityDetail: {
     byId: (id: string) => `/activities/${id}`,
   },
+  centerMap: {
+    map: '/centers/map',
+  },
 };
 
 export default endpoints;

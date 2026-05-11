@@ -16,6 +16,7 @@ import ProActivityListPage from '@/features/pro-activities/presentation/pages/Pr
 import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/ProActivityCreatePage';
 import ActivitySearchPage from '@/features/activity-search/presentation/pages/ActivitySearchPage';
 import ActivityDetailPage from '@/features/activity-detail/presentation/pages/ActivityDetailPage';
+import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -23,6 +24,7 @@ export default function Router() {
       <Route element={<Public redirect={routes.home} />}>
         <Route path={routes.activitySearch} element={<ActivitySearchPage />} />
         <Route path={routes.activityDetail} element={<ActivityDetailPage />} />
+        <Route path={routes.centerMap} element={<CenterMapPage />} />
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
         <Route
