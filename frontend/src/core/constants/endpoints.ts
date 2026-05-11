@@ -43,6 +43,10 @@ const endpoints = {
   waiver: {
     sign: (bookingId: string) => `/bookings/${bookingId}/waiver/sign`,
   },
+  payment: {
+    confirmPayment: (bookingId: string) =>
+      `/bookings/${bookingId}/confirm-payment`,
+  },
 };
 
 export default endpoints;

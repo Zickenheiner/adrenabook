@@ -20,6 +20,8 @@ import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPag
 import BookingPage from '@/features/booking/presentation/pages/BookingPage';
 import BookingConfirmationPage from '@/features/booking/presentation/pages/BookingConfirmationPage';
 import WaiverSignPage from '@/features/waiver/presentation/pages/WaiverSignPage';
+import PaymentPage from '@/features/payment/presentation/pages/PaymentPage';
+import PaymentSuccessPage from '@/features/payment/presentation/pages/PaymentSuccessPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -78,6 +80,8 @@ export default function Router() {
           element={<BookingConfirmationPage />}
         />
         <Route path={routes.waiverSign} element={<WaiverSignPage />} />
+        <Route path={routes.paymentPage} element={<PaymentPage />} />
+        <Route path={routes.paymentSuccess} element={<PaymentSuccessPage />} />
       </Route>
     );
   };

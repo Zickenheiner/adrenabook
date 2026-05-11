@@ -19,6 +19,8 @@ const routes = {
   bookingNew: '/bookings/new',
   bookingConfirmation: '/bookings/:id/confirmation',
   waiverSign: '/bookings/:id/waiver',
+  paymentPage: '/bookings/:id/payment',
+  paymentSuccess: '/bookings/:id/payment/success',
 };
 
 export default routes;
