@@ -495,3 +495,204 @@ export class SearchActivitiesResponseDto {
   })
   pageSize: number;
 }
+
+export class ActivityDetailPhotoDto {
+  @ApiProperty({
+    description: 'URL of the photo',
+    example: 'https://cdn.adrenabook.fr/photos/abc123.jpg',
+  })
+  url: string;
+
+  @ApiProperty({
+    description: 'Alternative text for accessibility',
+    example: 'Saut en parachute au-dessus des Alpes',
+  })
+  alt: string;
+}
+
+export class ActivityDetailVideoDto {
+  @ApiProperty({
+    description: 'URL of the video',
+    example: 'https://cdn.adrenabook.fr/videos/def456.mp4',
+  })
+  url: string;
+
+  @ApiProperty({
+    description: 'URL of the video thumbnail',
+    example: 'https://cdn.adrenabook.fr/thumbnails/def456.jpg',
+  })
+  thumbnail: string;
+}
+
+export class ActivityDetailCenterLocationDto {
+  @ApiProperty({
+    description: 'Latitude',
+    example: 45.764,
+  })
+  lat: number;
+
+  @ApiProperty({
+    description: 'Longitude',
+    example: 4.8357,
+  })
+  lng: number;
+
+  @ApiProperty({
+    description: 'Human-readable address',
+    example: '12 Rue de la Montagne, 69001 Lyon, France',
+  })
+  address: string;
+}
+
+export class ActivityDetailCenterDto {
+  @ApiProperty({
+    description: 'Center ID',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Center name',
+    example: 'Centre Aventure Alpes',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Center location',
+    type: ActivityDetailCenterLocationDto,
+  })
+  location: ActivityDetailCenterLocationDto;
+}
+
+export class ActivityDetailUpcomingSlotDto {
+  @ApiProperty({
+    description: 'Slot ID',
+    example: '68b4d59919d9b7a94b4fde22',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Slot start date/time (ISO 8601)',
+    example: '2026-06-15T09:00:00.000Z',
+  })
+  startAt: string;
+
+  @ApiProperty({
+    description: 'Remaining available seats',
+    example: 5,
+  })
+  remainingSeats: number;
+
+  @ApiProperty({
+    description: 'Price for this slot in euros',
+    example: 150,
+  })
+  priceEur: number;
+}
+
+export class ActivityDetailReviewsSummaryDto {
+  @ApiProperty({
+    description: 'Total number of verified reviews',
+    example: 42,
+  })
+  count: number;
+
+  @ApiProperty({
+    description: 'Average rating (0–5)',
+    example: 4.7,
+  })
+  averageRating: number;
+}
+
+export class ActivityDetailResponseDto {
+  @ApiProperty({
+    description: 'Activity ID',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Activity title',
+    example: 'Parachute en tandem',
+  })
+  title: string;
+
+  @ApiProperty({
+    description: 'Activity description',
+    example: 'Saut en parachute en tandem avec un instructeur certifié',
+  })
+  description: string;
+
+  @ApiProperty({
+    description: 'Activity type',
+    example: 'parachute',
+  })
+  type: string;
+
+  @ApiProperty({
+    description: 'Difficulty level',
+    example: 'beginner',
+    enum: ['beginner', 'intermediate', 'advanced'],
+  })
+  difficulty: string;
+
+  @ApiProperty({
+    description: 'Duration in minutes',
+    example: 60,
+  })
+  durationMinutes: number;
+
+  @ApiProperty({
+    description: 'Starting price in euros',
+    example: 150,
+  })
+  priceFromEur: number;
+
+  @ApiProperty({
+    description: 'Prerequisites for the activity',
+  })
+  prerequisites: {
+    minAge: number;
+    maxAge?: number;
+    minWeightKg?: number;
+    maxWeightKg?: number;
+    medicalCertificateRequired: boolean;
+  };
+
+  @ApiProperty({
+    description: 'List of included equipment',
+    type: [String],
+    example: ['combinaison', 'casque'],
+  })
+  includedEquipment: string[];
+
+  @ApiProperty({
+    description: 'Photos of the activity',
+    type: [ActivityDetailPhotoDto],
+  })
+  photos: ActivityDetailPhotoDto[];
+
+  @ApiProperty({
+    description: 'Videos of the activity',
+    type: [ActivityDetailVideoDto],
+  })
+  videos: ActivityDetailVideoDto[];
+
+  @ApiProperty({
+    description: 'Center information',
+    type: ActivityDetailCenterDto,
+  })
+  center: ActivityDetailCenterDto;
+
+  @ApiProperty({
+    description: 'Upcoming available slots within the next 90 days',
+    type: [ActivityDetailUpcomingSlotDto],
+  })
+  upcomingSlots: ActivityDetailUpcomingSlotDto[];
+
+  @ApiProperty({
+    description: 'Reviews summary',
+    type: ActivityDetailReviewsSummaryDto,
+  })
+  reviewsSummary: ActivityDetailReviewsSummaryDto;
+}

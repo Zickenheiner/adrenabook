@@ -5,8 +5,9 @@ import {
   Activity,
   ActivityDocument,
 } from '@features/activity/domains/schemas/activity.schema';
-import { Model, PipelineStage } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import {
+  ActivityDetailResponseDto,
   CreateActivityDto,
   SearchActivitiesItemDto,
   SearchActivitiesQueryDto,
@@ -15,6 +16,42 @@ import {
 } from '@features/activity/domains/dtos/activity.dto';
 import { ActivityEntity } from '@features/activity/domains/entities/activity.entity';
 import { InjectModel } from '@nestjs/mongoose';
+
+interface ActivityDetailAggregationResult {
+  _id: Types.ObjectId;
+  title: string;
+  description: string;
+  type: string;
+  difficulty: string;
+  durationMinutes: number;
+  priceFromEur: number;
+  prerequisites: {
+    minAge: number;
+    maxAge?: number;
+    minWeightKg?: number;
+    maxWeightKg?: number;
+    medicalCertificateRequired: boolean;
+  };
+  includedEquipment: string[];
+  photoFileIds: string[];
+  status: string;
+  center?: {
+    _id: Types.ObjectId;
+    companyName: string;
+    address?: {
+      street: string;
+      city: string;
+      postalCode: string;
+      country: string;
+    };
+  };
+  upcomingSlots: Array<{
+    _id: Types.ObjectId;
+    startAt: Date;
+    maxParticipants: number;
+    priceEur: number;
+  }>;
+}
 
 @Injectable()
 export class ActivityRepository implements IActivityRepository {
@@ -34,6 +71,125 @@ export class ActivityRepository implements IActivityRepository {
   async findById(id: string): Promise<ActivityEntity | null> {
     const activity = await this.activityModel.findById(id).exec();
     return activity ? this.activityMapper.toEntity(activity) : null;
+  }
+
+  async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
+    const now = new Date();
+    const ninetyDaysLater = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+    let objectId: Types.ObjectId;
+    try {
+      objectId = new Types.ObjectId(id);
+    } catch {
+      return null;
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: { _id: objectId, status: 'published' } },
+      {
+        $lookup: {
+          from: 'professionalcenters',
+          localField: 'centerId',
+          foreignField: '_id',
+          as: 'centerArray',
+        },
+      },
+      {
+        $addFields: {
+          center: { $arrayElemAt: ['$centerArray', 0] },
+        },
+      },
+      {
+        $lookup: {
+          from: 'slots',
+          let: { actId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$activityId', '$$actId'] },
+                startAt: { $gte: now, $lte: ninetyDaysLater },
+              },
+            },
+            { $sort: { startAt: 1 } },
+            { $limit: 50 },
+          ],
+          as: 'upcomingSlots',
+        },
+      },
+      {
+        $project: {
+          centerArray: 0,
+        },
+      },
+    ];
+
+    const results =
+      await this.activityModel.aggregate<ActivityDetailAggregationResult>(
+        pipeline,
+      );
+
+    if (!results || results.length === 0) {
+      return null;
+    }
+
+    const doc = results[0];
+
+    const dto = new ActivityDetailResponseDto();
+    dto.id = doc._id.toString();
+    dto.title = doc.title;
+    dto.description = doc.description;
+    dto.type = doc.type;
+    dto.difficulty = doc.difficulty;
+    dto.durationMinutes = doc.durationMinutes;
+    dto.priceFromEur = doc.priceFromEur;
+    dto.prerequisites = doc.prerequisites;
+    dto.includedEquipment = doc.includedEquipment ?? [];
+
+    dto.photos = (doc.photoFileIds ?? []).map((fileId, index) => ({
+      url: fileId,
+      alt: `${doc.title} - photo ${index + 1}`,
+    }));
+
+    dto.videos = [];
+
+    if (doc.center) {
+      const addr = doc.center.address;
+      const addressStr = addr
+        ? `${addr.street}, ${addr.postalCode} ${addr.city}, ${addr.country}`
+        : '';
+      dto.center = {
+        id: doc.center._id.toString(),
+        name: doc.center.companyName,
+        location: {
+          lat: 0,
+          lng: 0,
+          address: addressStr,
+        },
+      };
+    } else {
+      dto.center = {
+        id: '',
+        name: '',
+        location: { lat: 0, lng: 0, address: '' },
+      };
+    }
+
+    dto.upcomingSlots = (doc.upcomingSlots ?? []).map((slot) => ({
+      id: slot._id.toString(),
+      startAt:
+        slot.startAt instanceof Date
+          ? slot.startAt.toISOString()
+          : String(slot.startAt),
+      remainingSeats: slot.maxParticipants,
+      priceEur: slot.priceEur,
+    }));
+
+    dto.reviewsSummary = {
+      count: 0,
+      averageRating: 0,
+    };
+
+    return dto;
   }
 
   async findByCenterId(centerId: string): Promise<ActivityEntity[] | null> {

@@ -1,11 +1,25 @@
 import {
+  ActivityDetailResponseDto,
   SearchActivitiesQueryDto,
   SearchActivitiesResponseDto,
 } from '@features/activity/domains/dtos/activity.dto';
 import { IActivityService } from '@features/activity/interfaces/services/activity.iservice';
 import { Public } from '@core/decorators/public.decorator';
-import { Controller, Get, Inject, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Inject,
+  NotFoundException,
+  Param,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('Activities — Search')
 @Controller('activities')
@@ -64,5 +78,37 @@ export class ActivitySearchController {
     @Query() query: SearchActivitiesQueryDto,
   ): Promise<SearchActivitiesResponseDto> {
     return this.activityService.search(query);
+  }
+
+  @Public()
+  @ApiOperation({
+    summary: "Fiche détaillée d'une activité (US-07)",
+    description:
+      "Retourne la fiche complète d'une activité publiée : galerie photos/vidéos, description, prérequis, équipement fourni, créneaux disponibles sur 90 jours, résumé des avis vérifiés.",
+  })
+  @ApiParam({
+    name: 'id',
+    description: "L'identifiant de l'activité",
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Fiche détaillée de l'activité",
+    type: ActivityDetailResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Activité introuvable ou désactivée',
+  })
+  @Get(':id')
+  async findDetail(
+    @Param('id') id: string,
+  ): Promise<ActivityDetailResponseDto> {
+    const detail = await this.activityService.findDetailById(id);
+    if (!detail) {
+      throw new NotFoundException('Activité introuvable ou désactivée');
+    }
+    return detail;
   }
 }

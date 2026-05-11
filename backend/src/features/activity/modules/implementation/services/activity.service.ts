@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { IActivityService } from '../../../interfaces/services/activity.iservice';
 import { IActivityRepository } from '@features/activity/interfaces/repositories/activity.irepository';
 import {
+  ActivityDetailResponseDto,
   ActivityResponseDto,
   CreateActivityDto,
   SearchActivitiesQueryDto,
@@ -23,6 +24,10 @@ export class ActivityService implements IActivityService {
 
   async findById(id: string): Promise<ActivityEntity | null> {
     return this.activityRepository.findById(id);
+  }
+
+  async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
+    return this.activityRepository.findDetailById(id);
   }
 
   async findByCenterId(centerId: string): Promise<ActivityEntity[] | null> {

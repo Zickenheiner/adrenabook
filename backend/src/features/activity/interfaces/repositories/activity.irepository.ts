@@ -1,4 +1,5 @@
 import {
+  ActivityDetailResponseDto,
   CreateActivityDto,
   SearchActivitiesQueryDto,
   SearchActivitiesResponseDto,
@@ -9,6 +10,7 @@ import { ActivityEntity } from '@features/activity/domains/entities/activity.ent
 export interface IActivityRepository {
   findAll(): Promise<ActivityEntity[] | null>;
   findById(id: string): Promise<ActivityEntity | null>;
+  findDetailById(id: string): Promise<ActivityDetailResponseDto | null>;
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
   create(
     dto: CreateActivityDto,

@@ -9,6 +9,7 @@ import { UserBaseModule } from '@features/auth/modules/user.module';
 import { ProfessionalModule } from '@features/professional/professional.module';
 import { AdminModule } from '@features/admin/admin.module';
 import { SlotBaseModule } from '@features/slot/modules/slot.module';
+import { ActivityBaseModule } from '@features/activity/modules/activity.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SlotBaseModule } from '@features/slot/modules/slot.module';
     ProfessionalModule,
     AdminModule,
     SlotBaseModule,
+    ActivityBaseModule,
   ],
   providers: [
     AtStrategy,
