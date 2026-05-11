@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from '@core/guards/access-token.guard';
 import { AtStrategy } from '@core/strategies/at.strategy';
 import { HealthBaseModule } from '@features/health/health.module';
+import { UserBaseModule } from '@features/auth/modules/user.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { HealthBaseModule } from '@features/health/health.module';
       inject: [ConfigService],
     }),
     HealthBaseModule,
+    UserBaseModule,
   ],
   providers: [
     AtStrategy,

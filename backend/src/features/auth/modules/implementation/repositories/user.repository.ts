@@ -1,0 +1,77 @@
+import { Injectable } from '@nestjs/common';
+import { IUserRepository } from '../../../interfaces/repositories/user.irepository';
+import { UserMapper } from '../mappers/user.mapper';
+import { User, UserDocument } from '@features/auth/domains/schemas/user.schema';
+import { Model } from 'mongoose';
+import {
+  CreateUserDto,
+  RegisterDto,
+  UpdateUserDto,
+} from '@features/auth/domains/dtos/user.dto';
+import { UserEntity } from '@features/auth/domains/entities/user.entity';
+import { InjectModel } from '@nestjs/mongoose';
+
+@Injectable()
+export class UserRepository implements IUserRepository {
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
+    private readonly userMapper: UserMapper,
+  ) {}
+
+  async findAll(): Promise<UserEntity[] | null> {
+    const users = await this.userModel.find().exec();
+    return users ? users.map((doc) => this.userMapper.toEntity(doc)) : null;
+  }
+
+  async findById(id: string): Promise<UserEntity | null> {
+    const user = await this.userModel.findById(id).exec();
+    return user ? this.userMapper.toEntity(user) : null;
+  }
+
+  async findByEmail(email: string): Promise<UserEntity | null> {
+    const user = await this.userModel
+      .findOne({ email: email.toLowerCase().trim() })
+      .exec();
+    return user ? this.userMapper.toEntity(user) : null;
+  }
+
+  async register(
+    dto: RegisterDto,
+    hashedPassword: string,
+    emailVerificationToken: string,
+  ): Promise<UserEntity | null> {
+    const document = new this.userModel({
+      email: dto.email,
+      password: hashedPassword,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      birthDate: new Date(dto.birthDate),
+      acceptCgu: dto.acceptCgu,
+      acceptRgpd: dto.acceptRgpd,
+      emailVerified: false,
+      emailVerificationToken,
+      role: 'Aventurier',
+    });
+    const created = await document.save();
+    return created ? this.userMapper.toEntity(created) : null;
+  }
+
+  async create(dto: CreateUserDto): Promise<boolean> {
+    const document = new this.userModel(dto);
+    const createdUser = await document.save();
+    return !!createdUser;
+  }
+
+  async update(id: string, dto: UpdateUserDto): Promise<boolean> {
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, dto, { new: true })
+      .exec();
+    return !!updatedUser;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await this.userModel.findByIdAndDelete(id).exec();
+    return !!result;
+  }
+}
