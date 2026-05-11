@@ -14,6 +14,7 @@ const routes = {
   proActivityCreate: '/pro/activities/new',
   proSlotManage: '/pro/activities/:id/slots',
   activitySearch: '/activities/search',
+  activityDetail: '/activities/:id',
 };
 
 export default routes;

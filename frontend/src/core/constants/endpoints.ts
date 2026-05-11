@@ -30,6 +30,9 @@ const endpoints = {
   activitySearch: {
     search: '/activities/search',
   },
+  activityDetail: {
+    byId: (id: string) => `/activities/${id}`,
+  },
 };
 
 export default endpoints;

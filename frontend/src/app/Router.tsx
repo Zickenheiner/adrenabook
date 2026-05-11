@@ -15,12 +15,14 @@ import HealthProfilePage from '@/features/health-profile/presentation/pages/Heal
 import ProActivityListPage from '@/features/pro-activities/presentation/pages/ProActivityListPage';
 import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/ProActivityCreatePage';
 import ActivitySearchPage from '@/features/activity-search/presentation/pages/ActivitySearchPage';
+import ActivityDetailPage from '@/features/activity-detail/presentation/pages/ActivityDetailPage';
 
 export default function Router() {
   const PublicRoutes = () => {
     return (
       <Route element={<Public redirect={routes.home} />}>
         <Route path={routes.activitySearch} element={<ActivitySearchPage />} />
+        <Route path={routes.activityDetail} element={<ActivityDetailPage />} />
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
         <Route
