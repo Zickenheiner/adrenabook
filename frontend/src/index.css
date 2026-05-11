@@ -1,102 +1,293 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+@import '@fontsource-variable/outfit';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+
+  --color-category-bungee: var(--category-bungee);
+  --color-category-bungee-bg: var(--category-bungee-bg);
+  --color-category-climbing: var(--category-climbing);
+  --color-category-climbing-bg: var(--category-climbing-bg);
+  --color-category-diving: var(--category-diving);
+  --color-category-diving-bg: var(--category-diving-bg);
+  --color-category-paragliding: var(--category-paragliding);
+  --color-category-paragliding-bg: var(--category-paragliding-bg);
+  --color-category-canyoning: var(--category-canyoning);
+  --color-category-canyoning-bg: var(--category-canyoning-bg);
+  --color-category-via-ferrata: var(--category-via-ferrata);
+  --color-category-via-ferrata-bg: var(--category-via-ferrata-bg);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 14px);
+
+  --font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit Variable', 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', monospace;
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Base */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+
+  /* Card / Surface */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  /* Popover */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  /* Primary — Adrenal Orange */
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+  --primary-hover: #ea580c;
+
+  /* Secondary — Slate doux */
+  --secondary: #f1f5f9;
+  --secondary-foreground: #334155;
+
+  /* Muted */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  /* Accent — Adrenal clair pour hover */
+  --accent: #fff7ed;
+  --accent-foreground: #c2410c;
+
+  /* Sémantique */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --info: #0ea5e9;
+  --info-foreground: #ffffff;
+
+  /* Bordures & inputs */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #f97316;
+
+  /* Charts (catégories activités) */
+  --chart-1: #f97316;
+  --chart-2: #16a34a;
+  --chart-3: #0ea5e9;
+  --chart-4: #06b6d4;
+  --chart-5: #14b8a6;
+  --chart-6: #eab308;
+
+  /* Catégories d'activités */
+  --category-bungee: #f97316;
+  --category-bungee-bg: #fff7ed;
+  --category-climbing: #16a34a;
+  --category-climbing-bg: #f0fdf4;
+  --category-diving: #0ea5e9;
+  --category-diving-bg: #f0f9ff;
+  --category-paragliding: #06b6d4;
+  --category-paragliding-bg: #ecfeff;
+  --category-canyoning: #14b8a6;
+  --category-canyoning-bg: #f0fdfa;
+  --category-via-ferrata: #eab308;
+  --category-via-ferrata-bg: #fefce8;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #334155;
+  --sidebar-primary: #f97316;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fff7ed;
+  --sidebar-accent-foreground: #c2410c;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #f97316;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  /* Base */
+  --background: #0f172a;
+  --foreground: #f8fafc;
+
+  /* Card / Surface */
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+
+  /* Popover */
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+
+  /* Primary — Adrenal Orange (légèrement éclairci en dark) */
+  --primary: #fb923c;
+  --primary-foreground: #0f172a;
+  --primary-hover: #f97316;
+
+  /* Secondary */
+  --secondary: #334155;
+  --secondary-foreground: #f8fafc;
+
+  /* Muted */
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  /* Accent */
+  --accent: #334155;
+  --accent-foreground: #fed7aa;
+
+  /* Sémantique */
+  --destructive: #f87171;
+  --destructive-foreground: #0f172a;
+  --success: #34d399;
+  --success-foreground: #0f172a;
+  --warning: #fbbf24;
+  --warning-foreground: #0f172a;
+  --info: #38bdf8;
+  --info-foreground: #0f172a;
+
+  /* Bordures & inputs */
+  --border: #334155;
+  --input: #334155;
+  --ring: #fb923c;
+
+  /* Charts */
+  --chart-1: #fb923c;
+  --chart-2: #4ade80;
+  --chart-3: #38bdf8;
+  --chart-4: #22d3ee;
+  --chart-5: #2dd4bf;
+  --chart-6: #facc15;
+
+  /* Catégories d'activités */
+  --category-bungee: #fb923c;
+  --category-bungee-bg: #431407;
+  --category-climbing: #4ade80;
+  --category-climbing-bg: #052e16;
+  --category-diving: #38bdf8;
+  --category-diving-bg: #082f49;
+  --category-paragliding: #22d3ee;
+  --category-paragliding-bg: #083344;
+  --category-canyoning: #2dd4bf;
+  --category-canyoning-bg: #042f2e;
+  --category-via-ferrata: #facc15;
+  --category-via-ferrata-bg: #422006;
+
+  /* Sidebar */
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #fb923c;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #fed7aa;
+  --sidebar-border: #334155;
+  --sidebar-ring: #fb923c;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  /* Chiffres tabulaires pour les prix (charte §2) */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
 }
