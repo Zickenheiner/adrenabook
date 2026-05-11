@@ -20,6 +20,10 @@ const endpoints = {
   healthProfile: {
     update: '/users/me/health-profile',
   },
+  proActivities: {
+    base: '/pro/activities',
+    byId: (id: string) => `/pro/activities/${id}`,
+  },
 };
 
 export default endpoints;

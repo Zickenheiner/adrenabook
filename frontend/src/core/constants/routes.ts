@@ -10,6 +10,8 @@ const routes = {
   adminCenterList: '/admin/centers',
   adminCenterReview: '/admin/centers/:id/review',
   healthProfile: '/profile/health',
+  proActivityList: '/pro/activities',
+  proActivityCreate: '/pro/activities/new',
 };
 
 export default routes;

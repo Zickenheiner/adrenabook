@@ -12,6 +12,8 @@ import ProfessionalRegistrationSuccessPage from '@/features/professional-registr
 import AdminCenterListPage from '@/features/admin-kyc/presentation/pages/AdminCenterListPage';
 import AdminCenterReviewPage from '@/features/admin-kyc/presentation/pages/AdminCenterReviewPage';
 import HealthProfilePage from '@/features/health-profile/presentation/pages/HealthProfilePage';
+import ProActivityListPage from '@/features/pro-activities/presentation/pages/ProActivityListPage';
+import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/ProActivityCreatePage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -53,6 +55,14 @@ export default function Router() {
           element={<AdminCenterReviewPage />}
         />
         <Route path={routes.healthProfile} element={<HealthProfilePage />} />
+        <Route
+          path={routes.proActivityList}
+          element={<ProActivityListPage />}
+        />
+        <Route
+          path={routes.proActivityCreate}
+          element={<ProActivityCreatePage />}
+        />
       </Route>
     );
   };
