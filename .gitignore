@@ -1,0 +1,11 @@
+.claude
+CLAUDE.md
+
+.env
+
+feature.sh
+files.sh
+
+docker-compose.dev.yml
+Dockerfile.dev
+setup.dev.sh

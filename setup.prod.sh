@@ -1,0 +1,139 @@
+#!/bin/sh
+set -e
+
+# ── Couleurs ──────────────────────────────────────────────────────────────────
+BOLD="\033[1m"
+GREEN="\033[0;32m"
+CYAN="\033[0;36m"
+YELLOW="\033[0;33m"
+RESET="\033[0m"
+
+echo ""
+echo "${BOLD}Setup — Configuration de l'environnement${RESET}"
+echo "─────────────────────────────────────────"
+echo ""
+
+# ── Questions ─────────────────────────────────────────────────────────────────
+
+DEFAULT_NAME=$(basename "$(cd "$(dirname "$0")" && pwd)" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+printf "${CYAN}Nom du projet${RESET} (défaut : ${BOLD}${DEFAULT_NAME}${RESET}) : "
+read APP_NAME_INPUT
+APP_NAME=${APP_NAME_INPUT:-$DEFAULT_NAME}
+APP_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+printf "${CYAN}Sous domaine${RESET} (par défaut aucun sous-domaine) : "
+read APP_SUBDOMAIN
+
+printf "${CYAN}Domaine (par défaut : ${BOLD}duckdns.org${RESET}) : "
+read APP_DOMAIN
+APP_DOMAIN=${APP_DOMAIN:-duckdns.org}
+
+APP_HOST="${APP_SUBDOMAIN:+$APP_SUBDOMAIN.}${APP_DOMAIN}"
+
+APP_PROTOCOL=https
+
+printf "${CYAN}Chemin vers le reverse-proxy${RESET} (défaut : ${BOLD}../reverse-proxy${RESET}) : "
+read PROXY_INPUT
+PROXY_PATH=${PROXY_INPUT:-../reverse-proxy}
+
+
+# ── Génération des secrets ────────────────────────────────────────────────────
+
+MONGO_PASS=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+ACCESS_TOKEN_SECRET=$(openssl rand -base64 64 | tr -d '\n')
+REFRESH_TOKEN_SECRET=$(openssl rand -base64 64 | tr -d '\n')
+COOKIE_SECRET=$(openssl rand -base64 64 | tr -d '\n')
+
+# ── Écriture du .env ──────────────────────────────────────────────────────────
+
+if [ -f .env ]; then
+  printf "\n${BOLD}.env existe déjà. Écraser ?${RESET} (o/N) : "
+  read CONFIRM
+  if [ "$CONFIRM" != "o" ] && [ "$CONFIRM" != "O" ]; then
+    echo "Annulé."
+    exit 0
+  fi
+fi
+
+cat > .env <<EOF
+# ── Application ───────────────────────────────────
+TZ=Europe/Paris
+
+# ── MongoDB ───────────────────────────────────────
+MONGO_USER=${APP_NAME}
+MONGO_PASS=${MONGO_PASS}
+MONGO_DB_NAME=${APP_NAME}
+MONGO_URL=mongodb://\${MONGO_USER}:\${MONGO_PASS}@mongo:27017/\${MONGO_DB_NAME}?authSource=admin
+
+# ── Déploiement ───────────────────────────────────
+COMPOSE_PROJECT_NAME=${APP_NAME}
+PROXY_PATH=${PROXY_PATH}
+
+# ── Host ──────────────────────────────────────────
+APP_HOST=${APP_HOST}
+
+# ── CORS / URLs ───────────────────────────────────
+CORS_ORIGIN=https://\${APP_HOST}
+VITE_API_URL=https://\${APP_HOST}/api/
+
+# ── JWT & Cookies ─────────────────────────────────
+ACCESS_TOKEN_EXPIRATION_TIME=1h
+ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+COOKIE_SECRET=${COOKIE_SECRET}
+EOF
+
+echo ""
+echo "${GREEN}✓ .env généré avec succès${RESET}"
+
+# ── Génération du fichier .caddy ──────────────────────────────────────────────
+
+CADDY_FILE="${APP_NAME}.caddy"
+
+if [ -d "$PROXY_PATH/conf.d" ]; then
+  CADDY_DEST="$PROXY_PATH/conf.d/$CADDY_FILE"
+else
+  CADDY_DEST="./$CADDY_FILE"
+fi
+
+cat > "$CADDY_DEST" <<EOF
+${APP_HOST} {
+    handle /api/* {
+        uri strip_prefix /api
+        reverse_proxy ${APP_NAME}-backend-1:3310
+    }
+    handle {
+        reverse_proxy ${APP_NAME}-frontend-1:80
+    }
+}
+EOF
+
+if [ -d "$PROXY_PATH/conf.d" ]; then
+  echo "${GREEN}✓ ${CADDY_FILE} généré dans ${PROXY_PATH}/conf.d/${RESET}"
+
+  # Reload Caddy si le stack reverse-proxy tourne
+  if docker compose -f "$PROXY_PATH/docker-compose.yml" ps --quiet caddy 2>/dev/null | grep -q .; then
+    docker compose -f "$PROXY_PATH/docker-compose.yml" exec caddy caddy reload --config /etc/caddy/Caddyfile
+    echo "${GREEN}✓ Caddy rechargé${RESET}"
+  else
+    echo "${YELLOW}⚠ Le reverse-proxy ne tourne pas encore.${RESET}"
+    echo "  Lance-le avec : cd ${PROXY_PATH} && make up"
+  fi
+else
+  echo "${YELLOW}⚠ Dossier reverse-proxy introuvable (${PROXY_PATH}).${RESET}"
+  echo "${GREEN}✓ ${CADDY_FILE} généré localement${RESET}"
+  echo "  Copie manuelle requise : cp ${CADDY_FILE} ${PROXY_PATH}/conf.d/"
+  echo "  Puis : cd ${PROXY_PATH} && make up (ou make reload si déjà lancé)"
+fi
+
+# ── Résumé ────────────────────────────────────────────────────────────────────
+
+echo ""
+echo "  Projet   : ${BOLD}${APP_NAME}${RESET}"
+echo "  URL      : ${BOLD}https://${APP_HOST}${RESET}"
+echo "  Mode     : ${BOLD}domain${RESET} (HTTPS via Let's Encrypt)"
+echo "  Timezone : ${BOLD}${TZ}${RESET}"
+echo "  Secrets  : ${GREEN}générés automatiquement${RESET}"
+echo ""
+echo "Lance ${BOLD}make up${RESET} pour démarrer."
+echo ""
