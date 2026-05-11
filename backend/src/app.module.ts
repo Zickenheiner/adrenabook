@@ -6,6 +6,7 @@ import { AccessTokenGuard } from '@core/guards/access-token.guard';
 import { AtStrategy } from '@core/strategies/at.strategy';
 import { HealthBaseModule } from '@features/health/health.module';
 import { UserBaseModule } from '@features/auth/modules/user.module';
+import { ProfessionalModule } from '@features/professional/professional.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UserBaseModule } from '@features/auth/modules/user.module';
     }),
     HealthBaseModule,
     UserBaseModule,
+    ProfessionalModule,
   ],
   providers: [
     AtStrategy,

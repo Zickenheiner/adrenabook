@@ -4,6 +4,8 @@ const routes = {
   register: '/register',
   passwordResetRequest: '/password-reset/request',
   passwordResetConfirm: '/password-reset/confirm',
+  professionalRegister: '/register/professional',
+  professionalRegisterSuccess: '/register/professional/success',
   systemHealth: '/system/health',
 };
 

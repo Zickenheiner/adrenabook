@@ -7,6 +7,8 @@ import RegisterPage from '@/features/auth/presentation/pages/RegisterPage';
 import LoginPage from '@/features/auth/presentation/pages/LoginPage';
 import PasswordResetRequestPage from '@/features/auth/presentation/pages/PasswordResetRequestPage';
 import PasswordResetConfirmPage from '@/features/auth/presentation/pages/PasswordResetConfirmPage';
+import ProfessionalRegistrationPage from '@/features/professional-registration/presentation/pages/ProfessionalRegistrationPage';
+import ProfessionalRegistrationSuccessPage from '@/features/professional-registration/presentation/pages/ProfessionalRegistrationSuccessPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -21,6 +23,14 @@ export default function Router() {
         <Route
           path={routes.passwordResetConfirm}
           element={<PasswordResetConfirmPage />}
+        />
+        <Route
+          path={routes.professionalRegister}
+          element={<ProfessionalRegistrationPage />}
+        />
+        <Route
+          path={routes.professionalRegisterSuccess}
+          element={<ProfessionalRegistrationSuccessPage />}
         />
       </Route>
     );

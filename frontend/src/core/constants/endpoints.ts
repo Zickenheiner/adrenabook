@@ -6,6 +6,9 @@ const endpoints = {
     passwordResetRequest: '/auth/password-reset/request',
     passwordResetConfirm: '/auth/password-reset/confirm',
   },
+  professionalAuth: {
+    register: '/auth/register/professional',
+  },
   system: {
     health: '/health',
   },
