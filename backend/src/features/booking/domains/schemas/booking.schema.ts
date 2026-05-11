@@ -69,6 +69,32 @@ export class Booking {
 
   @Prop({ required: false, type: Date })
   finalPaymentDueAt?: Date;
+
+  @Prop({
+    required: false,
+    type: String,
+    enum: ['personal', 'health', 'weather', 'other'],
+  })
+  cancellationReason?: string;
+
+  @Prop({ required: false, type: String })
+  cancellationComment?: string;
+
+  @Prop({ required: false, type: Date })
+  cancelledAt?: Date;
+
+  @Prop({ required: false, type: Number })
+  refundedAmountEur?: number;
+
+  @Prop({
+    required: false,
+    type: String,
+    enum: ['full', 'partial', 'none'],
+  })
+  refundPolicy?: string;
+
+  @Prop({ required: false, type: String })
+  stripeRefundId?: string;
 }
 
 export const BookingSchema = SchemaFactory.createForClass(Booking);

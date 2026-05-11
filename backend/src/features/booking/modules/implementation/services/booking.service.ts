@@ -3,6 +3,8 @@ import { IBookingService } from '../../../interfaces/services/booking.iservice';
 import { IBookingRepository } from '@features/booking/interfaces/repositories/booking.irepository';
 import {
   BookingResponseDto,
+  CancelBookingDto,
+  CancelBookingResponseDto,
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
@@ -36,5 +38,13 @@ export class BookingService implements IBookingService {
     dto: ConfirmPaymentDto,
   ): Promise<ConfirmPaymentResponseDto> {
     return this.bookingRepository.confirmPayment(id, dto);
+  }
+
+  async cancelBooking(
+    id: string,
+    dto: CancelBookingDto,
+    userId: string,
+  ): Promise<CancelBookingResponseDto> {
+    return this.bookingRepository.cancelBooking(id, dto, userId);
   }
 }

@@ -22,6 +22,12 @@ export class BookingEntity {
   private paidAmountEur?: number;
   private remainingAmountEur?: number;
   private finalPaymentDueAt?: Date;
+  private cancellationReason?: string;
+  private cancellationComment?: string;
+  private cancelledAt?: Date;
+  private refundedAmountEur?: number;
+  private refundPolicy?: string;
+  private stripeRefundId?: string;
 
   constructor(_id: Booking) {
     this.id = _id;
@@ -143,5 +149,53 @@ export class BookingEntity {
 
   setFinalPaymentDueAt(value: Date): void {
     this.finalPaymentDueAt = value;
+  }
+
+  getCancellationReason(): string | undefined {
+    return this.cancellationReason;
+  }
+
+  getCancellationComment(): string | undefined {
+    return this.cancellationComment;
+  }
+
+  getCancelledAt(): Date | undefined {
+    return this.cancelledAt;
+  }
+
+  getRefundedAmountEur(): number | undefined {
+    return this.refundedAmountEur;
+  }
+
+  getRefundPolicy(): string | undefined {
+    return this.refundPolicy;
+  }
+
+  getStripeRefundId(): string | undefined {
+    return this.stripeRefundId;
+  }
+
+  setCancellationReason(value: string): void {
+    this.cancellationReason = value;
+  }
+
+  setCancellationComment(value: string): void {
+    this.cancellationComment = value;
+  }
+
+  setCancelledAt(value: Date): void {
+    this.cancelledAt = value;
+  }
+
+  setRefundedAmountEur(value: number): void {
+    this.refundedAmountEur = value;
+  }
+
+  setRefundPolicy(value: string): void {
+    this.refundPolicy = value;
+  }
+
+  setStripeRefundId(value: string): void {
+    this.stripeRefundId = value;
   }
 }

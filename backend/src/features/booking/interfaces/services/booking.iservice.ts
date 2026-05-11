@@ -1,5 +1,7 @@
 import {
   BookingResponseDto,
+  CancelBookingDto,
+  CancelBookingResponseDto,
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
@@ -14,4 +16,9 @@ export interface IBookingService {
     id: string,
     dto: ConfirmPaymentDto,
   ): Promise<ConfirmPaymentResponseDto>;
+  cancelBooking(
+    id: string,
+    dto: CancelBookingDto,
+    userId: string,
+  ): Promise<CancelBookingResponseDto>;
 }

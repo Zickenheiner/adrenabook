@@ -1,9 +1,11 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { IBookingRepository } from '../../../interfaces/repositories/booking.irepository';
 import { BookingMapper } from '../mappers/booking.mapper';
 import {
@@ -13,6 +15,8 @@ import {
 import { Slot, SlotDocument } from '@features/slot/domains/schemas/slot.schema';
 import { Model } from 'mongoose';
 import {
+  CancelBookingDto,
+  CancelBookingResponseDto,
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
@@ -21,19 +25,47 @@ import { BookingEntity } from '@features/booking/domains/entities/booking.entity
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const StripeLib = require('stripe');
+
 const DEPOSIT_RATE = 0.3;
 
 const VAT_RATE = 0.2;
 
+// Refund policy thresholds in milliseconds
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const FULL_REFUND_THRESHOLD_DAYS = 15;
+const PARTIAL_REFUND_THRESHOLD_DAYS = 7;
+const PARTIAL_REFUND_RATE = 0.5;
+
 @Injectable()
 export class BookingRepository implements IBookingRepository {
+  private readonly stripe: {
+    refunds: {
+      create: (params: {
+        payment_intent: string;
+        amount: number;
+      }) => Promise<{ id: string }>;
+    };
+  } | null;
+
   constructor(
     @InjectModel(Booking.name)
     private readonly bookingModel: Model<BookingDocument>,
     @InjectModel(Slot.name)
     private readonly slotModel: Model<SlotDocument>,
     private readonly bookingMapper: BookingMapper,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    const stripeSecret = this.configService.get<string>('STRIPE_SECRET_KEY');
+    if (stripeSecret) {
+      this.stripe = new StripeLib(stripeSecret, {
+        apiVersion: '2026-04-22.dahlia',
+      });
+    } else {
+      this.stripe = null;
+    }
+  }
 
   async create(
     dto: CreateBookingDto,
@@ -153,6 +185,96 @@ export class BookingRepository implements IBookingRepository {
       ...(finalPaymentDueAt && {
         finalPaymentDueAt: finalPaymentDueAt.toISOString(),
       }),
+    };
+  }
+
+  async cancelBooking(
+    id: string,
+    dto: CancelBookingDto,
+    userId: string,
+  ): Promise<CancelBookingResponseDto> {
+    const booking = await this.bookingModel.findById(id).exec();
+
+    if (!booking) {
+      throw new NotFoundException('Réservation introuvable');
+    }
+
+    if (booking.userId.toString() !== userId) {
+      throw new ForbiddenException(
+        'Cette réservation appartient à un autre utilisateur',
+      );
+    }
+
+    if (booking.status === 'cancelled') {
+      throw new ConflictException('Cette réservation est déjà annulée');
+    }
+
+    if (booking.status === 'completed') {
+      throw new ConflictException(
+        "L'activité a déjà été réalisée, annulation impossible",
+      );
+    }
+
+    // Determine refund policy based on days until slot
+    const slot = await this.slotModel.findById(booking.slotId).exec();
+    let daysUntilSlot = Infinity;
+    if (slot && slot.startAt) {
+      const now = Date.now();
+      daysUntilSlot = (slot.startAt.getTime() - now) / MS_PER_DAY;
+    }
+
+    let refundPolicy: 'full' | 'partial' | 'none';
+    let refundedAmountEur: number;
+    const paidAmount = booking.paidAmountEur ?? 0;
+
+    if (daysUntilSlot > FULL_REFUND_THRESHOLD_DAYS) {
+      refundPolicy = 'full';
+      refundedAmountEur = paidAmount;
+    } else if (daysUntilSlot >= PARTIAL_REFUND_THRESHOLD_DAYS) {
+      refundPolicy = 'partial';
+      refundedAmountEur =
+        Math.round(paidAmount * PARTIAL_REFUND_RATE * 100) / 100;
+    } else {
+      refundPolicy = 'none';
+      refundedAmountEur = 0;
+    }
+
+    // Process Stripe refund if applicable
+    let stripeRefundId: string | undefined;
+    if (refundedAmountEur > 0 && booking.stripePaymentIntentId && this.stripe) {
+      const refundAmountCents = Math.round(refundedAmountEur * 100);
+      const refund = await this.stripe.refunds.create({
+        payment_intent: booking.stripePaymentIntentId,
+        amount: refundAmountCents,
+      });
+      stripeRefundId = refund.id;
+    }
+
+    const cancelledAt = new Date();
+
+    await this.bookingModel
+      .findByIdAndUpdate(
+        id,
+        {
+          status: 'cancelled',
+          cancellationReason: dto.reason,
+          ...(dto.comment && { cancellationComment: dto.comment }),
+          cancelledAt,
+          refundedAmountEur,
+          refundPolicy,
+          ...(stripeRefundId && { stripeRefundId }),
+        },
+        { new: true },
+      )
+      .exec();
+
+    return {
+      bookingId: id,
+      status: 'cancelled',
+      refundedAmountEur,
+      refundPolicyApplied: refundPolicy,
+      refundEta:
+        refundedAmountEur > 0 ? '5-10 jours ouvrés' : 'Aucun remboursement',
     };
   }
 }

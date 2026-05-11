@@ -27,6 +27,24 @@ export class BookingMapper {
     if (doc.finalPaymentDueAt) {
       entity.setFinalPaymentDueAt(doc.finalPaymentDueAt);
     }
+    if (doc.cancellationReason) {
+      entity.setCancellationReason(doc.cancellationReason);
+    }
+    if (doc.cancellationComment) {
+      entity.setCancellationComment(doc.cancellationComment);
+    }
+    if (doc.cancelledAt) {
+      entity.setCancelledAt(doc.cancelledAt);
+    }
+    if (doc.refundedAmountEur !== undefined) {
+      entity.setRefundedAmountEur(doc.refundedAmountEur);
+    }
+    if (doc.refundPolicy) {
+      entity.setRefundPolicy(doc.refundPolicy);
+    }
+    if (doc.stripeRefundId) {
+      entity.setStripeRefundId(doc.stripeRefundId);
+    }
     return entity;
   }
 }

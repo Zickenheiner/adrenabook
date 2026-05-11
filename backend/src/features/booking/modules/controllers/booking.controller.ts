@@ -1,5 +1,7 @@
 import {
   BookingResponseDto,
+  CancelBookingDto,
+  CancelBookingResponseDto,
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
@@ -143,5 +145,46 @@ export class BookingController {
     @Req() req: { user: { sub: string } },
   ): Promise<InvoiceMetadataResponseDto> {
     return this.invoiceService.getInvoiceByBookingId(id, req.user.sub);
+  }
+
+  @ApiOperation({
+    summary: 'Annuler une réservation (US-13)',
+    description:
+      'Annule une réservation et déclenche un remboursement Stripe automatique selon les CGV du centre : remboursement 100% si > J-15, 50% entre J-7 et J-15, 0% si < J-7.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Identifiant de la réservation',
+  })
+  @ApiBody({
+    type: CancelBookingDto,
+    description: "Motif et commentaire d'annulation",
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Annulation traitée',
+    type: CancelBookingResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Validation échouée' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({
+    status: 403,
+    description: 'Réservation appartient à un autre utilisateur',
+  })
+  @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @ApiResponse({
+    status: 409,
+    description: 'Déjà annulée ou activité déjà réalisée',
+  })
+  @Post(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  async cancelBooking(
+    @Param('id') id: string,
+    @Body() dto: CancelBookingDto,
+    @Req() req: { user: { sub: string } },
+  ): Promise<CancelBookingResponseDto> {
+    return this.bookingService.cancelBooking(id, dto, req.user.sub);
   }
 }

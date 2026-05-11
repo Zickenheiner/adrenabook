@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsBoolean,
+  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -119,6 +120,60 @@ export class ConfirmPaymentResponseDto {
     required: false,
   })
   finalPaymentDueAt?: string;
+}
+
+export class CancelBookingDto {
+  @ApiProperty({
+    description: "Motif de l'annulation",
+    example: 'personal',
+    enum: ['personal', 'health', 'weather', 'other'],
+  })
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['personal', 'health', 'weather', 'other'])
+  reason: 'personal' | 'health' | 'weather' | 'other';
+
+  @ApiProperty({
+    description: "Commentaire libre sur l'annulation",
+    example: 'Empêchement de dernière minute',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  comment?: string;
+}
+
+export class CancelBookingResponseDto {
+  @ApiProperty({
+    description: 'Identifiant de la réservation annulée',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  bookingId: string;
+
+  @ApiProperty({
+    description: 'Statut de la réservation après annulation',
+    example: 'cancelled',
+  })
+  status: 'cancelled';
+
+  @ApiProperty({
+    description: 'Montant remboursé en euros',
+    example: 120.0,
+  })
+  refundedAmountEur: number;
+
+  @ApiProperty({
+    description: 'Règle de remboursement appliquée',
+    example: 'full',
+    enum: ['full', 'partial', 'none'],
+  })
+  refundPolicyApplied: 'full' | 'partial' | 'none';
+
+  @ApiProperty({
+    description: 'Délai estimé de remboursement',
+    example: '5-10 jours ouvrés',
+  })
+  refundEta: string;
 }
 
 export class BookingResponseDto {

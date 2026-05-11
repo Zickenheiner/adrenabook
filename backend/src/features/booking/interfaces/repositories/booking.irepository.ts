@@ -1,4 +1,6 @@
 import {
+  CancelBookingDto,
+  CancelBookingResponseDto,
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
@@ -13,4 +15,9 @@ export interface IBookingRepository {
     id: string,
     dto: ConfirmPaymentDto,
   ): Promise<ConfirmPaymentResponseDto>;
+  cancelBooking(
+    id: string,
+    dto: CancelBookingDto,
+    userId: string,
+  ): Promise<CancelBookingResponseDto>;
 }
