@@ -22,6 +22,8 @@ export class UserMapper {
     entity.setTwoFactorCode(doc.twoFactorCode);
     entity.setTwoFactorCodeExpiresAt(doc.twoFactorCodeExpiresAt);
     entity.setRefreshTokenHash(doc.refreshTokenHash);
+    entity.setPasswordResetTokenHash(doc.passwordResetTokenHash);
+    entity.setPasswordResetTokenExpiresAt(doc.passwordResetTokenExpiresAt);
     return entity;
   }
 }

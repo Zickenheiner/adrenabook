@@ -14,6 +14,10 @@ import { Public } from '@core/decorators/public.decorator';
 import {
   LoginDto,
   LoginResponseDto,
+  PasswordResetConfirmDto,
+  PasswordResetConfirmResponseDto,
+  PasswordResetRequestDto,
+  PasswordResetRequestResponseDto,
   RegisterDto,
   RegisterResponseDto,
 } from '@features/auth/domains/dtos/user.dto';
@@ -112,5 +116,62 @@ export class AuthController {
     });
 
     return result;
+  }
+
+  @ApiOperation({
+    summary: 'Demande de reinitialisation du mot de passe (US-03)',
+    description:
+      "Envoie un lien magique par email valable 1h pour reinitialiser le mot de passe. La reponse est generique (meme message si l'email n'existe pas) afin d'eviter l'enumeration d'utilisateurs.",
+  })
+  @ApiBody({
+    type: PasswordResetRequestDto,
+    description: "Email de l'utilisateur qui demande la reinitialisation",
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Demande acceptee (reponse generique, indique uniquement que la demande a ete traitee)',
+    type: PasswordResetRequestResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation echouee (email invalide)',
+  })
+  @Public()
+  @Post('password-reset/request')
+  @HttpCode(HttpStatus.OK)
+  async requestPasswordReset(
+    @Body() dto: PasswordResetRequestDto,
+  ): Promise<PasswordResetRequestResponseDto> {
+    return this.userService.requestPasswordReset(dto);
+  }
+
+  @ApiOperation({
+    summary: 'Confirmation de la reinitialisation du mot de passe (US-03)',
+    description:
+      'Verifie le token signe HMAC (expiration 1h, usage unique), met a jour le mot de passe et invalide les sessions existantes (refresh tokens). Reinitialise egalement les tentatives echouees.',
+  })
+  @ApiBody({
+    type: PasswordResetConfirmDto,
+    description: 'Token de reinitialisation et nouveau mot de passe',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Mot de passe modifie avec succes',
+    type: PasswordResetConfirmResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation echouee, token invalide ou expire',
+  })
+  @Public()
+  @Post('password-reset/confirm')
+  @HttpCode(HttpStatus.OK)
+  async confirmPasswordReset(
+    @Body() dto: PasswordResetConfirmDto,
+  ): Promise<PasswordResetConfirmResponseDto> {
+    return this.userService.confirmPasswordReset(dto);
   }
 }

@@ -140,4 +140,58 @@ export class UserRepository implements IUserRepository {
       .exec();
     return !!updated;
   }
+
+  // ——— Reinitialisation mot de passe US-03 ———
+
+  async setPasswordResetToken(
+    id: string,
+    hashedToken: string,
+    expiresAt: Date,
+  ): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          passwordResetTokenHash: hashedToken,
+          passwordResetTokenExpiresAt: expiresAt,
+        },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
+
+  async clearPasswordResetToken(id: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          $unset: {
+            passwordResetTokenHash: '',
+            passwordResetTokenExpiresAt: '',
+          },
+        },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
+
+  async updatePassword(id: string, hashedPassword: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
+      .exec();
+    return !!updated;
+  }
+
+  async clearRefreshTokenHash(id: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { $unset: { refreshTokenHash: '' } },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
 }

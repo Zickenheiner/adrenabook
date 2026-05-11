@@ -11,7 +11,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { randomBytes, randomInt } from 'crypto';
+import { createHmac, randomBytes, randomInt, timingSafeEqual } from 'crypto';
 import mongoose from 'mongoose';
 import {
   IUserService,
@@ -23,6 +23,10 @@ import {
   CreateUserDto,
   LoginDto,
   LoginResponseDto,
+  PasswordResetConfirmDto,
+  PasswordResetConfirmResponseDto,
+  PasswordResetRequestDto,
+  PasswordResetRequestResponseDto,
   RegisterDto,
   RegisterResponseDto,
   UpdateUserDto,
@@ -37,6 +41,13 @@ const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 const TWO_FA_CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const ACCESS_TOKEN_TTL = '15m';
 const REFRESH_TOKEN_TTL = '7d';
+
+/**
+ * Parametres reinitialisation mot de passe US-03
+ */
+const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 heure
+const PASSWORD_RESET_GENERIC_MESSAGE =
+  'Si un compte existe pour cet email, un lien de reinitialisation a ete envoye.';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -269,6 +280,107 @@ export class UserService implements IUserService {
     };
   }
 
+  /**
+   * Demande de reinitialisation du mot de passe (US-03)
+   * - Genere un token signe HMAC valable 1h, a usage unique
+   * - Hash argon2 du token stocke en base (anti-rejeu si fuite DB)
+   * - Reponse generique (anti user enumeration) : meme message si email inconnu
+   */
+  async requestPasswordReset(
+    dto: PasswordResetRequestDto,
+  ): Promise<PasswordResetRequestResponseDto> {
+    const user = await this.userRepository.findByEmail(dto.email);
+
+    if (user) {
+      // Generer un token brut aleatoire
+      const rawToken = randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+      const expiresAtSec = Math.floor(expiresAt.getTime() / 1000);
+
+      // Construire la payload signee : userId.expiresAtSec.signature
+      const userId = user.getId();
+      const payload = `${userId}.${expiresAtSec}.${rawToken}`;
+      const signature = this.signPasswordResetPayload(payload);
+      const signedToken = `${payload}.${signature}`;
+
+      // Hasher le token signe avec argon2 et persister
+      const hashedToken = await argon2.hash(signedToken);
+      await this.userRepository.setPasswordResetToken(
+        userId,
+        hashedToken,
+        expiresAt,
+      );
+
+      // TODO: envoyer reellement l'email contenant le lien magique
+      // Exemple : https://app.adrenabook.com/password-reset?token={signedToken}
+    }
+
+    // Reponse toujours generique
+    return { message: PASSWORD_RESET_GENERIC_MESSAGE };
+  }
+
+  /**
+   * Confirmation de la reinitialisation du mot de passe (US-03)
+   * - Verifie la signature HMAC et l'expiration encodee dans le token
+   * - Verifie la correspondance avec le hash stocke (anti-rejeu, usage unique)
+   * - Hash argon2 du nouveau mot de passe
+   * - Efface le token et invalide les sessions existantes (refreshTokenHash)
+   * - Reinitialise les tentatives echouees
+   */
+  async confirmPasswordReset(
+    dto: PasswordResetConfirmDto,
+  ): Promise<PasswordResetConfirmResponseDto> {
+    // Parser et verifier la signature HMAC du token
+    const parsed = this.parseAndVerifyPasswordResetToken(dto.token);
+    if (!parsed) {
+      throw new BadRequestException('Token invalide ou expire');
+    }
+
+    const { userId, expiresAtSec } = parsed;
+
+    // Verifier l'expiration encodee dans le token
+    if (expiresAtSec * 1000 < Date.now()) {
+      throw new BadRequestException('Token invalide ou expire');
+    }
+
+    // Recuperer l'utilisateur cible
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new BadRequestException('Token invalide ou expire');
+    }
+
+    // Verifier qu'un token actif existe en base et qu'il correspond
+    const storedHash = user.getPasswordResetTokenHash();
+    const storedExpiresAt = user.getPasswordResetTokenExpiresAt();
+    if (
+      !storedHash ||
+      !storedExpiresAt ||
+      storedExpiresAt.getTime() < Date.now()
+    ) {
+      throw new BadRequestException('Token invalide ou expire');
+    }
+
+    const tokenMatches = await argon2.verify(storedHash, dto.token);
+    if (!tokenMatches) {
+      throw new BadRequestException('Token invalide ou expire');
+    }
+
+    // Hasher le nouveau mot de passe et persister
+    const hashedPassword = await argon2.hash(dto.newPassword);
+    await this.userRepository.updatePassword(userId, hashedPassword);
+
+    // Token a usage unique : effacer pour empecher reutilisation
+    await this.userRepository.clearPasswordResetToken(userId);
+
+    // Invalider les sessions existantes (refresh tokens) apres reinitialisation
+    await this.userRepository.clearRefreshTokenHash(userId);
+
+    // Reinitialiser les tentatives echouees (deverrouille le compte si verrouille)
+    await this.userRepository.resetFailedAttempts(userId);
+
+    return { message: 'Mot de passe modifie avec succes' };
+  }
+
   async create(dto: CreateUserDto): Promise<boolean> {
     return this.userRepository.create(dto);
   }
@@ -358,5 +470,58 @@ export class UserService implements IUserService {
     } catch {
       // Ne jamais bloquer le flux d'authentification a cause d'un echec de log
     }
+  }
+
+  // ——— Helpers reinitialisation mot de passe US-03 ———
+
+  private getPasswordResetSecret(): string {
+    return (
+      this.configService.get<string>('PASSWORD_RESET_SECRET') ??
+      this.configService.get<string>('ACCESS_TOKEN_SECRET') ??
+      'change-me-pr'
+    );
+  }
+
+  private signPasswordResetPayload(payload: string): string {
+    return createHmac('sha256', this.getPasswordResetSecret())
+      .update(payload)
+      .digest('hex');
+  }
+
+  private parseAndVerifyPasswordResetToken(
+    token: string,
+  ): { userId: string; expiresAtSec: number } | null {
+    const parts = token.split('.');
+    if (parts.length !== 4) {
+      return null;
+    }
+    const [userId, expiresAtStr, rawToken, signature] = parts;
+    if (!userId || !expiresAtStr || !rawToken || !signature) {
+      return null;
+    }
+    const expiresAtSec = Number(expiresAtStr);
+    if (!Number.isFinite(expiresAtSec)) {
+      return null;
+    }
+
+    const payload = `${userId}.${expiresAtStr}.${rawToken}`;
+    const expectedSignature = this.signPasswordResetPayload(payload);
+
+    // Comparaison constante (timing safe)
+    const expectedBuf = Buffer.from(expectedSignature, 'hex');
+    let providedBuf: Buffer;
+    try {
+      providedBuf = Buffer.from(signature, 'hex');
+    } catch {
+      return null;
+    }
+    if (
+      expectedBuf.length !== providedBuf.length ||
+      !timingSafeEqual(expectedBuf, providedBuf)
+    ) {
+      return null;
+    }
+
+    return { userId, expiresAtSec };
   }
 }

@@ -63,6 +63,14 @@ export class User {
 
   @Prop({ required: false, type: String })
   refreshTokenHash?: string;
+
+  // ——— Champs reinitialisation mot de passe US-03 ———
+
+  @Prop({ required: false, type: String })
+  passwordResetTokenHash?: string;
+
+  @Prop({ required: false, type: Date })
+  passwordResetTokenExpiresAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

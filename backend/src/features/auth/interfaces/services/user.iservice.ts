@@ -2,6 +2,10 @@ import {
   CreateUserDto,
   LoginDto,
   LoginResponseDto,
+  PasswordResetConfirmDto,
+  PasswordResetConfirmResponseDto,
+  PasswordResetRequestDto,
+  PasswordResetRequestResponseDto,
   RegisterDto,
   RegisterResponseDto,
   UpdateUserDto,
@@ -18,6 +22,12 @@ export interface IUserService {
   findById(id: string): Promise<UserEntity | null>;
   register(dto: RegisterDto): Promise<RegisterResponseDto>;
   login(dto: LoginDto, context?: ILoginContext): Promise<LoginResponseDto>;
+  requestPasswordReset(
+    dto: PasswordResetRequestDto,
+  ): Promise<PasswordResetRequestResponseDto>;
+  confirmPasswordReset(
+    dto: PasswordResetConfirmDto,
+  ): Promise<PasswordResetConfirmResponseDto>;
   create(dto: CreateUserDto): Promise<boolean>;
   update(id: string, dto: UpdateUserDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;

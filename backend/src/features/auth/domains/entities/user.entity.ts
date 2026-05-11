@@ -27,6 +27,10 @@ export class UserEntity {
   private twoFactorCodeExpiresAt?: Date;
   private refreshTokenHash?: string;
 
+  // ——— Champs reinitialisation mot de passe US-03 ———
+  private passwordResetTokenHash?: string;
+  private passwordResetTokenExpiresAt?: Date;
+
   constructor(_id: User) {
     this.id = _id;
   }
@@ -105,6 +109,14 @@ export class UserEntity {
     return this.refreshTokenHash;
   }
 
+  getPasswordResetTokenHash(): string | undefined {
+    return this.passwordResetTokenHash;
+  }
+
+  getPasswordResetTokenExpiresAt(): Date | undefined {
+    return this.passwordResetTokenExpiresAt;
+  }
+
   // ———————SETTER———————
 
   setEmail(value: string): void {
@@ -169,5 +181,13 @@ export class UserEntity {
 
   setRefreshTokenHash(value: string | undefined): void {
     this.refreshTokenHash = value;
+  }
+
+  setPasswordResetTokenHash(value: string | undefined): void {
+    this.passwordResetTokenHash = value;
+  }
+
+  setPasswordResetTokenExpiresAt(value: Date | undefined): void {
+    this.passwordResetTokenExpiresAt = value;
   }
 }

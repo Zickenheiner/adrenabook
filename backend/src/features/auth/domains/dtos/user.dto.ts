@@ -195,6 +195,80 @@ export class LoginResponseDto {
 }
 
 /**
+ * PasswordResetRequestDto — Demande de reinitialisation du mot de passe (US-03)
+ * Validation :
+ * - email RFC 5322
+ */
+export class PasswordResetRequestDto {
+  @ApiProperty({
+    description: "Email de l'utilisateur qui demande la reinitialisation",
+    example: 'aventurier@example.com',
+  })
+  @IsEmail({}, { message: "L'email doit etre au format valide (RFC 5322)" })
+  @IsNotEmpty()
+  email: string;
+}
+
+/**
+ * PasswordResetRequestResponseDto — Reponse generique a la demande de reinitialisation
+ * Reponse generique pour eviter l'enumeration d'utilisateurs.
+ */
+export class PasswordResetRequestResponseDto {
+  @ApiProperty({
+    description:
+      "Message generique. Renvoye que l'email existe ou non, pour eviter l'enumeration d'utilisateurs.",
+    example:
+      'Si un compte existe pour cet email, un lien de reinitialisation a ete envoye.',
+  })
+  message: string;
+}
+
+/**
+ * PasswordResetConfirmDto — Confirmation de la reinitialisation du mot de passe (US-03)
+ * Validation :
+ * - token non vide (signe HMAC, expiration 1h)
+ * - newPassword min 12 caracteres, regex de complexite
+ */
+export class PasswordResetConfirmDto {
+  @ApiProperty({
+    description:
+      'Token signe HMAC recu par email (expiration 1h, usage unique)',
+    example: 'a1b2c3d4e5f6.7g8h9i0j1k2l.m3n4o5p6q7r8',
+  })
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @ApiProperty({
+    description:
+      'Nouveau mot de passe (min 12 caracteres, au moins 1 majuscule, 1 chiffre et 1 caractere special)',
+    example: 'MyN3wSecureP@ss!',
+    minLength: 12,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(12, {
+    message: 'Le mot de passe doit contenir au moins 12 caracteres',
+  })
+  @Matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
+    message:
+      'Le mot de passe doit contenir au moins une majuscule, un chiffre et un caractere special',
+  })
+  newPassword: string;
+}
+
+/**
+ * PasswordResetConfirmResponseDto — Reponse a la confirmation de reinitialisation
+ */
+export class PasswordResetConfirmResponseDto {
+  @ApiProperty({
+    description: 'Message de succes',
+    example: 'Mot de passe modifie avec succes',
+  })
+  message: string;
+}
+
+/**
  * DTOs CRUD legacy (non utilises par US-01 mais conserves pour la base)
  */
 export class CreateUserDto {

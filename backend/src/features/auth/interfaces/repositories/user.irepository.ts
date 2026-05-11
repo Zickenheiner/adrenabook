@@ -25,4 +25,14 @@ export interface IUserRepository {
   setTwoFactorCode(id: string, code: string, expiresAt: Date): Promise<boolean>;
   clearTwoFactorCode(id: string): Promise<boolean>;
   setRefreshTokenHash(id: string, hash: string): Promise<boolean>;
+
+  // ——— Reinitialisation mot de passe US-03 ———
+  setPasswordResetToken(
+    id: string,
+    hashedToken: string,
+    expiresAt: Date,
+  ): Promise<boolean>;
+  clearPasswordResetToken(id: string): Promise<boolean>;
+  updatePassword(id: string, hashedPassword: string): Promise<boolean>;
+  clearRefreshTokenHash(id: string): Promise<boolean>;
 }
