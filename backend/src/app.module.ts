@@ -10,6 +10,7 @@ import { ProfessionalModule } from '@features/professional/professional.module';
 import { AdminModule } from '@features/admin/admin.module';
 import { SlotBaseModule } from '@features/slot/modules/slot.module';
 import { ActivityBaseModule } from '@features/activity/modules/activity.module';
+import { CenterBaseModule } from '@features/centers/modules/center.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ActivityBaseModule } from '@features/activity/modules/activity.module';
     AdminModule,
     SlotBaseModule,
     ActivityBaseModule,
+    CenterBaseModule,
   ],
   providers: [
     AtStrategy,
