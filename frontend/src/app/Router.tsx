@@ -11,6 +11,7 @@ import ProfessionalRegistrationPage from '@/features/professional-registration/p
 import ProfessionalRegistrationSuccessPage from '@/features/professional-registration/presentation/pages/ProfessionalRegistrationSuccessPage';
 import AdminCenterListPage from '@/features/admin-kyc/presentation/pages/AdminCenterListPage';
 import AdminCenterReviewPage from '@/features/admin-kyc/presentation/pages/AdminCenterReviewPage';
+import HealthProfilePage from '@/features/health-profile/presentation/pages/HealthProfilePage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -51,6 +52,7 @@ export default function Router() {
           path={routes.adminCenterReview}
           element={<AdminCenterReviewPage />}
         />
+        <Route path={routes.healthProfile} element={<HealthProfilePage />} />
       </Route>
     );
   };

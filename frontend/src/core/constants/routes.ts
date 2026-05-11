@@ -9,6 +9,7 @@ const routes = {
   systemHealth: '/system/health',
   adminCenterList: '/admin/centers',
   adminCenterReview: '/admin/centers/:id/review',
+  healthProfile: '/profile/health',
 };
 
 export default routes;

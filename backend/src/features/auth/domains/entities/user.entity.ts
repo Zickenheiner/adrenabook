@@ -31,6 +31,19 @@ export class UserEntity {
   private passwordResetTokenHash?: string;
   private passwordResetTokenExpiresAt?: Date;
 
+  // ——— Profil de sante US-05 ———
+  private healthProfile?: {
+    weight?: number;
+    height?: number;
+    medicalContraindications?: string[];
+    emergencyContact?: {
+      fullName: string;
+      relation: string;
+      phone: string;
+    };
+    medicalCertificateFileId?: string;
+  };
+
   constructor(_id: User) {
     this.id = _id;
   }
@@ -189,5 +202,41 @@ export class UserEntity {
 
   setPasswordResetTokenExpiresAt(value: Date | undefined): void {
     this.passwordResetTokenExpiresAt = value;
+  }
+
+  // ——— Profil de sante US-05 ———
+
+  getHealthProfile():
+    | {
+        weight?: number;
+        height?: number;
+        medicalContraindications?: string[];
+        emergencyContact?: {
+          fullName: string;
+          relation: string;
+          phone: string;
+        };
+        medicalCertificateFileId?: string;
+      }
+    | undefined {
+    return this.healthProfile;
+  }
+
+  setHealthProfile(
+    value:
+      | {
+          weight?: number;
+          height?: number;
+          medicalContraindications?: string[];
+          emergencyContact?: {
+            fullName: string;
+            relation: string;
+            phone: string;
+          };
+          medicalCertificateFileId?: string;
+        }
+      | undefined,
+  ): void {
+    this.healthProfile = value;
   }
 }

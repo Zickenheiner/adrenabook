@@ -1,5 +1,6 @@
 import {
   CreateUserDto,
+  HealthProfileDto,
   RegisterDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
@@ -35,4 +36,11 @@ export interface IUserRepository {
   clearPasswordResetToken(id: string): Promise<boolean>;
   updatePassword(id: string, hashedPassword: string): Promise<boolean>;
   clearRefreshTokenHash(id: string): Promise<boolean>;
+
+  // ——— Profil de sante US-05 ———
+  updateHealthProfile(
+    id: string,
+    dto: HealthProfileDto,
+    encryptedContraindications: string[] | undefined,
+  ): Promise<boolean>;
 }

@@ -1,5 +1,7 @@
 import {
   CreateUserDto,
+  HealthProfileDto,
+  HealthProfileResponseDto,
   LoginDto,
   LoginResponseDto,
   PasswordResetConfirmDto,
@@ -31,4 +33,10 @@ export interface IUserService {
   create(dto: CreateUserDto): Promise<boolean>;
   update(id: string, dto: UpdateUserDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;
+
+  // ——— Profil de sante US-05 ———
+  updateHealthProfile(
+    userId: string,
+    dto: HealthProfileDto,
+  ): Promise<HealthProfileResponseDto>;
 }

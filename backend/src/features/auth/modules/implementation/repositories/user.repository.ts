@@ -5,6 +5,7 @@ import { User, UserDocument } from '@features/auth/domains/schemas/user.schema';
 import { Model } from 'mongoose';
 import {
   CreateUserDto,
+  HealthProfileDto,
   RegisterDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
@@ -191,6 +192,26 @@ export class UserRepository implements IUserRepository {
         { $unset: { refreshTokenHash: '' } },
         { new: true },
       )
+      .exec();
+    return !!updated;
+  }
+
+  // ——— Profil de sante US-05 ———
+
+  async updateHealthProfile(
+    id: string,
+    dto: HealthProfileDto,
+    encryptedContraindications: string[] | undefined,
+  ): Promise<boolean> {
+    const healthProfile = {
+      weight: dto.weight,
+      height: dto.height,
+      medicalContraindications: encryptedContraindications,
+      emergencyContact: dto.emergencyContact,
+      medicalCertificateFileId: dto.medicalCertificateFileId,
+    };
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { healthProfile }, { new: true })
       .exec();
     return !!updated;
   }

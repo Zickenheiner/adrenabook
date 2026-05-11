@@ -6,12 +6,20 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { createHmac, randomBytes, randomInt, timingSafeEqual } from 'crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHmac,
+  randomBytes,
+  randomInt,
+  timingSafeEqual,
+} from 'crypto';
 import mongoose from 'mongoose';
 import {
   IUserService,
@@ -21,6 +29,8 @@ import { IUserRepository } from '@features/auth/interfaces/repositories/user.ire
 import { ILoginLogRepository } from '@features/auth/interfaces/repositories/login-log.irepository';
 import {
   CreateUserDto,
+  HealthProfileDto,
+  HealthProfileResponseDto,
   LoginDto,
   LoginResponseDto,
   PasswordResetConfirmDto,
@@ -393,6 +403,49 @@ export class UserService implements IUserService {
     return this.userRepository.delete(id);
   }
 
+  /**
+   * Mise a jour du profil de sante (US-05)
+   * - Chiffrement AES-256-CBC des contre-indications medicales (champ sensible)
+   * - La cle AES est lue depuis la config (HEALTH_ENCRYPTION_KEY), 32 bytes hex
+   * - Retourne la liste des champs chiffres pour tracabilite
+   */
+  async updateHealthProfile(
+    userId: string,
+    dto: HealthProfileDto,
+  ): Promise<HealthProfileResponseDto> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    const fieldsEncrypted: string[] = [];
+    let encryptedContraindications: string[] | undefined;
+
+    if (
+      dto.medicalContraindications &&
+      dto.medicalContraindications.length > 0
+    ) {
+      encryptedContraindications = dto.medicalContraindications.map((item) =>
+        this.encryptAes256(item),
+      );
+      fieldsEncrypted.push('medicalContraindications');
+    }
+
+    const updated = await this.userRepository.updateHealthProfile(
+      userId,
+      dto,
+      encryptedContraindications,
+    );
+
+    if (!updated) {
+      throw new InternalServerErrorException(
+        'Impossible de mettre a jour le profil de sante',
+      );
+    }
+
+    return { updated: true, fieldsEncrypted };
+  }
+
   // ——— Helpers ———
 
   private computeAge(birthDate: Date): number {
@@ -523,5 +576,50 @@ export class UserService implements IUserService {
     }
 
     return { userId, expiresAtSec };
+  }
+
+  // ——— Helpers chiffrement AES-256 US-05 ———
+
+  /**
+   * Retourne la cle AES-256 de 32 bytes depuis la config.
+   * HEALTH_ENCRYPTION_KEY doit etre une chaine hex de 64 caracteres (32 bytes).
+   * Si absente, utilise une cle de secours (non securisee, pour les tests).
+   */
+  private getHealthEncryptionKey(): Buffer {
+    const hex =
+      this.configService.get<string>('HEALTH_ENCRYPTION_KEY') ??
+      '0000000000000000000000000000000000000000000000000000000000000000';
+    return Buffer.from(hex, 'hex');
+  }
+
+  /**
+   * Chiffre un texte en clair avec AES-256-CBC.
+   * Format stocke : iv_hex:ciphertext_hex
+   */
+  private encryptAes256(plaintext: string): string {
+    const key = this.getHealthEncryptionKey();
+    const iv = randomBytes(16);
+    const cipher = createCipheriv('aes-256-cbc', key, iv);
+    const encrypted = Buffer.concat([
+      cipher.update(plaintext, 'utf8'),
+      cipher.final(),
+    ]);
+    return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
+  }
+
+  /**
+   * Dechiffre un texte chiffre avec AES-256-CBC.
+   * Format attendu : iv_hex:ciphertext_hex
+   */
+  decryptAes256(ciphertext: string): string {
+    const [ivHex, encryptedHex] = ciphertext.split(':');
+    const key = this.getHealthEncryptionKey();
+    const iv = Buffer.from(ivHex, 'hex');
+    const encryptedBuf = Buffer.from(encryptedHex, 'hex');
+    const decipher = createDecipheriv('aes-256-cbc', key, iv);
+    return Buffer.concat([
+      decipher.update(encryptedBuf),
+      decipher.final(),
+    ]).toString('utf8');
   }
 }

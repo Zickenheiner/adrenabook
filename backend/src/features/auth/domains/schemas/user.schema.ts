@@ -71,6 +71,35 @@ export class User {
 
   @Prop({ required: false, type: Date })
   passwordResetTokenExpiresAt?: Date;
+
+  // ——— Profil de sante US-05 ———
+
+  @Prop({
+    required: false,
+    type: {
+      weight: { type: Number, required: false },
+      height: { type: Number, required: false },
+      medicalContraindications: { type: [String], required: false },
+      emergencyContact: {
+        fullName: { type: String, required: false },
+        relation: { type: String, required: false },
+        phone: { type: String, required: false },
+      },
+      medicalCertificateFileId: { type: String, required: false },
+    },
+    _id: false,
+  })
+  healthProfile?: {
+    weight?: number;
+    height?: number;
+    medicalContraindications?: string[];
+    emergencyContact?: {
+      fullName: string;
+      relation: string;
+      phone: string;
+    };
+    medicalCertificateFileId?: string;
+  };
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

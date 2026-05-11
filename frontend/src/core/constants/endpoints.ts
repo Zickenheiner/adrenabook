@@ -17,6 +17,9 @@ const endpoints = {
     list: '/admin/centers',
     byId: (id: string) => `/admin/centers/${id}`,
   },
+  healthProfile: {
+    update: '/users/me/health-profile',
+  },
 };
 
 export default endpoints;

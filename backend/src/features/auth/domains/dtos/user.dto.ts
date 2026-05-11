@@ -9,7 +9,11 @@ import {
   Matches,
   MinLength,
   Equals,
+  IsNumber,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 /**
  * RegisterDto — Inscription d'un aventurier (US-01)
@@ -266,6 +270,106 @@ export class PasswordResetConfirmResponseDto {
     example: 'Mot de passe modifie avec succes',
   })
   message: string;
+}
+
+/**
+ * EmergencyContactDto — Personne a prevenir en urgence (US-05)
+ */
+export class EmergencyContactDto {
+  @ApiProperty({
+    description: 'Nom complet de la personne a prevenir',
+    example: 'Marie Dupont',
+  })
+  @IsString()
+  @IsNotEmpty()
+  fullName: string;
+
+  @ApiProperty({
+    description: 'Relation avec la personne a prevenir',
+    example: 'Conjoint(e)',
+  })
+  @IsString()
+  @IsNotEmpty()
+  relation: string;
+
+  @ApiProperty({
+    description: 'Numero de telephone de la personne a prevenir',
+    example: '+33612345678',
+  })
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+}
+
+/**
+ * HealthProfileDto — Profil de sante de l'aventurier (US-05)
+ * Champs sensibles : medicalContraindications est chiffre en AES-256 en BDD.
+ */
+export class HealthProfileDto {
+  @ApiProperty({
+    description: 'Poids en kg (requis pour saut elastique)',
+    example: 75,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  weight?: number;
+
+  @ApiProperty({
+    description: 'Taille en cm',
+    example: 178,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  height?: number;
+
+  @ApiProperty({
+    description: 'Contre-indications medicales (stockees chiffrees en AES-256)',
+    example: ['Hypertension', 'Asthme'],
+    required: false,
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  medicalContraindications?: string[];
+
+  @ApiProperty({
+    description: "Personne a prevenir en cas d'urgence",
+    type: EmergencyContactDto,
+  })
+  @ValidateNested()
+  @Type(() => EmergencyContactDto)
+  emergencyContact: EmergencyContactDto;
+
+  @ApiProperty({
+    description:
+      'Identifiant du fichier certificat medical (requis pour certaines activites)',
+    example: 'file-abc123',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  medicalCertificateFileId?: string;
+}
+
+/**
+ * HealthProfileResponseDto — Reponse a la mise a jour du profil de sante (US-05)
+ */
+export class HealthProfileResponseDto {
+  @ApiProperty({
+    description: 'Indique si le profil a ete mis a jour',
+    example: true,
+  })
+  updated: boolean;
+
+  @ApiProperty({
+    description: 'Liste des champs chiffres pour tracabilite',
+    example: ['medicalContraindications'],
+    type: [String],
+  })
+  fieldsEncrypted: string[];
 }
 
 /**

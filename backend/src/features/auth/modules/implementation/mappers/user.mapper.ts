@@ -24,6 +24,7 @@ export class UserMapper {
     entity.setRefreshTokenHash(doc.refreshTokenHash);
     entity.setPasswordResetTokenHash(doc.passwordResetTokenHash);
     entity.setPasswordResetTokenExpiresAt(doc.passwordResetTokenExpiresAt);
+    entity.setHealthProfile(doc.healthProfile);
     return entity;
   }
 }
