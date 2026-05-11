@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ActivityController } from './controllers/activity.controller';
+import { ActivitySearchController } from './controllers/activity-search.controller';
 import { ActivityService } from './implementation/services/activity.service';
 import { ActivityRepository } from './implementation/repositories/activity.repository';
 import { ActivityMapper } from './implementation/mappers/activity.mapper';
@@ -15,7 +16,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       { name: Activity.name, schema: ActivitySchema },
     ]),
   ],
-  controllers: [ActivityController],
+  controllers: [ActivityController, ActivitySearchController],
   providers: [
     ActivityMapper,
     {

@@ -1,5 +1,7 @@
 import {
   CreateActivityDto,
+  SearchActivitiesQueryDto,
+  SearchActivitiesResponseDto,
   UpdateActivityDto,
 } from '@features/activity/domains/dtos/activity.dto';
 import { ActivityEntity } from '@features/activity/domains/entities/activity.entity';
@@ -14,4 +16,5 @@ export interface IActivityRepository {
   ): Promise<ActivityEntity | null>;
   update(id: string, dto: UpdateActivityDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;
+  search(query: SearchActivitiesQueryDto): Promise<SearchActivitiesResponseDto>;
 }

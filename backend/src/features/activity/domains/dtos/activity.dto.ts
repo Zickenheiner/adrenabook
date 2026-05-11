@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -9,6 +9,7 @@ import {
   IsEnum,
   ValidateNested,
   Min,
+  Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -263,4 +264,234 @@ export class ActivityResponseDto {
     example: '2026-05-11T07:34:37.434Z',
   })
   createdAt: string;
+}
+
+export class SearchActivitiesQueryDto {
+  @ApiPropertyOptional({
+    description: 'Free text search query',
+    example: 'parachute',
+  })
+  @IsString()
+  @IsOptional()
+  query?: string;
+
+  @ApiPropertyOptional({
+    description: 'Type of activity',
+    example: 'climbing',
+    enum: [
+      'bungee',
+      'climbing',
+      'diving',
+      'paragliding',
+      'canyoning',
+      'via_ferrata',
+    ],
+  })
+  @IsEnum([
+    'bungee',
+    'climbing',
+    'diving',
+    'paragliding',
+    'canyoning',
+    'via_ferrata',
+  ])
+  @IsOptional()
+  type?:
+    | 'bungee'
+    | 'climbing'
+    | 'diving'
+    | 'paragliding'
+    | 'canyoning'
+    | 'via_ferrata';
+
+  @ApiPropertyOptional({
+    description: 'Latitude for geolocation filter',
+    example: 48.8566,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  lat?: number;
+
+  @ApiPropertyOptional({
+    description: 'Longitude for geolocation filter',
+    example: 2.3522,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  lng?: number;
+
+  @ApiPropertyOptional({
+    description: 'Search radius in kilometers (default 50)',
+    example: 50,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  radiusKm?: number;
+
+  @ApiPropertyOptional({
+    description: 'Start date filter (ISO 8601)',
+    example: '2026-06-01',
+  })
+  @IsString()
+  @IsOptional()
+  dateFrom?: string;
+
+  @ApiPropertyOptional({
+    description: 'End date filter (ISO 8601)',
+    example: '2026-06-30',
+  })
+  @IsString()
+  @IsOptional()
+  dateTo?: string;
+
+  @ApiPropertyOptional({
+    description: 'Minimum price in euros',
+    example: 50,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  priceMin?: number;
+
+  @ApiPropertyOptional({
+    description: 'Maximum price in euros',
+    example: 500,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  priceMax?: number;
+
+  @ApiPropertyOptional({
+    description: 'Difficulty level',
+    example: 'beginner',
+    enum: ['beginner', 'intermediate', 'advanced'],
+  })
+  @IsEnum(['beginner', 'intermediate', 'advanced'])
+  @IsOptional()
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+
+  @ApiPropertyOptional({
+    description: 'Page number (default 1)',
+    example: 1,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional({
+    description: 'Page size (default 20, max 50)',
+    example: 20,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(50)
+  @IsOptional()
+  pageSize?: number;
+
+  @ApiPropertyOptional({
+    description: 'Sort order',
+    example: 'relevance',
+    enum: ['relevance', 'price_asc', 'price_desc', 'distance'],
+  })
+  @IsEnum(['relevance', 'price_asc', 'price_desc', 'distance'])
+  @IsOptional()
+  sortBy?: 'relevance' | 'price_asc' | 'price_desc' | 'distance';
+}
+
+export class SearchActivitiesItemDto {
+  @ApiProperty({
+    description: 'Activity ID',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Activity title',
+    example: 'Parachute en tandem',
+  })
+  title: string;
+
+  @ApiProperty({
+    description: 'Activity type',
+    example: 'paragliding',
+  })
+  type: string;
+
+  @ApiProperty({
+    description: 'Starting price in euros',
+    example: 150,
+  })
+  priceFromEur: number;
+
+  @ApiProperty({
+    description: 'Duration in minutes',
+    example: 60,
+  })
+  durationMinutes: number;
+
+  @ApiProperty({
+    description: 'Difficulty level',
+    example: 'beginner',
+  })
+  difficulty: string;
+
+  @ApiProperty({
+    description: 'Professional center name',
+    example: 'Centre Aventure Alpes',
+  })
+  centerName: string;
+
+  @ApiPropertyOptional({
+    description: 'Distance from search point in kilometers',
+    example: 12.5,
+  })
+  distanceKm?: number;
+
+  @ApiPropertyOptional({
+    description: 'Average rating',
+    example: 4.7,
+  })
+  rating?: number;
+
+  @ApiProperty({
+    description: 'Cover photo URL',
+    example: 'https://cdn.adrenabook.fr/photos/abc123.jpg',
+  })
+  coverPhotoUrl: string;
+}
+
+export class SearchActivitiesResponseDto {
+  @ApiProperty({
+    description: 'List of activities matching the search criteria',
+    type: [SearchActivitiesItemDto],
+  })
+  items: SearchActivitiesItemDto[];
+
+  @ApiProperty({
+    description: 'Total number of results',
+    example: 42,
+  })
+  total: number;
+
+  @ApiProperty({
+    description: 'Current page',
+    example: 1,
+  })
+  page: number;
+
+  @ApiProperty({
+    description: 'Number of results per page',
+    example: 20,
+  })
+  pageSize: number;
 }

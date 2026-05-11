@@ -4,6 +4,8 @@ import { IActivityRepository } from '@features/activity/interfaces/repositories/
 import {
   ActivityResponseDto,
   CreateActivityDto,
+  SearchActivitiesQueryDto,
+  SearchActivitiesResponseDto,
   UpdateActivityDto,
 } from '@features/activity/domains/dtos/activity.dto';
 import { ActivityEntity } from '@features/activity/domains/entities/activity.entity';
@@ -47,5 +49,11 @@ export class ActivityService implements IActivityService {
 
   async delete(id: string): Promise<boolean> {
     return this.activityRepository.delete(id);
+  }
+
+  async search(
+    query: SearchActivitiesQueryDto,
+  ): Promise<SearchActivitiesResponseDto> {
+    return this.activityRepository.search(query);
   }
 }
