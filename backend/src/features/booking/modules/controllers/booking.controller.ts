@@ -5,9 +5,12 @@ import {
   CreateBookingDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { IBookingService } from '@features/booking/interfaces/services/booking.iservice';
+import { IInvoiceService } from '@features/invoice/interfaces/services/invoice.iservice';
+import { InvoiceMetadataResponseDto } from '@features/invoice/domains/dtos/invoice.dto';
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
@@ -31,6 +34,8 @@ export class BookingController {
   constructor(
     @Inject('IBookingService')
     private readonly bookingService: IBookingService,
+    @Inject('IInvoiceService')
+    private readonly invoiceService: IInvoiceService,
   ) {}
 
   @ApiOperation({
@@ -101,5 +106,42 @@ export class BookingController {
     @Body() dto: ConfirmPaymentDto,
   ): Promise<ConfirmPaymentResponseDto> {
     return this.bookingService.confirmPayment(id, dto);
+  }
+
+  @ApiOperation({
+    summary: "Obtenir la facture PDF d'une réservation (US-15)",
+    description:
+      "Retourne les métadonnées de la facture PDF pour une réservation payée. Génère la facture automatiquement si elle n'existe pas encore. Requiert que le paiement soit complet ou partiel.",
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Identifiant de la réservation',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Métadonnées de la facture retournées',
+    type: InvoiceMetadataResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({
+    status: 403,
+    description: 'La réservation appartient à un autre utilisateur',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Réservation ou facture introuvable',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Facture non encore générée (paiement incomplet)',
+  })
+  @Get(':id/invoice')
+  @HttpCode(HttpStatus.OK)
+  async getInvoice(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string } },
+  ): Promise<InvoiceMetadataResponseDto> {
+    return this.invoiceService.getInvoiceByBookingId(id, req.user.sub);
   }
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BookingController } from './controllers/booking.controller';
 import { BookingService } from './implementation/services/booking.service';
 import { BookingRepository } from './implementation/repositories/booking.repository';
@@ -9,6 +9,7 @@ import {
 } from '@features/booking/domains/schemas/booking.schema';
 import { Slot, SlotSchema } from '@features/slot/domains/schemas/slot.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { InvoiceBaseModule } from '@features/invoice/modules/invoice.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       { name: Booking.name, schema: BookingSchema },
       { name: Slot.name, schema: SlotSchema },
     ]),
+    forwardRef(() => InvoiceBaseModule),
   ],
   controllers: [BookingController],
   providers: [
@@ -29,6 +31,6 @@ import { MongooseModule } from '@nestjs/mongoose';
       useClass: BookingRepository,
     },
   ],
-  exports: ['IBookingService'],
+  exports: ['IBookingService', 'IBookingRepository'],
 })
 export class BookingBaseModule {}
