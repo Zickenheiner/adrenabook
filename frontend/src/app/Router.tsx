@@ -4,12 +4,13 @@ import Public from './Public';
 import routes from '@/core/constants/routes';
 import SystemHealthPage from '@/features/system/presentation/pages/SystemHealthPage';
 import RegisterPage from '@/features/auth/presentation/pages/RegisterPage';
+import LoginPage from '@/features/auth/presentation/pages/LoginPage';
 
 export default function Router() {
   const PublicRoutes = () => {
     return (
       <Route element={<Public redirect={routes.home} />}>
-        <Route path={routes.login} element={<h1>Public Route</h1>} />
+        <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
       </Route>
     );
