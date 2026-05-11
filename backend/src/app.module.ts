@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from '@core/guards/access-token.guard';
 import { AtStrategy } from '@core/strategies/at.strategy';
+import { HealthBaseModule } from '@features/health/health.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AtStrategy } from '@core/strategies/at.strategy';
       }),
       inject: [ConfigService],
     }),
+    HealthBaseModule,
   ],
   providers: [
     AtStrategy,
