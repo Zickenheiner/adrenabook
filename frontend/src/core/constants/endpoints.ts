@@ -65,6 +65,11 @@ const endpoints = {
   proAccountingExport: {
     create: '/pro/exports/accounting',
   },
+  adminUsers: {
+    list: '/admin/users',
+    byId: (id: string) => `/admin/users/${id}`,
+    updateStatus: (id: string) => `/admin/users/${id}/status`,
+  },
 };
 
 export default endpoints;

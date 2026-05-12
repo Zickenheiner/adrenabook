@@ -28,6 +28,8 @@ import BookingCancellationPage from '@/features/booking-cancellation/presentatio
 import ProDashboardPage from '@/features/pro-dashboard/presentation/pages/ProDashboardPage';
 import CsvImportPage from '@/features/pro-csv-import/presentation/pages/CsvImportPage';
 import ProAccountingExportPage from '@/features/pro-accounting-export/presentation/pages/ProAccountingExportPage';
+import AdminUserListPage from '@/features/admin-user-management/presentation/pages/AdminUserListPage';
+import AdminUserDetailPage from '@/features/admin-user-management/presentation/pages/AdminUserDetailPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -102,7 +104,15 @@ export default function Router() {
         />
         <Route path={routes.proDashboard} element={<ProDashboardPage />} />
         <Route path={routes.proCsvImport} element={<CsvImportPage />} />
-        <Route path={routes.proAccountingExport} element={<ProAccountingExportPage />} />
+        <Route
+          path={routes.proAccountingExport}
+          element={<ProAccountingExportPage />}
+        />
+        <Route path={routes.adminUserList} element={<AdminUserListPage />} />
+        <Route
+          path={routes.adminUserDetail}
+          element={<AdminUserDetailPage />}
+        />
       </Route>
     );
   };

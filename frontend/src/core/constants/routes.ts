@@ -27,6 +27,8 @@ const routes = {
   proDashboard: '/pro/dashboard',
   proCsvImport: '/pro/import/csv',
   proAccountingExport: '/pro/exports/accounting',
+  adminUserList: '/admin/users',
+  adminUserDetail: '/admin/users/:id',
 };
 
 export default routes;
