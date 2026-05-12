@@ -56,6 +56,9 @@ const endpoints = {
   bookingCancellation: {
     cancel: (bookingId: string) => `/bookings/${bookingId}/cancel`,
   },
+  proDashboard: {
+    get: '/pro/dashboard',
+  },
 };
 
 export default endpoints;

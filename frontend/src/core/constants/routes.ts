@@ -24,6 +24,7 @@ const routes = {
   invoiceDownload: '/bookings/:id/invoice',
   notificationPreferences: '/profile/notifications',
   bookingCancellation: '/bookings/:id/cancel',
+  proDashboard: '/pro/dashboard',
 };
 
 export default routes;
