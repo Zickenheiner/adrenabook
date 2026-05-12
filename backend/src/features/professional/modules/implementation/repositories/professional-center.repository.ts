@@ -14,7 +14,9 @@ import { ProfessionalCenterEntity } from '@features/professional/domains/entitie
 import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
-export class ProfessionalCenterRepository implements IProfessionalCenterRepository {
+export class ProfessionalCenterRepository
+  implements IProfessionalCenterRepository
+{
   constructor(
     @InjectModel(ProfessionalCenter.name)
     private readonly professionalCenterModel: Model<ProfessionalCenterDocument>,
