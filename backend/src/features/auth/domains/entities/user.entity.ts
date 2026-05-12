@@ -19,6 +19,9 @@ export class UserEntity {
   private emailVerificationToken?: string;
   private role: string;
 
+  // ——— Statut admin US-22 ———
+  private status: string;
+
   // ——— Champs securite US-02 ———
   private failedLoginAttempts: number;
   private lockedUntil?: Date;
@@ -111,6 +114,10 @@ export class UserEntity {
     return this.role;
   }
 
+  getStatus(): string {
+    return this.status;
+  }
+
   getFailedLoginAttempts(): number {
     return this.failedLoginAttempts;
   }
@@ -183,6 +190,10 @@ export class UserEntity {
 
   setRole(value: string): void {
     this.role = value;
+  }
+
+  setStatus(value: string): void {
+    this.status = value;
   }
 
   setFailedLoginAttempts(value: number): void {

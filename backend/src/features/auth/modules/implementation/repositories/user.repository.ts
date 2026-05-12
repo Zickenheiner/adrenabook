@@ -197,6 +197,15 @@ export class UserRepository implements IUserRepository {
     return !!updated;
   }
 
+  // ——— Statut admin US-22 ———
+
+  async updateStatus(id: string, status: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .exec();
+    return !!updated;
+  }
+
   // ——— Preferences de notifications US-14 ———
 
   async updateNotificationPreferences(

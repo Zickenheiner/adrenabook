@@ -44,6 +44,16 @@ export class User {
   @Prop({ required: false, type: String, default: 'Aventurier' })
   role: string;
 
+  // ——— Statut admin US-22 ———
+
+  @Prop({
+    required: true,
+    type: String,
+    enum: ['active', 'suspended', 'banned'],
+    default: 'active',
+  })
+  status: string;
+
   // ——— Champs securite US-02 ———
 
   @Prop({ required: true, type: Number, default: 0 })

@@ -16,6 +16,7 @@ export class UserMapper {
     entity.setEmailVerified(doc.emailVerified);
     entity.setEmailVerificationToken(doc.emailVerificationToken);
     entity.setRole(doc.role);
+    entity.setStatus(doc.status ?? 'active');
     entity.setFailedLoginAttempts(doc.failedLoginAttempts);
     entity.setLockedUntil(doc.lockedUntil);
     entity.setTwoFactorEnabled(doc.twoFactorEnabled);

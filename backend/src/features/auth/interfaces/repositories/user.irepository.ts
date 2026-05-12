@@ -50,4 +50,7 @@ export interface IUserRepository {
     id: string,
     dto: NotificationPreferencesDto,
   ): Promise<boolean>;
+
+  // ——— Statut admin US-22 ———
+  updateStatus(id: string, status: string): Promise<boolean>;
 }
