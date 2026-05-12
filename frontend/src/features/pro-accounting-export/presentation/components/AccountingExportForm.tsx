@@ -26,7 +26,11 @@ import {
   SelectValue,
 } from '@/core/components/ui/select';
 import { Checkbox } from '@/core/components/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/core/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/core/components/ui/popover';
 import { Calendar } from '@/core/components/ui/calendar';
 import { cn } from '@/core/utils/cn';
 
@@ -68,7 +72,10 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Format d&apos;export</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choisir un format" />
@@ -105,7 +112,9 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {field.value
-                            ? format(new Date(field.value), 'dd MMMM yyyy', { locale: fr })
+                            ? format(new Date(field.value), 'dd MMMM yyyy', {
+                                locale: fr,
+                              })
                             : 'Sélectionner une date'}
                         </Button>
                       </FormControl>
@@ -113,7 +122,9 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
                         onSelect={(date) => {
                           field.onChange(date ? date.toISOString() : '');
                           setFromOpen(false);
@@ -148,7 +159,9 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {field.value
-                            ? format(new Date(field.value), 'dd MMMM yyyy', { locale: fr })
+                            ? format(new Date(field.value), 'dd MMMM yyyy', {
+                                locale: fr,
+                              })
                             : 'Sélectionner une date'}
                         </Button>
                       </FormControl>
@@ -156,7 +169,9 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
                         onSelect={(date) => {
                           field.onChange(date ? date.toISOString() : '');
                           setToOpen(false);
@@ -200,7 +215,10 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Mode de livraison</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choisir un mode" />
@@ -227,7 +245,7 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
           />
 
           <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Export en cours...' : 'Générer l\'export'}
+            {isPending ? 'Export en cours...' : "Générer l'export"}
           </Button>
         </form>
       </Form>

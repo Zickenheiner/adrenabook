@@ -10,7 +10,9 @@ class AccountingExportRepositoryImpl implements AccountingExportRepository {
     private readonly mapper: AccountingExportMapper = new AccountingExportMapper(),
   ) {}
 
-  async create(data: AccountingExportRequestDto): Promise<AccountingExportEntity> {
+  async create(
+    data: AccountingExportRequestDto,
+  ): Promise<AccountingExportEntity> {
     const dto = await this.api.create(data);
     return this.mapper.toEntity(dto);
   }

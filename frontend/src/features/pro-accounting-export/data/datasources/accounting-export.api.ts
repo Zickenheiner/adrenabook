@@ -7,9 +7,13 @@ import type {
 } from '../dtos/accounting-export.dto';
 
 class AccountingExportApi {
-  constructor(private readonly baseUrl: string = endpoints.proAccountingExport.create) {}
+  constructor(
+    private readonly baseUrl: string = endpoints.proAccountingExport.create,
+  ) {}
 
-  async create(data: AccountingExportRequestDto): Promise<AccountingExportResponseDto> {
+  async create(
+    data: AccountingExportRequestDto,
+  ): Promise<AccountingExportResponseDto> {
     return request<AccountingExportResponseDto>({
       url: this.baseUrl,
       method: methods.POST,

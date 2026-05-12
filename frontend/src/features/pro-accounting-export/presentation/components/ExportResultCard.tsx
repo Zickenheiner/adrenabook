@@ -3,7 +3,12 @@ import { motion } from 'motion/react';
 import type { AccountingExportEntity } from '../../domain/entities/accounting-export.entity';
 import { Badge } from '@/core/components/ui/badge';
 import { Button } from '@/core/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/core/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/core/components/ui/card';
 
 interface Props {
   result: AccountingExportEntity;
@@ -31,22 +36,21 @@ export default function ExportResultCard({ result, onReset }: Props) {
               Export généré
             </CardTitle>
             <Badge variant={isReady ? 'default' : 'secondary'}>
-              {isReady ? 'Prêt' : 'En file d\'attente'}
+              {isReady ? 'Prêt' : "En file d'attente"}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{result.recordsCount}</span>{' '}
-            enregistrement{result.recordsCount !== 1 ? 's' : ''} exporté{result.recordsCount !== 1 ? 's' : ''}
+            <span className="font-medium text-foreground">
+              {result.recordsCount}
+            </span>{' '}
+            enregistrement{result.recordsCount !== 1 ? 's' : ''} exporté
+            {result.recordsCount !== 1 ? 's' : ''}
           </p>
 
           {isReady && result.downloadUrl && (
-            <a
-              href={result.downloadUrl}
-              download
-              className="block"
-            >
+            <a href={result.downloadUrl} download className="block">
               <Button className="w-full gap-2">
                 <Download className="h-4 w-4" />
                 Télécharger l&apos;export
@@ -59,7 +63,9 @@ export default function ExportResultCard({ result, onReset }: Props) {
               <Mail className="h-4 w-4 shrink-0" />
               <span>
                 L&apos;export sera envoyé à{' '}
-                <span className="font-medium text-foreground">{result.emailDeliveredTo}</span>
+                <span className="font-medium text-foreground">
+                  {result.emailDeliveredTo}
+                </span>
               </span>
             </div>
           )}

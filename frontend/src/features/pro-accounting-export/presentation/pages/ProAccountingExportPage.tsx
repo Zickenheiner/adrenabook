@@ -4,8 +4,18 @@ import { useCreateAccountingExport } from '../../domain/hooks/accounting-export.
 import type { AccountingExportFormData } from '../../domain/schemas/accounting-export.schema';
 import AccountingExportForm from '../components/AccountingExportForm';
 import ExportResultCard from '../components/ExportResultCard';
-import { Alert, AlertDescription, AlertTitle } from '@/core/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/core/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/core/components/ui/card';
 import { Skeleton } from '@/core/components/ui/skeleton';
 
 function ProAccountingExportSkeleton() {
@@ -64,9 +74,12 @@ export default function ProAccountingExportPage() {
             <FileSpreadsheet className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Export comptable</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Export comptable
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Exportez vos données de ventes au format Sage ou CSV pour votre expert-comptable.
+              Exportez vos données de ventes au format Sage ou CSV pour votre
+              expert-comptable.
             </p>
           </div>
         </div>
@@ -82,7 +95,8 @@ export default function ProAccountingExportPage() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Erreur lors de l&apos;export</AlertTitle>
               <AlertDescription>
-                Une erreur est survenue lors de la génération de l&apos;export. Veuillez vérifier la période sélectionnée et réessayer.
+                Une erreur est survenue lors de la génération de l&apos;export.
+                Veuillez vérifier la période sélectionnée et réessayer.
               </AlertDescription>
             </Alert>
           </motion.div>
@@ -90,13 +104,19 @@ export default function ProAccountingExportPage() {
 
         {/* Résultat ou Formulaire */}
         {accountingExportResult ? (
-          <ExportResultCard result={accountingExportResult} onReset={resetAccountingExport} />
+          <ExportResultCard
+            result={accountingExportResult}
+            onReset={resetAccountingExport}
+          />
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Paramètres de l&apos;export</CardTitle>
+              <CardTitle className="text-lg">
+                Paramètres de l&apos;export
+              </CardTitle>
               <CardDescription>
-                Configurez la période, le format et le mode de livraison de votre export.
+                Configurez la période, le format et le mode de livraison de
+                votre export.
               </CardDescription>
             </CardHeader>
             <CardContent>
