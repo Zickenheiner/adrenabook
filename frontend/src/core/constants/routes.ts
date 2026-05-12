@@ -26,6 +26,7 @@ const routes = {
   bookingCancellation: '/bookings/:id/cancel',
   proDashboard: '/pro/dashboard',
   proCsvImport: '/pro/import/csv',
+  proAccountingExport: '/pro/exports/accounting',
 };
 
 export default routes;

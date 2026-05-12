@@ -62,6 +62,9 @@ const endpoints = {
   proImport: {
     csv: '/pro/imports/csv',
   },
+  proAccountingExport: {
+    create: '/pro/exports/accounting',
+  },
 };
 
 export default endpoints;

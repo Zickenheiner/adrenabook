@@ -27,6 +27,7 @@ import NotificationPreferencesPage from '@/features/notification-preferences/pre
 import BookingCancellationPage from '@/features/booking-cancellation/presentation/pages/BookingCancellationPage';
 import ProDashboardPage from '@/features/pro-dashboard/presentation/pages/ProDashboardPage';
 import CsvImportPage from '@/features/pro-csv-import/presentation/pages/CsvImportPage';
+import ProAccountingExportPage from '@/features/pro-accounting-export/presentation/pages/ProAccountingExportPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -101,6 +102,7 @@ export default function Router() {
         />
         <Route path={routes.proDashboard} element={<ProDashboardPage />} />
         <Route path={routes.proCsvImport} element={<CsvImportPage />} />
+        <Route path={routes.proAccountingExport} element={<ProAccountingExportPage />} />
       </Route>
     );
   };
