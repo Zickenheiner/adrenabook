@@ -25,6 +25,7 @@ const routes = {
   notificationPreferences: '/profile/notifications',
   bookingCancellation: '/bookings/:id/cancel',
   proDashboard: '/pro/dashboard',
+  proCsvImport: '/pro/import/csv',
 };
 
 export default routes;

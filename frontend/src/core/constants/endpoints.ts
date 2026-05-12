@@ -59,6 +59,9 @@ const endpoints = {
   proDashboard: {
     get: '/pro/dashboard',
   },
+  proImport: {
+    csv: '/pro/imports/csv',
+  },
 };
 
 export default endpoints;
