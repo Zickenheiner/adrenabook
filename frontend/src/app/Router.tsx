@@ -30,6 +30,7 @@ import CsvImportPage from '@/features/pro-csv-import/presentation/pages/CsvImpor
 import ProAccountingExportPage from '@/features/pro-accounting-export/presentation/pages/ProAccountingExportPage';
 import AdminUserListPage from '@/features/admin-user-management/presentation/pages/AdminUserListPage';
 import AdminUserDetailPage from '@/features/admin-user-management/presentation/pages/AdminUserDetailPage';
+import AdminAuditLogsPage from '@/features/admin-audit-logs/presentation/pages/AdminAuditLogsPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -113,6 +114,7 @@ export default function Router() {
           path={routes.adminUserDetail}
           element={<AdminUserDetailPage />}
         />
+        <Route path={routes.adminAuditLogs} element={<AdminAuditLogsPage />} />
       </Route>
     );
   };

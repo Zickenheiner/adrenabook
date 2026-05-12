@@ -70,6 +70,9 @@ const endpoints = {
     byId: (id: string) => `/admin/users/${id}`,
     updateStatus: (id: string) => `/admin/users/${id}/status`,
   },
+  adminAuditLogs: {
+    list: '/admin/audit-logs',
+  },
 };
 
 export default endpoints;

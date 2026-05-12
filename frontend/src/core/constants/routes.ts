@@ -29,6 +29,7 @@ const routes = {
   proAccountingExport: '/pro/exports/accounting',
   adminUserList: '/admin/users',
   adminUserDetail: '/admin/users/:id',
+  adminAuditLogs: '/admin/audit-logs',
 };
 
 export default routes;
