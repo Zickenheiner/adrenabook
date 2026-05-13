@@ -5,6 +5,7 @@ import { UserController } from './controllers/user.controller';
 import { AuthController } from './controllers/auth.controller';
 import { HealthProfileController } from './controllers/health-profile.controller';
 import { NotificationPreferencesController } from './controllers/notification-preferences.controller';
+import { RgpdController } from './controllers/rgpd.controller';
 import { UserService } from './implementation/services/user.service';
 import { UserRepository } from './implementation/repositories/user.repository';
 import { UserMapper } from './implementation/mappers/user.mapper';
@@ -29,6 +30,7 @@ import {
     AuthController,
     HealthProfileController,
     NotificationPreferencesController,
+    RgpdController,
   ],
   providers: [
     UserMapper,

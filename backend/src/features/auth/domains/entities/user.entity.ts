@@ -60,6 +60,17 @@ export class UserEntity {
     };
   };
 
+  // ——— RGPD US-24 ———
+  private rgpdRequest?: {
+    requestId: string;
+    type: 'export' | 'delete';
+    status: 'queued' | 'processing' | 'ready' | 'scheduled';
+    requestedAt: Date;
+    scheduledDeletionAt?: Date;
+    confirmationCode?: string;
+    confirmationCodeExpiresAt?: Date;
+  };
+
   constructor(_id: User) {
     this.id = _id;
   }
@@ -298,5 +309,37 @@ export class UserEntity {
       | undefined,
   ): void {
     this.notificationPreferences = value;
+  }
+
+  // ——— RGPD US-24 ———
+
+  getRgpdRequest():
+    | {
+        requestId: string;
+        type: 'export' | 'delete';
+        status: 'queued' | 'processing' | 'ready' | 'scheduled';
+        requestedAt: Date;
+        scheduledDeletionAt?: Date;
+        confirmationCode?: string;
+        confirmationCodeExpiresAt?: Date;
+      }
+    | undefined {
+    return this.rgpdRequest;
+  }
+
+  setRgpdRequest(
+    value:
+      | {
+          requestId: string;
+          type: 'export' | 'delete';
+          status: 'queued' | 'processing' | 'ready' | 'scheduled';
+          requestedAt: Date;
+          scheduledDeletionAt?: Date;
+          confirmationCode?: string;
+          confirmationCodeExpiresAt?: Date;
+        }
+      | undefined,
+  ): void {
+    this.rgpdRequest = value;
   }
 }

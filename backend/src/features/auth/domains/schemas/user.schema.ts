@@ -111,6 +111,39 @@ export class User {
     medicalCertificateFileId?: string;
   };
 
+  // ——— RGPD US-24 ———
+
+  @Prop({
+    required: false,
+    type: {
+      requestId: { type: String, required: false },
+      type: {
+        type: String,
+        required: false,
+        enum: ['export', 'delete'],
+      },
+      status: {
+        type: String,
+        required: false,
+        enum: ['queued', 'processing', 'ready', 'scheduled'],
+      },
+      requestedAt: { type: Date, required: false },
+      scheduledDeletionAt: { type: Date, required: false },
+      confirmationCode: { type: String, required: false },
+      confirmationCodeExpiresAt: { type: Date, required: false },
+    },
+    _id: false,
+  })
+  rgpdRequest?: {
+    requestId: string;
+    type: 'export' | 'delete';
+    status: 'queued' | 'processing' | 'ready' | 'scheduled';
+    requestedAt: Date;
+    scheduledDeletionAt?: Date;
+    confirmationCode?: string;
+    confirmationCodeExpiresAt?: Date;
+  };
+
   // ——— Preferences de notifications US-14 ———
 
   @Prop({

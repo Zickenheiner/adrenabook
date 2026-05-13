@@ -30,6 +30,7 @@ const routes = {
   adminUserList: '/admin/users',
   adminUserDetail: '/admin/users/:id',
   adminAuditLogs: '/admin/audit-logs',
+  rgpdProfile: '/profile/rgpd',
 };
 
 export default routes;

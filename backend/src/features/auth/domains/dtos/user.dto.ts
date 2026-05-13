@@ -523,3 +523,86 @@ export class NotificationPreferencesResponseDto {
   })
   preferences: NotificationPreferencesDto;
 }
+
+// ——— RGPD US-24 ———
+
+/**
+ * RgpdExportResponseDto — Reponse a la demande d'export RGPD (US-24)
+ */
+export class RgpdExportResponseDto {
+  @ApiProperty({
+    description: "Identifiant unique de la demande d'export",
+    example: 'rgpd-export-68b4d59919d9b7a94b4fde21',
+  })
+  requestId: string;
+
+  @ApiProperty({
+    description: "Statut de la demande d'export",
+    example: 'queued',
+    enum: ['queued', 'processing', 'ready'],
+  })
+  status: 'queued' | 'processing' | 'ready';
+
+  @ApiProperty({
+    description: 'Date estimee de disponibilite du fichier (ISO 8601)',
+    example: '2026-05-13T12:00:00.000Z',
+  })
+  estimatedReadyAt: string;
+
+  @ApiProperty({
+    description:
+      "URL de telechargement du fichier (uniquement si status = 'ready')",
+    example:
+      'https://storage.adrenabook.com/exports/68b4d59919d9b7a94b4fde21.json',
+    required: false,
+  })
+  downloadUrl?: string;
+}
+
+/**
+ * RgpdDeleteDto — Corps de la demande de suppression RGPD (US-24)
+ * Necessite un code de confirmation envoye par email (double consentement).
+ */
+export class RgpdDeleteDto {
+  @ApiProperty({
+    description: 'Code de confirmation recu par email (double consentement)',
+    example: 'CONFIRM-ABC123',
+  })
+  @IsString()
+  @IsNotEmpty()
+  confirmationCode: string;
+
+  @ApiProperty({
+    description: 'Raison optionnelle de la demande de suppression',
+    example: 'Je ne souhaite plus utiliser le service',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  reason?: string;
+}
+
+/**
+ * RgpdDeleteResponseDto — Reponse a la demande de suppression RGPD (US-24)
+ */
+export class RgpdDeleteResponseDto {
+  @ApiProperty({
+    description: 'Identifiant unique de la demande de suppression',
+    example: 'rgpd-delete-68b4d59919d9b7a94b4fde21',
+  })
+  requestId: string;
+
+  @ApiProperty({
+    description: 'Date planifiee de suppression (J+30 — delai de retractation)',
+    example: '2026-06-12T12:00:00.000Z',
+  })
+  scheduledDeletionAt: string;
+
+  @ApiProperty({
+    description:
+      'Donnees conservees pour obligation legale (ex. factures 10 ans)',
+    example: ['invoices for legal retention'],
+    type: [String],
+  })
+  retainedData: string[];
+}

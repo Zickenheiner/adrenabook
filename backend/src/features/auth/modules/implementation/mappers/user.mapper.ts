@@ -27,6 +27,7 @@ export class UserMapper {
     entity.setPasswordResetTokenExpiresAt(doc.passwordResetTokenExpiresAt);
     entity.setHealthProfile(doc.healthProfile);
     entity.setNotificationPreferences(doc.notificationPreferences);
+    entity.setRgpdRequest(doc.rgpdRequest);
     return entity;
   }
 }

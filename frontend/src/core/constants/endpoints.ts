@@ -73,6 +73,10 @@ const endpoints = {
   adminAuditLogs: {
     list: '/admin/audit-logs',
   },
+  rgpd: {
+    export: '/users/me/rgpd/export',
+    delete: '/users/me/rgpd/delete',
+  },
 };
 
 export default endpoints;

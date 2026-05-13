@@ -53,4 +53,19 @@ export interface IUserRepository {
 
   // ——— Statut admin US-22 ———
   updateStatus(id: string, status: string): Promise<boolean>;
+
+  // ——— RGPD US-24 ———
+  setRgpdExportRequest(
+    id: string,
+    requestId: string,
+    estimatedReadyAt: Date,
+  ): Promise<boolean>;
+  setRgpdDeleteRequest(
+    id: string,
+    requestId: string,
+    confirmationCode: string,
+    confirmationCodeExpiresAt: Date,
+    scheduledDeletionAt: Date,
+  ): Promise<boolean>;
+  getRgpdRequest(id: string): Promise<UserEntity | null>;
 }

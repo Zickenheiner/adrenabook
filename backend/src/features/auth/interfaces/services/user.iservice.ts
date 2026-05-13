@@ -12,6 +12,9 @@ import {
   PasswordResetRequestResponseDto,
   RegisterDto,
   RegisterResponseDto,
+  RgpdDeleteDto,
+  RgpdDeleteResponseDto,
+  RgpdExportResponseDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
 import { UserEntity } from '@features/auth/domains/entities/user.entity';
@@ -47,4 +50,11 @@ export interface IUserService {
     userId: string,
     dto: NotificationPreferencesDto,
   ): Promise<NotificationPreferencesResponseDto>;
+
+  // ——— RGPD US-24 ———
+  requestRgpdExport(userId: string): Promise<RgpdExportResponseDto>;
+  requestRgpdDelete(
+    userId: string,
+    dto: RgpdDeleteDto,
+  ): Promise<RgpdDeleteResponseDto>;
 }

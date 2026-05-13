@@ -31,6 +31,7 @@ import ProAccountingExportPage from '@/features/pro-accounting-export/presentati
 import AdminUserListPage from '@/features/admin-user-management/presentation/pages/AdminUserListPage';
 import AdminUserDetailPage from '@/features/admin-user-management/presentation/pages/AdminUserDetailPage';
 import AdminAuditLogsPage from '@/features/admin-audit-logs/presentation/pages/AdminAuditLogsPage';
+import RgpdPage from '@/features/rgpd/presentation/pages/RgpdPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -115,6 +116,7 @@ export default function Router() {
           element={<AdminUserDetailPage />}
         />
         <Route path={routes.adminAuditLogs} element={<AdminAuditLogsPage />} />
+        <Route path={routes.rgpdProfile} element={<RgpdPage />} />
       </Route>
     );
   };

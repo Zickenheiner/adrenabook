@@ -206,6 +206,61 @@ export class UserRepository implements IUserRepository {
     return !!updated;
   }
 
+  // ——— RGPD US-24 ———
+
+  async setRgpdExportRequest(
+    id: string,
+    requestId: string,
+    _estimatedReadyAt: Date,
+  ): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          rgpdRequest: {
+            requestId,
+            type: 'export',
+            status: 'queued',
+            requestedAt: new Date(),
+          },
+        },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
+
+  async setRgpdDeleteRequest(
+    id: string,
+    requestId: string,
+    confirmationCode: string,
+    confirmationCodeExpiresAt: Date,
+    scheduledDeletionAt: Date,
+  ): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          rgpdRequest: {
+            requestId,
+            type: 'delete',
+            status: 'scheduled',
+            requestedAt: new Date(),
+            scheduledDeletionAt,
+            confirmationCode,
+            confirmationCodeExpiresAt,
+          },
+        },
+        { new: true },
+      )
+      .exec();
+    return !!updated;
+  }
+
+  async getRgpdRequest(id: string): Promise<UserEntity | null> {
+    return this.findById(id);
+  }
+
   // ——— Preferences de notifications US-14 ———
 
   async updateNotificationPreferences(

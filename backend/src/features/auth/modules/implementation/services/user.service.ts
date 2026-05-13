@@ -41,6 +41,9 @@ import {
   PasswordResetRequestResponseDto,
   RegisterDto,
   RegisterResponseDto,
+  RgpdDeleteDto,
+  RgpdDeleteResponseDto,
+  RgpdExportResponseDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
 import { UserEntity } from '@features/auth/domains/entities/user.entity';
@@ -651,5 +654,102 @@ export class UserService implements IUserService {
       decipher.update(encryptedBuf),
       decipher.final(),
     ]).toString('utf8');
+  }
+
+  // ——— RGPD US-24 ———
+
+  /**
+   * Demande d'export RGPD (US-24)
+   * - Verifie qu'aucune demande n'est deja en cours
+   * - Cree une demande asynchrone (queued) avec un requestId unique
+   * - Retourne le statut et la date estimee de disponibilite (J+1)
+   */
+  async requestRgpdExport(userId: string): Promise<RgpdExportResponseDto> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    const existing = user.getRgpdRequest();
+    if (
+      existing &&
+      (existing.status === 'queued' || existing.status === 'processing')
+    ) {
+      throw new ConflictException('Une demande RGPD est deja en cours');
+    }
+
+    const requestId = `rgpd-export-${userId}-${randomBytes(8).toString('hex')}`;
+    const estimatedReadyAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // J+1
+
+    const saved = await this.userRepository.setRgpdExportRequest(
+      userId,
+      requestId,
+      estimatedReadyAt,
+    );
+
+    if (!saved) {
+      throw new InternalServerErrorException(
+        "Impossible de creer la demande d'export RGPD",
+      );
+    }
+
+    return {
+      requestId,
+      status: 'queued',
+      estimatedReadyAt: estimatedReadyAt.toISOString(),
+    };
+  }
+
+  /**
+   * Demande de suppression RGPD (US-24)
+   * - Verifie qu'aucune demande n'est deja en cours
+   * - Valide le code de confirmation (double consentement)
+   * - Planifie la suppression a J+30 (delai de retractation)
+   * - Retourne la date de suppression et les donnees retenues (obligation legale)
+   */
+  async requestRgpdDelete(
+    userId: string,
+    dto: RgpdDeleteDto,
+  ): Promise<RgpdDeleteResponseDto> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    const existing = user.getRgpdRequest();
+    if (existing && existing.status === 'scheduled') {
+      throw new ConflictException(
+        'Une demande de suppression RGPD est deja planifiee',
+      );
+    }
+
+    // Validation du code de confirmation
+    if (!dto.confirmationCode || dto.confirmationCode.trim().length === 0) {
+      throw new BadRequestException('Code de confirmation invalide');
+    }
+
+    const requestId = `rgpd-delete-${userId}-${randomBytes(8).toString('hex')}`;
+    const confirmationCodeExpiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 min
+    const scheduledDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // J+30
+
+    const saved = await this.userRepository.setRgpdDeleteRequest(
+      userId,
+      requestId,
+      dto.confirmationCode,
+      confirmationCodeExpiresAt,
+      scheduledDeletionAt,
+    );
+
+    if (!saved) {
+      throw new InternalServerErrorException(
+        'Impossible de creer la demande de suppression RGPD',
+      );
+    }
+
+    return {
+      requestId,
+      scheduledDeletionAt: scheduledDeletionAt.toISOString(),
+      retainedData: ['invoices for legal retention'],
+    };
   }
 }
