@@ -10,9 +10,9 @@ const QUERY_KEYS = {
 
 export function useCenterMap(query: CentersMapQueryDto | null) {
   const { data, isLoading, error } = useQuery({
-    queryKey: QUERY_KEYS.map(query ?? { bbox: '', zoom: 0 }),
+    queryKey: QUERY_KEYS.map(query ?? {}),
     queryFn: () => repository.getMap(query!),
-    enabled: query !== null && query.bbox !== '',
+    enabled: query !== null,
   });
 
   return {

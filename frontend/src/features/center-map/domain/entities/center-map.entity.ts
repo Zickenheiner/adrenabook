@@ -3,9 +3,8 @@ export interface CenterMapItemEntity {
   name: string;
   lat: number;
   lng: number;
+  city: string;
   activitiesCount: number;
-  cluster: boolean;
-  clusterSize?: number;
 }
 
 export interface CentersMapEntity {

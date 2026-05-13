@@ -1,7 +1,8 @@
 export interface CentersMapQueryDto {
-  bbox: string; // format 'minLng,minLat,maxLng,maxLat'
-  activityType?: string;
-  zoom: number;
+  lat?: number;
+  lng?: number;
+  radius?: number;
+  type?: string;
 }
 
 export interface CenterMapItemDto {
@@ -9,9 +10,8 @@ export interface CenterMapItemDto {
   name: string;
   lat: number;
   lng: number;
+  city: string;
   activitiesCount: number;
-  cluster?: boolean;
-  clusterSize?: number;
 }
 
 export interface CentersMapResponseDto {

@@ -14,9 +14,8 @@ class CenterMapMapper {
       name: dto.name,
       lat: dto.lat,
       lng: dto.lng,
+      city: dto.city,
       activitiesCount: dto.activitiesCount,
-      cluster: dto.cluster ?? false,
-      clusterSize: dto.clusterSize,
     };
   }
 
