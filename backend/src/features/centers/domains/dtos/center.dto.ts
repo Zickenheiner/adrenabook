@@ -24,6 +24,15 @@ export class CreateCenterDto {
   lng: number;
 
   @ApiProperty({
+    description: 'City of the center',
+    example: 'Lyon',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @ApiProperty({
     description: 'Activity types offered',
     example: ['escalade', 'canyoning'],
     required: false,
@@ -71,6 +80,15 @@ export class UpdateCenterDto {
   @IsOptional()
   @Type(() => Number)
   lng?: number;
+
+  @ApiProperty({
+    description: 'City of the center',
+    example: 'Lyon',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  city?: string;
 
   @ApiProperty({
     description: 'Activity types offered',
@@ -145,4 +163,70 @@ export class CenterMapItemDto {
 export class CentersMapResponseDto {
   @ApiProperty({ type: [CenterMapItemDto] })
   centers: CenterMapItemDto[];
+}
+
+export class CentersQueryDto {
+  @ApiProperty({
+    description: 'Latitude of the search origin',
+    example: 45.764,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  lat?: number;
+
+  @ApiProperty({
+    description: 'Longitude of the search origin',
+    example: 4.8357,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  lng?: number;
+
+  @ApiProperty({
+    description: 'Search radius in kilometers',
+    example: 50,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  radius?: number;
+
+  @ApiProperty({
+    description: 'Filter by activity type',
+    example: 'escalade',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  type?: string;
+}
+
+export class CenterListItemDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  id: string;
+
+  @ApiProperty({ example: 'Centre Outdoor Lyon' })
+  name: string;
+
+  @ApiProperty({ example: 45.764 })
+  lat: number;
+
+  @ApiProperty({ example: 4.8357 })
+  lng: number;
+
+  @ApiProperty({ example: 'Lyon' })
+  city: string;
+
+  @ApiProperty({ example: 5 })
+  activitiesCount: number;
+}
+
+export class CentersListResponseDto {
+  @ApiProperty({ type: [CenterListItemDto] })
+  centers: CenterListItemDto[];
 }

@@ -9,6 +9,7 @@ export class CenterMapper {
     entity.setName(doc.name);
     entity.setLat(doc.lat);
     entity.setLng(doc.lng);
+    entity.setCity(doc.city);
     entity.setActivityTypes(doc.activityTypes);
     entity.setActivitiesCount(doc.activitiesCount);
     return entity;

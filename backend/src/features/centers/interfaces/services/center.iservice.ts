@@ -1,6 +1,8 @@
 import {
+  CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
+  CentersQueryDto,
   CreateCenterDto,
   UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
@@ -13,4 +15,5 @@ export interface ICenterService {
   update(id: string, dto: UpdateCenterDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;
   getMap(query: CentersMapQueryDto): Promise<CentersMapResponseDto>;
+  getCenters(query: CentersQueryDto): Promise<CentersListResponseDto>;
 }

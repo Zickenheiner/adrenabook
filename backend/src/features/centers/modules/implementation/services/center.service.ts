@@ -2,8 +2,10 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ICenterService } from '../../../interfaces/services/center.iservice';
 import { ICenterRepository } from '@features/centers/interfaces/repositories/center.irepository';
 import {
+  CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
+  CentersQueryDto,
   CreateCenterDto,
   UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
@@ -76,6 +78,21 @@ export class CenterService implements ICenterService {
         name: c.getName(),
         lat: c.getLat(),
         lng: c.getLng(),
+        activitiesCount: c.getActivitiesCount(),
+      })),
+    };
+  }
+
+  async getCenters(query: CentersQueryDto): Promise<CentersListResponseDto> {
+    const centers = await this.centerRepository.findByRadius(query);
+
+    return {
+      centers: (centers ?? []).map((c) => ({
+        id: c.getId(),
+        name: c.getName(),
+        lat: c.getLat(),
+        lng: c.getLng(),
+        city: c.getCity(),
         activitiesCount: c.getActivitiesCount(),
       })),
     };

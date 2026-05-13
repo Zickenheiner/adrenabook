@@ -8,6 +8,7 @@ import {
 import { Model } from 'mongoose';
 import {
   CentersMapQueryDto,
+  CentersQueryDto,
   CreateCenterDto,
   UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
@@ -62,6 +63,39 @@ export class CenterRepository implements ICenterRepository {
 
     if (query.activityType) {
       filter.activityTypes = query.activityType;
+    }
+
+    const centers = await this.centerModel.find(filter).exec();
+    return centers
+      ? centers.map((doc) => this.centerMapper.toEntity(doc))
+      : null;
+  }
+
+  async findByRadius(query: CentersQueryDto): Promise<CenterEntity[] | null> {
+    const filter: Record<string, unknown> = {};
+
+    if (
+      query.lat !== undefined &&
+      query.lng !== undefined &&
+      query.radius !== undefined
+    ) {
+      // Approximate bounding box from radius (1° lat ≈ 111 km)
+      const deltaLat = query.radius / 111;
+      const deltaLng =
+        query.radius / (111 * Math.cos((query.lat * Math.PI) / 180));
+
+      filter.lat = {
+        $gte: query.lat - deltaLat,
+        $lte: query.lat + deltaLat,
+      };
+      filter.lng = {
+        $gte: query.lng - deltaLng,
+        $lte: query.lng + deltaLng,
+      };
+    }
+
+    if (query.type) {
+      filter.activityTypes = query.type;
     }
 
     const centers = await this.centerModel.find(filter).exec();

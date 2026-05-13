@@ -17,6 +17,9 @@ export class Center {
   @Prop({ required: true, type: Number })
   lng: number;
 
+  @Prop({ required: false, type: String, default: '' })
+  city: string;
+
   @Prop({ required: false, type: [String], default: [] })
   activityTypes: string[];
 

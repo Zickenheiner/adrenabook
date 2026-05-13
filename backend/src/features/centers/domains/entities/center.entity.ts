@@ -11,6 +11,7 @@ export class CenterEntity {
   private name: string;
   private lat: number;
   private lng: number;
+  private city: string;
   private activityTypes: string[];
   private activitiesCount: number;
 
@@ -40,6 +41,10 @@ export class CenterEntity {
     return this.lng;
   }
 
+  getCity(): string {
+    return this.city;
+  }
+
   getActivityTypes(): string[] {
     return this.activityTypes;
   }
@@ -60,6 +65,10 @@ export class CenterEntity {
 
   setLng(value: number): void {
     this.lng = value;
+  }
+
+  setCity(value: string): void {
+    this.city = value;
   }
 
   setActivityTypes(value: string[]): void {

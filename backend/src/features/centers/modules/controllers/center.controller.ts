@@ -1,6 +1,8 @@
 import {
+  CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
+  CentersQueryDto,
   CreateCenterDto,
   UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
@@ -73,18 +75,46 @@ export class CenterController {
     return this.centerService.getMap(query);
   }
 
+  @Public()
   @ApiOperation({
-    summary: 'Get all centers',
-    description: 'Retrieve a list of all centers',
+    summary: 'Get centers for interactive map (by lat/lng/radius)',
+    description:
+      'Returns centers filtered by geolocation and optional activity type. All params are optional — if omitted, returns all centers.',
+  })
+  @ApiQuery({
+    name: 'lat',
+    required: false,
+    description: 'Latitude of the search origin',
+    example: 45.764,
+  })
+  @ApiQuery({
+    name: 'lng',
+    required: false,
+    description: 'Longitude of the search origin',
+    example: 4.8357,
+  })
+  @ApiQuery({
+    name: 'radius',
+    required: false,
+    description: 'Search radius in kilometers',
+    example: 50,
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Filter by activity type',
+    example: 'escalade',
   })
   @ApiResponse({
     status: 200,
-    description: 'List of all centers',
-    type: [CenterEntity],
+    description: 'List of centers',
+    type: CentersListResponseDto,
   })
   @Get()
-  async findAll() {
-    return this.centerService.findAll();
+  async getCenters(
+    @Query() query: CentersQueryDto,
+  ): Promise<CentersListResponseDto> {
+    return this.centerService.getCenters(query);
   }
 
   @ApiOperation({
