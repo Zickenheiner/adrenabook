@@ -63,7 +63,7 @@ export class UserEntity {
   // ——— RGPD US-24 ———
   private rgpdRequest?: {
     requestId: string;
-    type: 'export' | 'delete';
+    requestType: 'export' | 'delete';
     status: 'queued' | 'processing' | 'ready' | 'scheduled';
     requestedAt: Date;
     scheduledDeletionAt?: Date;
@@ -316,7 +316,7 @@ export class UserEntity {
   getRgpdRequest():
     | {
         requestId: string;
-        type: 'export' | 'delete';
+        requestType: 'export' | 'delete';
         status: 'queued' | 'processing' | 'ready' | 'scheduled';
         requestedAt: Date;
         scheduledDeletionAt?: Date;
@@ -331,7 +331,7 @@ export class UserEntity {
     value:
       | {
           requestId: string;
-          type: 'export' | 'delete';
+          requestType: 'export' | 'delete';
           status: 'queued' | 'processing' | 'ready' | 'scheduled';
           requestedAt: Date;
           scheduledDeletionAt?: Date;

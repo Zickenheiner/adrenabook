@@ -219,7 +219,7 @@ export class UserRepository implements IUserRepository {
         {
           rgpdRequest: {
             requestId,
-            type: 'export',
+            requestType: 'export',
             status: 'queued',
             requestedAt: new Date(),
           },
@@ -243,7 +243,7 @@ export class UserRepository implements IUserRepository {
         {
           rgpdRequest: {
             requestId,
-            type: 'delete',
+            requestType: 'delete',
             status: 'scheduled',
             requestedAt: new Date(),
             scheduledDeletionAt,

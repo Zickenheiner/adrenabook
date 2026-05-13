@@ -87,15 +87,15 @@ export class User {
   @Prop({
     required: false,
     type: {
-      weight: { type: Number, required: false },
-      height: { type: Number, required: false },
-      medicalContraindications: { type: [String], required: false },
+      weight: { type: Number },
+      height: { type: Number },
+      medicalContraindications: { type: [String] },
       emergencyContact: {
-        fullName: { type: String, required: false },
-        relation: { type: String, required: false },
-        phone: { type: String, required: false },
+        fullName: { type: String },
+        relation: { type: String },
+        phone: { type: String },
       },
-      medicalCertificateFileId: { type: String, required: false },
+      medicalCertificateFileId: { type: String },
     },
     _id: false,
   })
@@ -116,27 +116,25 @@ export class User {
   @Prop({
     required: false,
     type: {
-      requestId: { type: String, required: false },
-      type: {
+      requestId: { type: String },
+      requestType: {
         type: String,
-        required: false,
         enum: ['export', 'delete'],
       },
       status: {
         type: String,
-        required: false,
         enum: ['queued', 'processing', 'ready', 'scheduled'],
       },
-      requestedAt: { type: Date, required: false },
-      scheduledDeletionAt: { type: Date, required: false },
-      confirmationCode: { type: String, required: false },
-      confirmationCodeExpiresAt: { type: Date, required: false },
+      requestedAt: { type: Date },
+      scheduledDeletionAt: { type: Date },
+      confirmationCode: { type: String },
+      confirmationCodeExpiresAt: { type: Date },
     },
     _id: false,
   })
   rgpdRequest?: {
     requestId: string;
-    type: 'export' | 'delete';
+    requestType: 'export' | 'delete';
     status: 'queued' | 'processing' | 'ready' | 'scheduled';
     requestedAt: Date;
     scheduledDeletionAt?: Date;
@@ -150,13 +148,13 @@ export class User {
     required: false,
     type: {
       email: {
-        bookingConfirmation: { type: Boolean, required: false, default: true },
-        reminders: { type: Boolean, required: false, default: true },
-        marketing: { type: Boolean, required: false, default: false },
+        bookingConfirmation: { type: Boolean, default: true },
+        reminders: { type: Boolean, default: true },
+        marketing: { type: Boolean, default: false },
       },
       sms: {
-        bookingConfirmation: { type: Boolean, required: false, default: true },
-        reminders: { type: Boolean, required: false, default: true },
+        bookingConfirmation: { type: Boolean, default: true },
+        reminders: { type: Boolean, default: true },
       },
     },
     _id: false,
