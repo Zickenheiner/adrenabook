@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Private from './Private';
 import Public from './Public';
 import routes from '@/core/constants/routes';
+import CguPage from '@/features/legal/CguPage';
+import RgpdLegalPage from '@/features/legal/RgpdLegalPage';
 import SystemHealthPage from '@/features/system/presentation/pages/SystemHealthPage';
 import RegisterPage from '@/features/auth/presentation/pages/RegisterPage';
 import LoginPage from '@/features/auth/presentation/pages/LoginPage';
@@ -38,9 +40,6 @@ export default function Router() {
   const PublicRoutes = () => {
     return (
       <Route element={<Public redirect={routes.home} />}>
-        <Route path={routes.activitySearch} element={<ActivitySearchPage />} />
-        <Route path={routes.activityDetail} element={<ActivityDetailPage />} />
-        <Route path={routes.centerMap} element={<CenterMapPage />} />
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
         <Route
@@ -67,6 +66,9 @@ export default function Router() {
     return (
       <Route element={<Private redirect={routes.login} />}>
         <Route path={routes.home} element={<AdventurerDashboardPage />} />
+        <Route path={routes.activitySearch} element={<ActivitySearchPage />} />
+        <Route path={routes.activityDetail} element={<ActivityDetailPage />} />
+        <Route path={routes.centerMap} element={<CenterMapPage />} />
         <Route path={routes.systemHealth} element={<SystemHealthPage />} />
         <Route
           path={routes.adminCenterList}
@@ -126,6 +128,8 @@ export default function Router() {
     <BrowserRouter>
       <Routes>
         <Route>
+          <Route path={routes.cgu} element={<CguPage />} />
+          <Route path={routes.rgpdLegal} element={<RgpdLegalPage />} />
           {PublicRoutes()}
           {PrivateRoutes()}
         </Route>

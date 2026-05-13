@@ -31,6 +31,8 @@ const routes = {
   adminUserDetail: '/admin/users/:id',
   adminAuditLogs: '/admin/audit-logs',
   rgpdProfile: '/profile/rgpd',
+  cgu: '/cgu',
+  rgpdLegal: '/rgpd',
 };
 
 export default routes;

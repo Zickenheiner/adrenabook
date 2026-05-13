@@ -12,6 +12,7 @@ export function useAuditLogs(query?: AuditLogsQueryDto) {
   const { data, isLoading, error } = useQuery({
     queryKey: QUERY_KEYS.all(query),
     queryFn: () => repository.getAll(query),
+    retry: false,
   });
 
   return {

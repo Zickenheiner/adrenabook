@@ -13,6 +13,7 @@ export function useAdminUsers(page: number = 1, limit: number = 20) {
   const { data, isLoading, error } = useQuery({
     queryKey: QUERY_KEYS.users(page, limit),
     queryFn: () => repository.getUsers(page, limit),
+    retry: false,
   });
 
   return {

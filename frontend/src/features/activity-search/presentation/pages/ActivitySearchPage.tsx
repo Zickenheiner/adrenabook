@@ -145,9 +145,11 @@ export default function ActivitySearchPage() {
                     ? 'Aucun résultat'
                     : `${searchResult.total} activité${searchResult.total > 1 ? 's' : ''} trouvée${searchResult.total > 1 ? 's' : ''}`}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Page {searchResult.page} / {totalPages}
-                </p>
+                {searchResult.total > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Page {searchResult.page} / {totalPages}
+                  </p>
+                )}
               </div>
             )}
 

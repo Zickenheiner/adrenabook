@@ -1,6 +1,13 @@
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Map, AlertCircle, Inbox, Calendar } from 'lucide-react';
+import {
+  Search,
+  Map,
+  AlertCircle,
+  Inbox,
+  Calendar,
+  Compass,
+} from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Skeleton } from '@/core/components/ui/skeleton';
 import { Separator } from '@/core/components/ui/separator';
@@ -145,18 +152,38 @@ export default function AdventurerDashboardPage() {
       {/* Suggested Activities */}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Activités suggérées</h2>
-        <motion.div
-          variants={staggerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
-        >
-          {dashboard.suggestedActivities.map((activity) => (
-            <motion.div key={activity.id} variants={itemVariants}>
-              <SuggestedActivityCard activity={activity} />
-            </motion.div>
-          ))}
-        </motion.div>
+        {dashboard.suggestedActivities.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-10 text-center"
+          >
+            <Compass className="h-10 w-10 text-muted-foreground" />
+            <p className="text-muted-foreground">
+              Aucune activité suggérée pour le moment.
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(routes.activitySearch)}
+            >
+              Découvrir les activités
+            </Button>
+          </motion.div>
+        ) : (
+          <motion.div
+            variants={staggerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            {dashboard.suggestedActivities.map((activity) => (
+              <motion.div key={activity.id} variants={itemVariants}>
+                <SuggestedActivityCard activity={activity} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </section>
     </div>
   );

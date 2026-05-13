@@ -8,6 +8,7 @@ import { Button } from '@/core/components/ui/button';
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -55,6 +56,9 @@ export default function NavbarMobileDrawer({ navLinks, onLogout }: Props) {
               AdrenaBook
             </Link>
           </SheetTitle>
+          <SheetDescription className="sr-only">
+            Menu de navigation principal
+          </SheetDescription>
         </SheetHeader>
 
         <Separator />

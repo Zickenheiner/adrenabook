@@ -692,6 +692,12 @@ export class ActivitySummaryDto {
  */
 export class DashboardResponseDto {
   @ApiProperty({
+    description: "Prénom de l'utilisateur connecté",
+    example: 'Rémi',
+  })
+  firstName: string;
+
+  @ApiProperty({
     description: "Les 3 prochaines réservations de l'utilisateur",
     type: [BookingSummaryDto],
   })

@@ -162,7 +162,9 @@ export default function RegisterForm({ onSubmit, isSubmitting }: Props) {
                 </div>
               </FormControl>
               <FormMessage />
-              <PasswordStrengthIndicator password={passwordValue ?? ''} />
+              {passwordValue && (
+                <PasswordStrengthIndicator password={passwordValue} />
+              )}
             </FormItem>
           )}
         />

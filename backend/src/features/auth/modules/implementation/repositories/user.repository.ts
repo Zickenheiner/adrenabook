@@ -315,7 +315,7 @@ export class UserRepository implements IUserRepository {
     try {
       userObjectId = new Types.ObjectId(userId);
     } catch {
-      return { upcomingBookings: [], suggestedActivities: [] };
+      return { firstName: '', upcomingBookings: [], suggestedActivities: [] };
     }
 
     const now = new Date();
@@ -497,6 +497,13 @@ export class UserRepository implements IUserRepository {
       }),
     );
 
-    return { upcomingBookings, suggestedActivities };
+    const userDoc = await this.userModel
+      .findById(userObjectId)
+      .select('firstName')
+      .lean()
+      .exec();
+    const firstName = (userDoc as { firstName?: string })?.firstName ?? '';
+
+    return { firstName, upcomingBookings, suggestedActivities };
   }
 }
