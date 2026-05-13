@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { IUserRepository } from '../../../interfaces/repositories/user.irepository';
 import { UserMapper } from '../mappers/user.mapper';
 import { User, UserDocument } from '@features/auth/domains/schemas/user.schema';
-import { Model } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import {
+  ActivitySummaryDto,
+  BookingSummaryDto,
   CreateUserDto,
+  DashboardResponseDto,
   HealthProfileDto,
   NotificationPreferencesDto,
   RegisterDto,
@@ -12,12 +15,24 @@ import {
 } from '@features/auth/domains/dtos/user.dto';
 import { UserEntity } from '@features/auth/domains/entities/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import {
+  Booking,
+  BookingDocument,
+} from '@features/booking/domains/schemas/booking.schema';
+import {
+  Activity,
+  ActivityDocument,
+} from '@features/activity/domains/schemas/activity.schema';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(Booking.name)
+    private readonly bookingModel: Model<BookingDocument>,
+    @InjectModel(Activity.name)
+    private readonly activityModel: Model<ActivityDocument>,
     private readonly userMapper: UserMapper,
   ) {}
 
@@ -291,5 +306,197 @@ export class UserRepository implements IUserRepository {
       .findByIdAndUpdate(id, { healthProfile }, { new: true })
       .exec();
     return !!updated;
+  }
+
+  // ——— Dashboard aventurier US-29 ———
+
+  async getDashboard(userId: string): Promise<DashboardResponseDto> {
+    let userObjectId: Types.ObjectId;
+    try {
+      userObjectId = new Types.ObjectId(userId);
+    } catch {
+      return { upcomingBookings: [], suggestedActivities: [] };
+    }
+
+    const now = new Date();
+
+    // Récupère les 3 prochaines réservations confirmées ou partiellement payées
+    // en joignant le slot puis l'activité via le slotId → activityId
+    const bookingPipeline: PipelineStage[] = [
+      {
+        $match: {
+          userId: userObjectId,
+          status: { $in: ['confirmed', 'partial_paid'] },
+        },
+      },
+      {
+        $lookup: {
+          from: 'slots',
+          localField: 'slotId',
+          foreignField: '_id',
+          as: 'slotArray',
+        },
+      },
+      { $unwind: { path: '$slotArray', preserveNullAndEmptyArrays: false } },
+      { $match: { 'slotArray.startAt': { $gte: now } } },
+      { $sort: { 'slotArray.startAt': 1 } },
+      { $limit: 3 },
+      {
+        $lookup: {
+          from: 'activities',
+          localField: 'slotArray.activityId',
+          foreignField: '_id',
+          as: 'activityArray',
+        },
+      },
+      {
+        $addFields: {
+          activity: { $arrayElemAt: ['$activityArray', 0] },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          status: 1,
+          slotStartAt: '$slotArray.startAt',
+          activityTitle: '$activity.title',
+        },
+      },
+    ];
+
+    interface BookingAggResult {
+      _id: Types.ObjectId;
+      status: string;
+      slotStartAt: Date;
+      activityTitle: string;
+    }
+
+    const bookingDocs =
+      await this.bookingModel.aggregate<BookingAggResult>(bookingPipeline);
+
+    const upcomingBookings: BookingSummaryDto[] = bookingDocs.map((doc) => ({
+      bookingId: doc._id.toString(),
+      activityTitle: doc.activityTitle ?? '',
+      slotStartAt:
+        doc.slotStartAt instanceof Date
+          ? doc.slotStartAt.toISOString()
+          : String(doc.slotStartAt),
+      status: doc.status,
+    }));
+
+    // Récupère les types d'activités déjà réservées pour la personnalisation
+    const bookedTypes = await this.bookingModel
+      .aggregate<{ type: string }>([
+        { $match: { userId: userObjectId } },
+        {
+          $lookup: {
+            from: 'slots',
+            localField: 'slotId',
+            foreignField: '_id',
+            as: 'slotArray',
+          },
+        },
+        { $unwind: { path: '$slotArray', preserveNullAndEmptyArrays: false } },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: 'slotArray.activityId',
+            foreignField: '_id',
+            as: 'activityArray',
+          },
+        },
+        {
+          $unwind: {
+            path: '$activityArray',
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        { $group: { _id: '$activityArray.type' } },
+        { $project: { type: '$_id', _id: 0 } },
+      ])
+      .exec();
+
+    const preferredTypes = bookedTypes.map((r) => r.type);
+
+    // Récupère 4 activités suggérées : préférence pour les types déjà pratiqués,
+    // sinon aléatoire parmi les activités publiées
+    interface ActivityAggResult {
+      _id: Types.ObjectId;
+      title: string;
+      type: string;
+      priceFromEur: number;
+      difficulty: string;
+      coverPhotoUrl: string;
+    }
+
+    let suggestedDocs: ActivityAggResult[] = [];
+
+    if (preferredTypes.length > 0) {
+      // D'abord essayer les types préférés
+      const preferredPipeline: PipelineStage[] = [
+        {
+          $match: {
+            status: 'published',
+            type: { $in: preferredTypes },
+          },
+        },
+        { $sample: { size: 4 } },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            type: 1,
+            priceFromEur: 1,
+            difficulty: 1,
+            coverPhotoUrl: { $arrayElemAt: ['$photoFileIds', 0] },
+          },
+        },
+      ];
+      suggestedDocs =
+        await this.activityModel.aggregate<ActivityAggResult>(
+          preferredPipeline,
+        );
+    }
+
+    if (suggestedDocs.length < 4) {
+      // Compléter avec des activités aléatoires
+      const remaining = 4 - suggestedDocs.length;
+      const alreadyIds = suggestedDocs.map((d) => d._id);
+      const randomPipeline: PipelineStage[] = [
+        {
+          $match: {
+            status: 'published',
+            _id: { $nin: alreadyIds },
+          },
+        },
+        { $sample: { size: remaining } },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            type: 1,
+            priceFromEur: 1,
+            difficulty: 1,
+            coverPhotoUrl: { $arrayElemAt: ['$photoFileIds', 0] },
+          },
+        },
+      ];
+      const randomDocs =
+        await this.activityModel.aggregate<ActivityAggResult>(randomPipeline);
+      suggestedDocs = [...suggestedDocs, ...randomDocs];
+    }
+
+    const suggestedActivities: ActivitySummaryDto[] = suggestedDocs.map(
+      (doc) => ({
+        activityId: doc._id.toString(),
+        title: doc.title,
+        type: doc.type,
+        priceFromEur: doc.priceFromEur,
+        difficulty: doc.difficulty,
+        coverPhotoUrl: doc.coverPhotoUrl ?? '',
+      }),
+    );
+
+    return { upcomingBookings, suggestedActivities };
   }
 }

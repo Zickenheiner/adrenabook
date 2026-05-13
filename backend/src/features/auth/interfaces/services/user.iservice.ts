@@ -1,5 +1,6 @@
 import {
   CreateUserDto,
+  DashboardResponseDto,
   HealthProfileDto,
   HealthProfileResponseDto,
   LoginDto,
@@ -57,4 +58,7 @@ export interface IUserService {
     userId: string,
     dto: RgpdDeleteDto,
   ): Promise<RgpdDeleteResponseDto>;
+
+  // ——— Dashboard aventurier US-29 ———
+  getDashboard(userId: string): Promise<DashboardResponseDto>;
 }

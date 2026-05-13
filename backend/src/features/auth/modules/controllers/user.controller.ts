@@ -1,34 +1,59 @@
 import {
   CreateUserDto,
+  DashboardResponseDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
 import { UserEntity } from '@features/auth/domains/entities/user.entity';
 import { IUserService } from '@features/auth/interfaces/services/user.iservice';
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Inject,
-  Param,
-  Post,
-  Patch,
-} from '@nestjs/common';
-import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Req,
+} from '@nestjs/common';
 
 @ApiTags('User')
-@Controller('user')
+@ApiBearerAuth()
+@Controller('users')
 export class UserController {
   constructor(
     @Inject('IUserService')
     private readonly userService: IUserService,
   ) {}
+
+  @ApiOperation({
+    summary: 'Tableau de bord aventurier (US-29)',
+    description:
+      "Retourne les 3 prochaines réservations de l'utilisateur connecté et 4 activités suggérées (basées sur l'historique ou aléatoires).",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Données du tableau de bord',
+    type: DashboardResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @Get('me/dashboard')
+  @HttpCode(HttpStatus.OK)
+  async getDashboard(
+    @Req() req: { user: { sub: string } },
+  ): Promise<DashboardResponseDto> {
+    return this.userService.getDashboard(req.user.sub);
+  }
 
   @ApiOperation({
     summary: 'Get all users',

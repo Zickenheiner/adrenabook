@@ -77,6 +77,9 @@ const endpoints = {
     export: '/users/me/rgpd/export',
     delete: '/users/me/rgpd/delete',
   },
+  adventurerDashboard: {
+    get: '/users/me/dashboard',
+  },
 };
 
 export default endpoints;

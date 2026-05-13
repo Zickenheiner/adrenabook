@@ -16,12 +16,22 @@ import {
   LoginLog,
   LoginLogSchema,
 } from '@features/auth/domains/schemas/login-log.schema';
+import {
+  Booking,
+  BookingSchema,
+} from '@features/booking/domains/schemas/booking.schema';
+import {
+  Activity,
+  ActivitySchema,
+} from '@features/activity/domains/schemas/activity.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: LoginLog.name, schema: LoginLogSchema },
+      { name: Booking.name, schema: BookingSchema },
+      { name: Activity.name, schema: ActivitySchema },
     ]),
     JwtModule.register({}),
   ],

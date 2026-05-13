@@ -1,5 +1,6 @@
 import {
   CreateUserDto,
+  DashboardResponseDto,
   HealthProfileDto,
   NotificationPreferencesDto,
   RegisterDto,
@@ -68,4 +69,7 @@ export interface IUserRepository {
     scheduledDeletionAt: Date,
   ): Promise<boolean>;
   getRgpdRequest(id: string): Promise<UserEntity | null>;
+
+  // ——— Dashboard aventurier US-29 ———
+  getDashboard(userId: string): Promise<DashboardResponseDto>;
 }

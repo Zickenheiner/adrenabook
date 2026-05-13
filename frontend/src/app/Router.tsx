@@ -32,6 +32,7 @@ import AdminUserListPage from '@/features/admin-user-management/presentation/pag
 import AdminUserDetailPage from '@/features/admin-user-management/presentation/pages/AdminUserDetailPage';
 import AdminAuditLogsPage from '@/features/admin-audit-logs/presentation/pages/AdminAuditLogsPage';
 import RgpdPage from '@/features/rgpd/presentation/pages/RgpdPage';
+import AdventurerDashboardPage from '@/features/adventurer-dashboard/presentation/pages/AdventurerDashboardPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -65,7 +66,7 @@ export default function Router() {
   const PrivateRoutes = () => {
     return (
       <Route element={<Private redirect={routes.login} />}>
-        <Route path={routes.home} element={<h1>Private Route</h1>} />
+        <Route path={routes.home} element={<AdventurerDashboardPage />} />
         <Route path={routes.systemHealth} element={<SystemHealthPage />} />
         <Route
           path={routes.adminCenterList}

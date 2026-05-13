@@ -29,6 +29,7 @@ import { IUserRepository } from '@features/auth/interfaces/repositories/user.ire
 import { ILoginLogRepository } from '@features/auth/interfaces/repositories/login-log.irepository';
 import {
   CreateUserDto,
+  DashboardResponseDto,
   HealthProfileDto,
   HealthProfileResponseDto,
   LoginDto,
@@ -477,6 +478,12 @@ export class UserService implements IUserService {
     }
 
     return { updated: true, preferences: dto };
+  }
+
+  // ——— Dashboard aventurier US-29 ———
+
+  async getDashboard(userId: string): Promise<DashboardResponseDto> {
+    return this.userRepository.getDashboard(userId);
   }
 
   // ——— Helpers ———

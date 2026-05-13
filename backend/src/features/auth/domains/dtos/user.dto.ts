@@ -606,3 +606,101 @@ export class RgpdDeleteResponseDto {
   })
   retainedData: string[];
 }
+
+// ——— Dashboard aventurier US-29 ———
+
+/**
+ * BookingSummaryDto — Résumé d'une réservation pour le dashboard (US-29)
+ */
+export class BookingSummaryDto {
+  @ApiProperty({
+    description: 'Identifiant de la réservation',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  bookingId: string;
+
+  @ApiProperty({
+    description: "Titre de l'activité réservée",
+    example: 'Parachute en tandem',
+  })
+  activityTitle: string;
+
+  @ApiProperty({
+    description: 'Date de début du créneau (ISO 8601)',
+    example: '2026-06-15T09:00:00.000Z',
+  })
+  slotStartAt: string;
+
+  @ApiProperty({
+    description: 'Statut de la réservation',
+    example: 'confirmed',
+    enum: [
+      'pending_payment',
+      'confirmed',
+      'partial_paid',
+      'cancelled',
+      'completed',
+    ],
+  })
+  status: string;
+}
+
+/**
+ * ActivitySummaryDto — Résumé d'une activité suggérée pour le dashboard (US-29)
+ */
+export class ActivitySummaryDto {
+  @ApiProperty({
+    description: "Identifiant de l'activité",
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  activityId: string;
+
+  @ApiProperty({
+    description: "Titre de l'activité",
+    example: 'Parachute en tandem',
+  })
+  title: string;
+
+  @ApiProperty({
+    description: "Type de l'activité",
+    example: 'parachute',
+  })
+  type: string;
+
+  @ApiProperty({
+    description: 'Prix de départ en euros',
+    example: 150,
+  })
+  priceFromEur: number;
+
+  @ApiProperty({
+    description: 'Niveau de difficulté',
+    example: 'beginner',
+    enum: ['beginner', 'intermediate', 'advanced'],
+  })
+  difficulty: string;
+
+  @ApiProperty({
+    description: 'URL de la photo de couverture',
+    example: 'https://cdn.adrenabook.fr/photos/abc123.jpg',
+  })
+  coverPhotoUrl: string;
+}
+
+/**
+ * DashboardResponseDto — Réponse du dashboard aventurier (US-29)
+ */
+export class DashboardResponseDto {
+  @ApiProperty({
+    description: "Les 3 prochaines réservations de l'utilisateur",
+    type: [BookingSummaryDto],
+  })
+  upcomingBookings: BookingSummaryDto[];
+
+  @ApiProperty({
+    description:
+      "4 activités suggérées (basées sur l'historique ou aléatoires)",
+    type: [ActivitySummaryDto],
+  })
+  suggestedActivities: ActivitySummaryDto[];
+}
