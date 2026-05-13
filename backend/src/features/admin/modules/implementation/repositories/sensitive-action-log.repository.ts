@@ -14,7 +14,9 @@ import {
 import { SensitiveActionLogMapper } from '../mappers/sensitive-action-log.mapper';
 
 @Injectable()
-export class SensitiveActionLogRepository implements ISensitiveActionLogRepository {
+export class SensitiveActionLogRepository
+  implements ISensitiveActionLogRepository
+{
   constructor(
     @InjectModel(SensitiveActionLog.name)
     private readonly sensitiveActionLogModel: Model<SensitiveActionLogDocument>,
