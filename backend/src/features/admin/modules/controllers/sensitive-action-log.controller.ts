@@ -1,11 +1,6 @@
-import {
-  Controller,
-  ForbiddenException,
-  Get,
-  Inject,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
+import { RolesGuard } from '@core/roles/roles.guard';
+import { Roles } from '@core/roles/roles.decorator';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -21,6 +16,8 @@ import { ISensitiveActionLogService } from '@features/admin/interfaces/services/
 
 @ApiTags('Admin — Audit Logs')
 @ApiBearerAuth()
+@UseGuards(RolesGuard)
+@Roles('admin')
 @Controller('admin/audit-logs')
 export class SensitiveActionLogController {
   constructor(
@@ -65,12 +62,10 @@ export class SensitiveActionLogController {
   @Get()
   async getAuditLogs(
     @Query() query: AuditLogsQueryDto,
-    @Req() req: Record<string, unknown>,
   ): Promise<AuditLogsResponseDto> {
-    const user = req.user as { sub: string; role?: string };
-    if (!user?.role || user.role !== 'Admin') {
-      throw new ForbiddenException('Admin role required');
-    }
+    // Le controle de role est assure par RolesGuard : le comparer a la main
+    // exposait a une erreur de casse, le payload JWT portant « admin » en
+    // minuscules.
     return this.sensitiveActionLogService.findAuditLogs(query);
   }
 }
