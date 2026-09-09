@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
+  IsDefined,
   IsNotEmpty,
+  IsNotEmptyObject,
   IsString,
   Matches,
   ValidateNested,
@@ -123,6 +125,8 @@ export class RegisterProfessionalDto {
     description: 'Adresse du centre',
     type: AddressDto,
   })
+  @IsDefined()
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => AddressDto)
   address: AddressDto;
@@ -131,6 +135,8 @@ export class RegisterProfessionalDto {
     description: 'Représentant légal du centre',
     type: LegalRepresentativeDto,
   })
+  @IsDefined()
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => LegalRepresentativeDto)
   legalRepresentative: LegalRepresentativeDto;
@@ -139,6 +145,8 @@ export class RegisterProfessionalDto {
     description: 'Documents KYC (Kbis, RC Pro, diplômes encadrants)',
     type: DocumentsDto,
   })
+  @IsDefined()
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => DocumentsDto)
   documents: DocumentsDto;

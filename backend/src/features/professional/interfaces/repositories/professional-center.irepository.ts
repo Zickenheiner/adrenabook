@@ -7,7 +7,8 @@ import { ProfessionalCenterEntity } from '@features/professional/domains/entitie
 export interface IProfessionalCenterRepository {
   findAll(): Promise<ProfessionalCenterEntity[] | null>;
   findById(id: string): Promise<ProfessionalCenterEntity | null>;
-  create(dto: CreateProfessionalCenterDto): Promise<boolean>;
+  findByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity | null>;
+  create(dto: CreateProfessionalCenterDto, ownerId: string): Promise<boolean>;
   update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;
 }

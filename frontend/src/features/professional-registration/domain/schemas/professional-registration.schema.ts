@@ -44,11 +44,11 @@ export const professionalRegistrationSchema = z.object({
     role: z.string().min(1, 'Le rôle est obligatoire'),
   }),
   documents: z.object({
+    // Obligatoires côté backend (DocumentsDto : @IsNotEmpty)
     kbisFileId: z.string().min(1, 'Le Kbis est obligatoire'),
     rcProFileId: z.string().min(1, 'La RC Pro est obligatoire'),
-    instructorDiplomas: z
-      .array(z.string().min(1))
-      .min(1, 'Au moins un diplôme est requis'),
+    // Optionnels, conformément à ce que l'étape 4 annonce à l'utilisateur
+    instructorDiplomas: z.array(z.string().min(1)),
   }),
 });
 

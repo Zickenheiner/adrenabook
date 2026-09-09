@@ -1,6 +1,6 @@
 import type { ProfessionalRegistrationRepository } from '../../domain/repositories/professional-registration.repository';
 import type { ProfessionalRegistrationEntity } from '../../domain/entities/professional-registration.entity';
-import type { RegisterProfessionalRequestDto } from '../dtos/professional-registration.dto';
+import type { CreateProfessionalCenterRequestDto } from '../dtos/professional-registration.dto';
 import ProfessionalRegistrationApi from '../datasources/professional-registration.api';
 import ProfessionalRegistrationMapper from '../mappers/professional-registration.mapper';
 
@@ -10,10 +10,10 @@ class ProfessionalRegistrationRepositoryImpl implements ProfessionalRegistration
     private readonly mapper: ProfessionalRegistrationMapper = new ProfessionalRegistrationMapper(),
   ) {}
 
-  async register(
-    data: RegisterProfessionalRequestDto,
+  async create(
+    data: CreateProfessionalCenterRequestDto,
   ): Promise<ProfessionalRegistrationEntity> {
-    const dto = await this.api.register(data);
+    const dto = await this.api.create(data);
     return this.mapper.toEntity(dto);
   }
 }

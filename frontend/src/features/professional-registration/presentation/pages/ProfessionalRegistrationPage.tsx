@@ -24,6 +24,8 @@ const getErrorMessage = (error: unknown): string => {
   if (error instanceof ApiError) {
     if (error.status === 409)
       return 'Un centre existe déjà avec ce numéro SIRET.';
+    if (error.status === 401)
+      return 'Vous devez être connecté pour soumettre un dossier de centre.';
     if (error.status === 400)
       return 'Certaines informations sont invalides. Vérifiez vos données.';
     return error.message || 'Une erreur est survenue lors de la soumission.';
@@ -44,13 +46,8 @@ export default function ProfessionalRegistrationPage() {
   const handleSubmit = async (data: ProfessionalRegistrationFormData) => {
     setSubmitError(null);
     try {
-      const result = await registerProfessionalAsync(data);
-      navigate(routes.professionalRegisterSuccess, {
-        state: {
-          centerId: result.centerId,
-          estimatedReviewTime: result.estimatedReviewTime,
-        },
-      });
+      await registerProfessionalAsync(data);
+      navigate(routes.professionalRegisterSuccess);
     } catch (err) {
       setSubmitError(err);
     }
@@ -75,7 +72,7 @@ export default function ProfessionalRegistrationPage() {
 
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">
+            <CardTitle as="h1" className="text-2xl">
               Inscription Centre Professionnel
             </CardTitle>
             <CardDescription>
@@ -97,12 +94,12 @@ export default function ProfessionalRegistrationPage() {
             />
 
             <p className="text-center text-sm text-muted-foreground">
-              Déjà inscrit ?{' '}
+              Le dossier est rattaché à votre compte connecté.{' '}
               <Link
-                to={routes.login}
-                className="text-primary underline-offset-4 hover:underline"
+                to={routes.home}
+                className="text-link underline-offset-4 hover:underline"
               >
-                Se connecter
+                Retour à l&apos;accueil
               </Link>
             </p>
           </CardContent>

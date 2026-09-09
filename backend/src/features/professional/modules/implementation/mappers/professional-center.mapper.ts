@@ -6,6 +6,7 @@ import { ProfessionalCenterDocument } from '@features/professional/domains/schem
 export class ProfessionalCenterMapper {
   toEntity(doc: ProfessionalCenterDocument): ProfessionalCenterEntity {
     const entity = new ProfessionalCenterEntity(doc._id);
+    entity.setOwnerId(doc.ownerId);
     entity.setCompanyName(doc.companyName);
     entity.setSiret(doc.siret);
     entity.setContactEmail(doc.contactEmail);

@@ -1,9 +1,14 @@
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Input } from '@/core/components/ui/input';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/core/components/ui/alert';
 import {
   Form,
   FormControl,
@@ -31,11 +36,19 @@ interface Props {
   isSubmitting?: boolean;
 }
 
+const STEP_FIELDS: (keyof ProfessionalRegistrationFormData)[][] = [
+  ['companyName', 'siret', 'contactEmail', 'contactPhone'],
+  ['address'],
+  ['legalRepresentative'],
+  ['documents'],
+];
+
 export default function ProfessionalRegistrationForm({
   onSubmit,
   isSubmitting,
 }: Props) {
   const [step, setStep] = useState(0);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const form = useForm<ProfessionalRegistrationFormData>({
     resolver: zodResolver(professionalRegistrationSchema),
@@ -47,32 +60,66 @@ export default function ProfessionalRegistrationForm({
       contactPhone: '',
       address: { street: '', city: '', postalCode: '', country: 'France' },
       legalRepresentative: { firstName: '', lastName: '', role: '' },
-      documents: { kbisFileId: '', rcProFileId: '', instructorDiplomas: [''] },
+      documents: { kbisFileId: '', rcProFileId: '', instructorDiplomas: [] },
     },
   });
 
-  const stepFields: (keyof ProfessionalRegistrationFormData)[][] = [
-    ['companyName', 'siret', 'contactEmail', 'contactPhone'],
-    ['address'],
-    ['legalRepresentative'],
-    ['documents'],
-  ];
-
   const handleNext = async () => {
-    const valid = await form.trigger(stepFields[step] as never);
-    if (valid) setStep((s) => s + 1);
+    const valid = await form.trigger(STEP_FIELDS[step] as never);
+    if (valid) {
+      setValidationError(null);
+      setStep((s) => s + 1);
+    } else {
+      setValidationError(
+        'Certains champs de cette étape sont invalides. Corrigez-les pour continuer.',
+      );
+    }
   };
 
-  const handleBack = () => setStep((s) => s - 1);
+  const handleBack = () => {
+    setValidationError(null);
+    setStep((s) => s - 1);
+  };
+
+  /**
+   * Une validation en échec doit toujours produire un retour visible : sans ce
+   * handler, un champ en erreur non rendu bloque la soumission silencieusement.
+   */
+  const handleInvalid = (
+    errors: FieldErrors<ProfessionalRegistrationFormData>,
+  ) => {
+    const faultyStep = STEP_FIELDS.findIndex((fields) =>
+      fields.some((field) => field in errors),
+    );
+    if (faultyStep >= 0 && faultyStep !== step) setStep(faultyStep);
+    setValidationError(
+      faultyStep >= 0
+        ? `Le dossier n'a pas été envoyé : l'étape « ${STEPS[faultyStep].label} » contient des champs invalides.`
+        : "Le dossier n'a pas été envoyé : certaines informations sont invalides.",
+    );
+  };
+
+  const handleValid = (data: ProfessionalRegistrationFormData) => {
+    setValidationError(null);
+    onSubmit(data);
+  };
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(handleValid, handleInvalid)}
         className="space-y-6"
         noValidate
       >
         <ProfessionalRegistrationStep steps={STEPS} currentStep={step} />
+
+        {validationError && (
+          <Alert variant="destructive" role="alert">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
+            <AlertTitle>Formulaire incomplet</AlertTitle>
+            <AlertDescription>{validationError}</AlertDescription>
+          </Alert>
+        )}
 
         {step === 0 && (
           <div className="space-y-4">
@@ -253,9 +300,10 @@ export default function ProfessionalRegistrationForm({
                 <FormItem>
                   <FormControl>
                     <DocumentUploadField
-                      label="Extrait Kbis (moins de 3 mois)"
+                      label="Extrait Kbis (moins de 3 mois) — obligatoire"
                       value={field.value}
                       onChange={field.onChange}
+                      disabled={isSubmitting}
                       error={
                         form.formState.errors.documents?.kbisFileId?.message
                       }
@@ -271,9 +319,10 @@ export default function ProfessionalRegistrationForm({
                 <FormItem>
                   <FormControl>
                     <DocumentUploadField
-                      label="Attestation RC Professionnelle"
+                      label="Attestation RC Professionnelle — obligatoire"
                       value={field.value}
                       onChange={field.onChange}
+                      disabled={isSubmitting}
                       error={
                         form.formState.errors.documents?.rcProFileId?.message
                       }
@@ -288,10 +337,16 @@ export default function ProfessionalRegistrationForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
+                    {/* Un seul diplome depose suffit : le backend attend un
+                        tableau d'identifiants, on l'alimente avec l'unique
+                        piece deposee, ou on le vide si elle est retiree. */}
                     <DocumentUploadField
-                      label="Diplôme(s) encadrant(s)"
-                      value={field.value[0] ?? ''}
-                      onChange={(id) => field.onChange(id ? [id] : [])}
+                      label="Diplôme(s) encadrant(s) — optionnel"
+                      value={field.value?.[0] ?? ''}
+                      onChange={(fileId) =>
+                        field.onChange(fileId ? [fileId] : [])
+                      }
+                      disabled={isSubmitting}
                       error={
                         form.formState.errors.documents?.instructorDiplomas
                           ?.message

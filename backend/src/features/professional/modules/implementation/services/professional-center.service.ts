@@ -22,8 +22,17 @@ export class ProfessionalCenterService implements IProfessionalCenterService {
     return this.professionalCenterRepository.findById(id);
   }
 
-  async create(dto: CreateProfessionalCenterDto): Promise<boolean> {
-    return this.professionalCenterRepository.create(dto);
+  async findByOwnerId(
+    ownerId: string,
+  ): Promise<ProfessionalCenterEntity | null> {
+    return this.professionalCenterRepository.findByOwnerId(ownerId);
+  }
+
+  async create(
+    dto: CreateProfessionalCenterDto,
+    ownerId: string,
+  ): Promise<boolean> {
+    return this.professionalCenterRepository.create(dto, ownerId);
   }
 
   async update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean> {

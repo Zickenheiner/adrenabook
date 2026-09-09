@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import mongoose from 'mongoose';
 import { ProfessionalCenter } from '../schemas/professional-center.schema';
 
 export class ProfessionalCenterEntity {
@@ -8,6 +9,7 @@ export class ProfessionalCenterEntity {
   })
   private readonly id: ProfessionalCenter;
 
+  private ownerId: mongoose.Types.ObjectId;
   private companyName: string;
   private siret: string;
   private contactEmail: string;
@@ -42,6 +44,10 @@ export class ProfessionalCenterEntity {
 
   getObjectId(): ProfessionalCenter {
     return this.id;
+  }
+
+  getOwnerId(): mongoose.Types.ObjectId {
+    return this.ownerId;
   }
 
   getCompanyName(): string {
@@ -90,6 +96,10 @@ export class ProfessionalCenterEntity {
   }
 
   // ———————SETTER———————
+
+  setOwnerId(value: mongoose.Types.ObjectId): void {
+    this.ownerId = value;
+  }
 
   setCompanyName(value: string): void {
     this.companyName = value;

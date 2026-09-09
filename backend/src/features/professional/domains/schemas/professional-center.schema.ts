@@ -47,6 +47,13 @@ export class ProfessionalCenter {
   @Prop({ type: mongoose.Schema.Types.ObjectId, auto: true })
   _id: ProfessionalCenter;
 
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  })
+  ownerId: mongoose.Types.ObjectId;
+
   @Prop({ required: true, type: String, trim: true })
   companyName: string;
 

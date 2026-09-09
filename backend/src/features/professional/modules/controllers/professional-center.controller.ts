@@ -13,6 +13,7 @@ import {
   Param,
   Post,
   Patch,
+  Req,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
@@ -72,8 +73,11 @@ export class ProfessionalCenterController {
     type: Boolean,
   })
   @Post()
-  async create(@Body() dto: CreateProfessionalCenterDto) {
-    return this.professionalCenterService.create(dto);
+  async create(
+    @Body() dto: CreateProfessionalCenterDto,
+    @Req() req: { user: { sub: string } },
+  ) {
+    return this.professionalCenterService.create(dto, req.user.sub);
   }
 
   @ApiOperation({

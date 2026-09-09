@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/core/components/ui/card';
 import { Mountain } from 'lucide-react';
 import routes from '@/core/constants/routes';
@@ -6,14 +6,6 @@ import ProfessionalRegistrationSuccess from '../components/ProfessionalRegistrat
 
 export default function ProfessionalRegistrationSuccessPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const state = location.state as {
-    centerId?: string;
-    estimatedReviewTime?: string;
-  } | null;
-
-  const centerId = state?.centerId ?? '—';
-  const estimatedReviewTime = state?.estimatedReviewTime ?? '48h ouvrées';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/40 p-4">
@@ -28,8 +20,6 @@ export default function ProfessionalRegistrationSuccessPage() {
         <Card>
           <CardContent className="pt-6">
             <ProfessionalRegistrationSuccess
-              centerId={centerId}
-              estimatedReviewTime={estimatedReviewTime}
               onGoHome={() => navigate(routes.home)}
             />
           </CardContent>

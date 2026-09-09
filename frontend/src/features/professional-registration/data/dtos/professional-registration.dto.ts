@@ -1,4 +1,9 @@
-export interface RegisterProfessionalRequestDto {
+/**
+ * Contrat réel de POST /professional-center (CreateProfessionalCenterDto backend).
+ * La route exige une authentification et ne renvoie pas d'identifiant :
+ * la réponse est un simple booléen de succès.
+ */
+export interface CreateProfessionalCenterRequestDto {
   companyName: string;
   siret: string;
   contactEmail: string;
@@ -21,8 +26,4 @@ export interface RegisterProfessionalRequestDto {
   };
 }
 
-export interface RegisterProfessionalResponseDto {
-  centerId: string;
-  status: 'pending_review';
-  estimatedReviewTime: string;
-}
+export type CreateProfessionalCenterResponseDto = boolean;

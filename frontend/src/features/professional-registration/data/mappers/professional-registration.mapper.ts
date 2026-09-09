@@ -1,15 +1,11 @@
 import type { ProfessionalRegistrationEntity } from '../../domain/entities/professional-registration.entity';
-import type { RegisterProfessionalResponseDto } from '../dtos/professional-registration.dto';
+import type { CreateProfessionalCenterResponseDto } from '../dtos/professional-registration.dto';
 
 class ProfessionalRegistrationMapper {
   toEntity(
-    dto: RegisterProfessionalResponseDto,
+    dto: CreateProfessionalCenterResponseDto,
   ): ProfessionalRegistrationEntity {
-    return {
-      centerId: dto.centerId,
-      status: dto.status,
-      estimatedReviewTime: dto.estimatedReviewTime,
-    };
+    return { submitted: dto === true };
   }
 }
 
