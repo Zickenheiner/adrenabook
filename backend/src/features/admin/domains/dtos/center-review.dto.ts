@@ -28,10 +28,7 @@ export class ReviewCenterDto {
   @IsOptional()
   @IsEnum(['incomplete_kbis', 'invalid_diploma', 'expired_insurance', 'other'])
   rejectionReason?:
-    | 'incomplete_kbis'
-    | 'invalid_diploma'
-    | 'expired_insurance'
-    | 'other';
+    'incomplete_kbis' | 'invalid_diploma' | 'expired_insurance' | 'other';
 
   @ApiProperty({
     description: 'Public comment sent to the applicant',
@@ -74,4 +71,49 @@ export class ReviewCenterResponseDto {
     example: true,
   })
   notificationSent: boolean;
+}
+
+/**
+ * Dossier KYC en attente, tel que présenté à l'administrateur (US-23).
+ *
+ * Les pièces sont exposées par leur identifiant de fichier : c'est au client
+ * d'appeler GET /uploads/:id, qui contrôle le droit d'accès. Aucune URL
+ * publique n'est fabriquée ici — ces documents sont confidentiels.
+ */
+export class PendingCenterDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  id: string;
+
+  @ApiProperty({ example: 'Chamonix Vertical SARL' })
+  name: string;
+
+  @ApiProperty({ example: 'contact@chamonix-vertical.fr' })
+  email: string;
+
+  @ApiProperty({ example: '+33450531234' })
+  phone: string;
+
+  @ApiProperty({ example: '49317019200019' })
+  siret: string;
+
+  @ApiProperty({ example: 'Chamonix' })
+  city: string;
+
+  @ApiProperty({
+    example: 'pending_review',
+    enum: ['pending_review', 'approved', 'rejected'],
+  })
+  status: string;
+
+  @ApiProperty({ example: '2026-08-19T21:51:00.000Z' })
+  submittedAt: string;
+
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde30', required: false })
+  kbisFileId?: string;
+
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde31', required: false })
+  rcProFileId?: string;
+
+  @ApiProperty({ type: [String], required: false })
+  instructorDiplomaFileIds?: string[];
 }

@@ -13,6 +13,7 @@ import { CenterReviewService } from './implementation/services/center-review.ser
 import { CenterReviewRepository } from './implementation/repositories/center-review.repository';
 import { CenterReviewMapper } from './implementation/mappers/center-review.mapper';
 import { ProfessionalCenterBaseModule } from '@features/professional/modules/professional-center.module';
+import { AuditLogBaseModule } from './audit-log.module';
 
 @Module({
   imports: [
@@ -21,6 +22,8 @@ import { ProfessionalCenterBaseModule } from '@features/professional/modules/pro
       { name: ProfessionalCenter.name, schema: ProfessionalCenterSchema },
     ]),
     ProfessionalCenterBaseModule,
+    // Fournit ISensitiveActionLogService pour alimenter le journal US-25.
+    AuditLogBaseModule,
   ],
   controllers: [CenterReviewController],
   providers: [

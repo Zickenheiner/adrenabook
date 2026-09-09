@@ -7,10 +7,12 @@ import {
 import { ICenterReviewService } from '../../../interfaces/services/center-review.iservice';
 import { ICenterReviewRepository } from '@features/admin/interfaces/repositories/center-review.irepository';
 import {
+  PendingCenterDto,
   ReviewCenterDto,
   ReviewCenterResponseDto,
 } from '@features/admin/domains/dtos/center-review.dto';
 import { IProfessionalCenterService } from '@features/professional/interfaces/services/professional-center.iservice';
+import { ISensitiveActionLogService } from '@features/admin/interfaces/services/sensitive-action-log.iservice';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -37,12 +39,15 @@ export class CenterReviewService implements ICenterReviewService {
     private readonly professionalCenterService: IProfessionalCenterService,
     @InjectModel(ProfessionalCenter.name)
     private readonly professionalCenterModel: Model<ProfessionalCenterDocument>,
+    @Inject('ISensitiveActionLogService')
+    private readonly sensitiveActionLogService: ISensitiveActionLogService,
   ) {}
 
   async reviewCenter(
     centerId: string,
     dto: ReviewCenterDto,
     adminId: string,
+    adminRole: string,
   ): Promise<ReviewCenterResponseDto> {
     const center = await this.professionalCenterService.findById(centerId);
     if (!center) {
@@ -72,6 +77,24 @@ export class CenterReviewService implements ICenterReviewService {
       .findByIdAndUpdate(centerId, { status: newStatus }, { new: true })
       .exec();
 
+    // Journal des actions sensibles (US-25) : qui / quoi / sur quoi / quand.
+    await this.sensitiveActionLogService.createLog({
+      actorId: adminId,
+      actorRole: adminRole,
+      actionType: 'center.reviewed',
+      targetType: 'ProfessionalCenter',
+      targetId: centerId,
+      severity: dto.decision === 'reject' ? 'warning' : 'info',
+      metadata: {
+        decision: dto.decision,
+        previousStatus: 'pending_review',
+        newStatus,
+        rejectionReason: dto.rejectionReason,
+        internalComment: dto.internalComment,
+        centerReviewId: reviewEntity.getId(),
+      },
+    });
+
     return {
       centerId,
       newStatus,
@@ -79,5 +102,17 @@ export class CenterReviewService implements ICenterReviewService {
       reviewedBy: adminId,
       notificationSent: reviewEntity.getNotificationSent(),
     };
+  }
+
+  async listCenters(status?: string): Promise<PendingCenterDto[]> {
+    return this.centerReviewRepository.findCenters(status);
+  }
+
+  async getCenter(id: string): Promise<PendingCenterDto> {
+    const centre = await this.centerReviewRepository.findCenterById(id);
+    if (!centre) {
+      throw new NotFoundException('Dossier de centre introuvable');
+    }
+    return centre;
   }
 }

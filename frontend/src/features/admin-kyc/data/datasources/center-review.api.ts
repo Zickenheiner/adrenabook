@@ -14,6 +14,9 @@ class CenterReviewApi {
     return request<PendingCenterDto[]>({
       url: this.baseUrl,
       method: methods.GET,
+      // La page ne présente que les dossiers à instruire : sans ce filtre,
+      // l'API renvoie tous les centres, y compris ceux déjà validés.
+      query: { status: 'pending_review' },
     });
   }
 

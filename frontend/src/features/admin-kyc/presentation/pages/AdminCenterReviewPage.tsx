@@ -175,7 +175,7 @@ export default function AdminCenterReviewPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {submitError && (
+                {submitError != null && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Erreur</AlertTitle>

@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const centerReviewSchema = z
   .object({
     decision: z.enum(['approve', 'reject', 'request_more_info'], {
-      required_error: 'Une décision est requise',
+      error: 'Une décision est requise',
     }),
     internalComment: z.string().optional(),
     rejectionReason: z
