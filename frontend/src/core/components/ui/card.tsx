@@ -28,9 +28,18 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
+/**
+ * `as` permet de rendre un vrai titre HTML plutot qu'un <div>. Sans cela un
+ * lecteur d'ecran ne peut pas naviguer par titres. Le defaut reste <div> pour
+ * les cartes secondaires, qui ne sont pas des titres de page.
+ */
+function CardTitle({
+  className,
+  as: Composant = 'div',
+  ...props
+}: React.ComponentProps<'div'> & { as?: 'div' | 'h1' | 'h2' | 'h3' }) {
   return (
-    <div
+    <Composant
       data-slot="card-title"
       className={cn('leading-none font-semibold', className)}
       {...props}

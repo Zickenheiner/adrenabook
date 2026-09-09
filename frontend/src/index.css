@@ -21,6 +21,10 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
 
+  /* Couleur des liens textuels. Distincte de --primary : l'orange Adrenal 500
+     ne donne que 2,80:1 sur fond clair, en deçà du seuil AA de 4,5:1. */
+  --color-link: var(--link);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
 
@@ -101,10 +105,16 @@
   --popover: #ffffff;
   --popover-foreground: #0f172a;
 
-  /* Primary — Adrenal Orange */
+  /* Primary — Adrenal Orange
+     Texte sombre sur l'orange, et non blanc : #ffffff sur #f97316 ne donne
+     que 2,80:1. Le même parti que le mode sombre, qui posait déjà du texte
+     sombre sur l'orange. L'orange de marque est ainsi conservé tel quel. */
   --primary: #f97316;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #0f172a;
   --primary-hover: #ea580c;
+
+  /* Adrenal 700, décrit dans la charte comme « texte accentué » : 5,18:1 */
+  --link: #c2410c;
 
   /* Secondary — Slate doux */
   --secondary: #f1f5f9;
@@ -118,15 +128,18 @@
   --accent: #fff7ed;
   --accent-foreground: #c2410c;
 
-  /* Sémantique */
+  /* Sémantique
+     Texte sombre sur les fonds colorés, comme pour --primary : en blanc,
+     ces quatre couples tombaient entre 2,15:1 et 3,76:1, tous sous le
+     seuil AA de 4,5:1. Le mode sombre appliquait déjà ce parti. */
   --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
+  --destructive-foreground: #0f172a;
   --success: #10b981;
-  --success-foreground: #ffffff;
+  --success-foreground: #0f172a;
   --warning: #f59e0b;
-  --warning-foreground: #ffffff;
+  --warning-foreground: #0f172a;
   --info: #0ea5e9;
-  --info-foreground: #ffffff;
+  --info-foreground: #0f172a;
 
   /* Bordures & inputs */
   --border: #e2e8f0;
@@ -159,7 +172,7 @@
   --sidebar: #ffffff;
   --sidebar-foreground: #334155;
   --sidebar-primary: #f97316;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: #0f172a;
   --sidebar-accent: #fff7ed;
   --sidebar-accent-foreground: #c2410c;
   --sidebar-border: #e2e8f0;
@@ -183,6 +196,9 @@
   --primary: #fb923c;
   --primary-foreground: #0f172a;
   --primary-hover: #f97316;
+
+  /* Sur fond sombre l'orange clair est très lisible : 7,89:1 */
+  --link: #fb923c;
 
   /* Secondary */
   --secondary: #334155;
@@ -271,6 +287,10 @@
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.01em;
+  }
+
+  button {
+    cursor: pointer;
   }
 
   code,

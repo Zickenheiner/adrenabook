@@ -23,6 +23,9 @@ interface NavLink {
 
 interface Props {
   navLinks: NavLink[];
+  /** Entrees propres au role de l'utilisateur, vides pour un aventurier. */
+  roleLinks?: NavLink[];
+  roleLabel?: string;
   onLogout: () => void;
 }
 
@@ -32,7 +35,12 @@ const profileLinks = [
   { label: 'Mes droits RGPD', to: routes.rgpdProfile, icon: ShieldCheck },
 ];
 
-export default function NavbarMobileDrawer({ navLinks, onLogout }: Props) {
+export default function NavbarMobileDrawer({
+  navLinks,
+  roleLinks = [],
+  roleLabel,
+  onLogout,
+}: Props) {
   const [open, setOpen] = useState(false);
 
   const handleClose = () => setOpen(false);
@@ -87,6 +95,35 @@ export default function NavbarMobileDrawer({ navLinks, onLogout }: Props) {
             </NavLink>
           ))}
         </nav>
+
+        {roleLinks.length > 0 && (
+          <>
+            <Separator />
+            <nav className="flex flex-col gap-1 p-4">
+              <p className="text-muted-foreground mb-1 px-3 text-xs font-semibold tracking-wider uppercase">
+                {roleLabel}
+              </p>
+              {roleLinks.map(({ label, to, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={handleClose}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-accent text-primary'
+                        : 'text-foreground hover:bg-accent hover:text-accent-foreground',
+                    )
+                  }
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </NavLink>
+              ))}
+            </nav>
+          </>
+        )}
 
         <Separator />
 
