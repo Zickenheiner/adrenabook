@@ -6,8 +6,8 @@ const endpoints = {
     passwordResetRequest: '/auth/password-reset/request',
     passwordResetConfirm: '/auth/password-reset/confirm',
   },
-  professionalAuth: {
-    register: '/auth/register/professional',
+  professionalCenter: {
+    create: '/professional-center',
   },
   system: {
     health: '/health',
@@ -26,6 +26,14 @@ const endpoints = {
   },
   proSlots: {
     create: (activityId: string) => `/pro/activities/${activityId}/slots`,
+    list: (activityId: string) => `/pro/activities/${activityId}/slots`,
+  },
+  uploads: {
+    create: '/uploads',
+    byId: (id: string) => `/uploads/${id}`,
+  },
+  slots: {
+    byId: (id: string) => `/slots/${id}`,
   },
   activitySearch: {
     search: '/activities/search',

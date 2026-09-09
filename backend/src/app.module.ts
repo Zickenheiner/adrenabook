@@ -15,6 +15,7 @@ import { BookingBaseModule } from '@features/booking/modules/booking.module';
 import { WaiverBaseModule } from '@features/waiver/modules/waiver.module';
 import { PaymentBaseModule } from '@features/payment/modules/payment.module';
 import { InvoiceBaseModule } from '@features/invoice/modules/invoice.module';
+import { UploadModule } from '@features/uploads/modules/upload.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { InvoiceBaseModule } from '@features/invoice/modules/invoice.module';
     WaiverBaseModule,
     PaymentBaseModule,
     InvoiceBaseModule,
+    UploadModule,
   ],
   providers: [
     AtStrategy,
