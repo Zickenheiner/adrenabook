@@ -35,10 +35,7 @@ export class CsvImportService implements ICsvImportService {
     return {
       importJobId: importJob.getId(),
       status: importJob.getStatus() as
-        | 'queued'
-        | 'processing'
-        | 'completed'
-        | 'failed',
+        'queued' | 'processing' | 'completed' | 'failed',
       rowsTotal: importJob.getRowsTotal(),
       rowsSuccess: importJob.getRowsSuccess(),
       rowsErrors: importJob.getRowsErrors(),
