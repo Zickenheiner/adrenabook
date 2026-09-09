@@ -3,13 +3,16 @@ import { z } from 'zod';
 export const accountingExportSchema = z
   .object({
     format: z.enum(['sage50', 'sage100', 'csv_generic'], {
-      required_error: 'Le format est requis',
+      error: 'Le format est requis',
     }),
     from: z.string().min(1, 'La date de début est requise'),
     to: z.string().min(1, 'La date de fin est requise'),
-    includeRefunds: z.boolean().default(false),
+    // Pas de .default() ici : la valeur initiale est fournie par defaultValues
+    // du formulaire. Un .default() ferait diverger les types d'entree et de
+    // sortie du schema, ce que le resolver React Hook Form ne sait pas concilier.
+    includeRefunds: z.boolean(),
     deliveryMode: z.enum(['download', 'email'], {
-      required_error: 'Le mode de livraison est requis',
+      error: 'Le mode de livraison est requis',
     }),
   })
   .refine(
