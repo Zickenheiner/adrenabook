@@ -50,11 +50,17 @@ export class SignWaiverResponseDto {
   })
   documentHash: string;
 
+  // Toujours null : la génération du PDF de la décharge n'est pas encore
+  // implémentée. Le champ est conservé pour ne pas casser le contrat une fois
+  // la génération disponible. La preuve de signature reste `documentHash`.
   @ApiProperty({
-    description: 'URL de téléchargement du document signé',
-    example: 'https://cdn.adrenabook.com/waivers/68b4d59919d9b7a94b4fde21.pdf',
+    description:
+      "URL de téléchargement du document signé. null tant que la génération du PDF n'est pas implémentée.",
+    example: null,
+    nullable: true,
+    type: String,
   })
-  downloadUrl: string;
+  downloadUrl: string | null;
 }
 
 export class CreateWaiverDto extends SignWaiverDto {}

@@ -3,10 +3,8 @@ import { z } from 'zod';
 export const signWaiverCanvasSchema = z.object({
   signatureMethod: z.literal('canvas'),
   signaturePayload: z.string().min(1, 'La signature est requise'),
-  acknowledgedRisks: z.literal(true, {
-    errorMap: () => ({
-      message: 'Vous devez accepter les risques pour continuer',
-    }),
+  acknowledgedRisks: z.boolean().refine((v) => v === true, {
+    message: 'Vous devez accepter les risques pour continuer',
   }),
 });
 
@@ -16,10 +14,8 @@ export const signWaiverOtpSchema = z.object({
     .string()
     .length(6, 'Le code OTP doit contenir 6 chiffres')
     .regex(/^\d{6}$/, 'Le code OTP ne doit contenir que des chiffres'),
-  acknowledgedRisks: z.literal(true, {
-    errorMap: () => ({
-      message: 'Vous devez accepter les risques pour continuer',
-    }),
+  acknowledgedRisks: z.boolean().refine((v) => v === true, {
+    message: 'Vous devez accepter les risques pour continuer',
   }),
 });
 

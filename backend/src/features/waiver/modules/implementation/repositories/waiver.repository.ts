@@ -71,8 +71,9 @@ export class WaiverRepository implements IWaiverRepository {
     const signedAt = new Date();
     const hashInput = `${bookingId}:${userId}:${dto.signatureMethod}:${dto.signaturePayload}:${signedAt.toISOString()}`;
     const documentHash = createHash('sha256').update(hashInput).digest('hex');
-    const downloadUrl = `https://cdn.adrenabook.com/waivers/${bookingId}.pdf`;
 
+    // Pas de downloadUrl : la génération du PDF de la décharge n'est pas encore
+    // implémentée, on ne stocke donc aucune URL plutôt qu'un lien mort.
     const document = new this.waiverModel({
       bookingId: new mongoose.Types.ObjectId(bookingId),
       userId: new mongoose.Types.ObjectId(userId),
@@ -81,7 +82,6 @@ export class WaiverRepository implements IWaiverRepository {
       acknowledgedRisks: dto.acknowledgedRisks,
       documentHash,
       signedAt,
-      downloadUrl,
     });
 
     const saved = await document.save();

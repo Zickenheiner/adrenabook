@@ -16,7 +16,7 @@ export class WaiverEntity {
   private acknowledgedRisks: boolean;
   private documentHash: string;
   private signedAt: Date;
-  private downloadUrl: string;
+  private downloadUrl?: string;
 
   constructor(_id: Waiver) {
     this.id = _id;
@@ -60,7 +60,7 @@ export class WaiverEntity {
     return this.signedAt;
   }
 
-  getDownloadUrl(): string {
+  getDownloadUrl(): string | undefined {
     return this.downloadUrl;
   }
 
@@ -94,7 +94,7 @@ export class WaiverEntity {
     this.signedAt = value;
   }
 
-  setDownloadUrl(value: string): void {
+  setDownloadUrl(value: string | undefined): void {
     this.downloadUrl = value;
   }
 }

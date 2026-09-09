@@ -7,7 +7,7 @@ class WaiverMapper {
       waiverId: dto.waiverId,
       signedAt: new Date(dto.signedAt),
       documentHash: dto.documentHash,
-      downloadUrl: dto.downloadUrl,
+      downloadUrl: dto.downloadUrl ?? null,
     };
   }
 }

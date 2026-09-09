@@ -79,17 +79,24 @@ export default function WaiverSuccessCard({ waiver }: Props) {
               Tamper-proof
             </Badge>
           </div>
-          <Button asChild variant="outline" className="w-full" size="sm">
-            <a
-              href={waiver.downloadUrl}
-              download
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Télécharger le document signé
-            </a>
-          </Button>
+          {waiver.downloadUrl ? (
+            <Button asChild variant="outline" className="w-full" size="sm">
+              <a
+                href={waiver.downloadUrl}
+                download
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Télécharger le document signé
+              </a>
+            </Button>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Le document PDF signé n'est pas disponible au téléchargement.
+              L'empreinte SHA-256 ci-dessus atteste de votre signature.
+            </p>
+          )}
         </CardContent>
       </Card>
     </motion.div>

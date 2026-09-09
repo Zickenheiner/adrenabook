@@ -8,5 +8,6 @@ export interface SignWaiverResponseDto {
   waiverId: string;
   signedAt: string;
   documentHash: string; // SHA-256
-  downloadUrl: string;
+  /** `null` tant qu'aucun PDF signé n'est généré côté backend */
+  downloadUrl: string | null;
 }

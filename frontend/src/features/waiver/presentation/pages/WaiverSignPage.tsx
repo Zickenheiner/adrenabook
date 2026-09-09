@@ -67,7 +67,7 @@ export default function WaiverSignPage() {
     defaultValues: {
       signatureMethod: 'canvas',
       signaturePayload: '',
-      acknowledgedRisks: undefined,
+      acknowledgedRisks: false,
     },
   });
 
@@ -76,7 +76,7 @@ export default function WaiverSignPage() {
     defaultValues: {
       signatureMethod: 'otp_sms',
       signaturePayload: '',
-      acknowledgedRisks: undefined,
+      acknowledgedRisks: false,
     },
   });
 

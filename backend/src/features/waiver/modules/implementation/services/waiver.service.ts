@@ -24,7 +24,8 @@ export class WaiverService implements IWaiverService {
       waiverId: waiver.getId(),
       signedAt: waiver.getSignedAt().toISOString(),
       documentHash: waiver.getDocumentHash(),
-      downloadUrl: waiver.getDownloadUrl(),
+      // null tant que la generation du PDF de la decharge n'existe pas
+      downloadUrl: waiver.getDownloadUrl() ?? null,
     };
   }
 }

@@ -37,8 +37,9 @@ export class Waiver {
   @Prop({ required: true, type: Date })
   signedAt: Date;
 
-  @Prop({ required: true, type: String })
-  downloadUrl: string;
+  // Optionnel : reste vide tant que la generation du PDF n'est pas implementee
+  @Prop({ required: false, type: String })
+  downloadUrl?: string;
 }
 
 export const WaiverSchema = SchemaFactory.createForClass(Waiver);
