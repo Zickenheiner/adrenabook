@@ -35,10 +35,10 @@ export class CenterRepository implements ICenterRepository {
     return center ? this.centerMapper.toEntity(center) : null;
   }
 
-  async create(dto: CreateCenterDto): Promise<boolean> {
+  async create(dto: CreateCenterDto): Promise<CenterEntity | null> {
     const document = new this.centerModel(dto);
     const createdCenter = await document.save();
-    return !!createdCenter;
+    return createdCenter ? this.centerMapper.toEntity(createdCenter) : null;
   }
 
   async update(id: string, dto: UpdateCenterDto): Promise<boolean> {

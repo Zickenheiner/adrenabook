@@ -26,7 +26,7 @@ export class CenterService implements ICenterService {
     return this.centerRepository.findById(id);
   }
 
-  async create(dto: CreateCenterDto): Promise<boolean> {
+  async create(dto: CreateCenterDto): Promise<CenterEntity | null> {
     return this.centerRepository.create(dto);
   }
 

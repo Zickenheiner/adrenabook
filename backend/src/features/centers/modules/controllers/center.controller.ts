@@ -149,7 +149,7 @@ export class CenterController {
   @ApiResponse({
     status: 201,
     description: 'The created center',
-    type: Boolean,
+    type: CenterEntity,
   })
   @Post()
   async create(@Body() dto: CreateCenterDto) {
