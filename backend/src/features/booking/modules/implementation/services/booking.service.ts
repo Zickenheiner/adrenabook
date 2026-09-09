@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { IBookingService } from '../../../interfaces/services/booking.iservice';
 import { IBookingRepository } from '@features/booking/interfaces/repositories/booking.irepository';
 import {
+  BookingDetailResponseDto,
   BookingResponseDto,
   CancelBookingDto,
   CancelBookingResponseDto,
@@ -29,8 +30,16 @@ export class BookingService implements IBookingService {
       reservationExpiresAt: booking!.getReservationExpiresAt().toISOString(),
       totalEur: booking!.getTotalEur(),
       vatEur: booking!.getVatEur(),
-      paymentIntentClientSecret: booking!.getPaymentIntentClientSecret(),
+      // Vide tant que le PaymentIntent Stripe n'a pas ete cree
+      paymentIntentClientSecret: booking!.getPaymentIntentClientSecret() ?? '',
     };
+  }
+
+  async getBookingDetail(
+    id: string,
+    userId: string,
+  ): Promise<BookingDetailResponseDto> {
+    return this.bookingRepository.findDetailById(id, userId);
   }
 
   async confirmPayment(

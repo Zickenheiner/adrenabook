@@ -17,7 +17,7 @@ export class BookingEntity {
   private reservationExpiresAt: Date;
   private totalEur: number;
   private vatEur: number;
-  private paymentIntentClientSecret: string;
+  private paymentIntentClientSecret?: string;
   private stripePaymentIntentId?: string;
   private paidAmountEur?: number;
   private remainingAmountEur?: number;
@@ -75,7 +75,7 @@ export class BookingEntity {
     return this.vatEur;
   }
 
-  getPaymentIntentClientSecret(): string {
+  getPaymentIntentClientSecret(): string | undefined {
     return this.paymentIntentClientSecret;
   }
 
@@ -113,7 +113,7 @@ export class BookingEntity {
     this.vatEur = value;
   }
 
-  setPaymentIntentClientSecret(value: string): void {
+  setPaymentIntentClientSecret(value: string | undefined): void {
     this.paymentIntentClientSecret = value;
   }
 

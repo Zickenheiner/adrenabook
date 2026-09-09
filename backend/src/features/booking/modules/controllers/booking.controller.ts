@@ -1,4 +1,5 @@
 import {
+  BookingDetailResponseDto,
   BookingResponseDto,
   CancelBookingDto,
   CancelBookingResponseDto,
@@ -69,6 +70,36 @@ export class BookingController {
     @Req() req: { user: { sub: string } },
   ): Promise<BookingResponseDto> {
     return this.bookingService.createBooking(dto, req.user.sub);
+  }
+
+  @ApiOperation({
+    summary: 'Récupérer une réservation',
+    description:
+      "Retourne l'état d'une réservation et le récapitulatif nécessaire à la page de confirmation (participants, activité, créneau, décharge). Réservé au propriétaire de la réservation. Le client secret Stripe n'est jamais exposé par cette route.",
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Identifiant de la réservation',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Détail de la réservation',
+    type: BookingDetailResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({
+    status: 403,
+    description: 'La réservation appartient à un autre utilisateur',
+  })
+  @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async getBooking(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string } },
+  ): Promise<BookingDetailResponseDto> {
+    return this.bookingService.getBookingDetail(id, req.user.sub);
   }
 
   @ApiOperation({

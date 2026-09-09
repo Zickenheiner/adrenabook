@@ -7,11 +7,13 @@ import { Button } from '@/core/components/ui/button';
 import { Skeleton } from '@/core/components/ui/skeleton';
 import { Form } from '@/core/components/ui/form';
 import routes from '@/core/constants/routes';
+import { ApiError } from '@/core/errors/api.error';
 import {
   createBookingSchema,
   type CreateBookingFormData,
 } from '../../domain/schemas/booking.schema';
 import { useCreateBooking } from '../../domain/hooks/booking.hook';
+import { useSlotDetail } from '../../domain/hooks/slot-detail.hook';
 import BookingSlotSummary from '../components/BookingSlotSummary';
 import BookingParticipantsSection from '../components/BookingParticipantsSection';
 import BookingTermsSection from '../components/BookingTermsSection';
@@ -50,11 +52,35 @@ function BookingPageMissingSlot() {
   );
 }
 
+function BookingPageSlotError({ error }: { error: unknown }) {
+  const navigate = useNavigate();
+  const isNotFound = error instanceof ApiError && error.status === 404;
+
+  return (
+    <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center gap-4 min-h-[50vh]">
+      <AlertCircle className="h-12 w-12 text-destructive" />
+      <h2 className="text-lg font-semibold">
+        {isNotFound ? 'Créneau introuvable' : 'Créneau indisponible'}
+      </h2>
+      <p className="text-sm text-muted-foreground text-center max-w-sm">
+        {isNotFound
+          ? "Ce créneau n'existe plus. Choisissez-en un autre depuis la fiche activité."
+          : 'Les informations de ce créneau n’ont pas pu être chargées. Réessayez dans un instant.'}
+      </p>
+      <Button variant="outline" onClick={() => navigate(-1)}>
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Retour
+      </Button>
+    </div>
+  );
+}
+
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const slotId = searchParams.get('slotId');
 
+  const { slot, slotIsLoading, slotError } = useSlotDetail(slotId ?? '');
   const { createBookingAsync, createBookingIsPending, createBookingError } =
     useCreateBooking();
 
@@ -71,18 +97,16 @@ export default function BookingPage() {
 
   if (!slotId) return <BookingPageMissingSlot />;
 
-  if (createBookingIsPending) return <BookingPageSkeleton />;
+  if (slotIsLoading || createBookingIsPending) return <BookingPageSkeleton />;
+
+  if (slotError || !slot) return <BookingPageSlotError error={slotError} />;
 
   const onSubmit = async (data: CreateBookingFormData) => {
     try {
       const booking = await createBookingAsync(data);
-      navigate(
-        routes.bookingConfirmation.replace(':id', booking.bookingId) +
-          `?expiresAt=${encodeURIComponent(booking.reservationExpiresAt.toISOString())}` +
-          `&totalEur=${booking.totalEur}` +
-          `&vatEur=${booking.vatEur}` +
-          `&clientSecret=${encodeURIComponent(booking.paymentIntentClientSecret)}`,
-      );
+      // Aucune donnée de réservation en query param : la page de confirmation
+      // recharge le détail depuis GET /bookings/:id.
+      navigate(routes.bookingConfirmation.replace(':id', booking.bookingId));
     } catch {
       // L'erreur est déjà dans createBookingError
     }
@@ -112,15 +136,9 @@ export default function BookingPage() {
         <h1 className="text-2xl font-semibold">Réserver un créneau</h1>
       </div>
 
-      {/* Résumé du créneau — info statique basée sur slotId */}
+      {/* Résumé du créneau réellement chargé depuis GET /slots/:id */}
       <div className="mb-6">
-        <BookingSlotSummary
-          slotId={slotId}
-          startAt={new Date()}
-          priceEur={0}
-          remainingSeats={0}
-          activityTitle="Chargement du créneau…"
-        />
+        <BookingSlotSummary slot={slot} />
       </div>
 
       {/* Formulaire */}

@@ -8,6 +8,14 @@ import {
   BookingSchema,
 } from '@features/booking/domains/schemas/booking.schema';
 import { Slot, SlotSchema } from '@features/slot/domains/schemas/slot.schema';
+import {
+  Activity,
+  ActivitySchema,
+} from '@features/activity/domains/schemas/activity.schema';
+import {
+  Waiver,
+  WaiverSchema,
+} from '@features/waiver/domains/schemas/waiver.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { InvoiceBaseModule } from '@features/invoice/modules/invoice.module';
 
@@ -16,6 +24,8 @@ import { InvoiceBaseModule } from '@features/invoice/modules/invoice.module';
     MongooseModule.forFeature([
       { name: Booking.name, schema: BookingSchema },
       { name: Slot.name, schema: SlotSchema },
+      { name: Activity.name, schema: ActivitySchema },
+      { name: Waiver.name, schema: WaiverSchema },
     ]),
     forwardRef(() => InvoiceBaseModule),
   ],

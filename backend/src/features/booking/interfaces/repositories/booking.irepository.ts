@@ -1,4 +1,5 @@
 import {
+  BookingDetailResponseDto,
   CancelBookingDto,
   CancelBookingResponseDto,
   ConfirmPaymentDto,
@@ -10,6 +11,7 @@ import { BookingEntity } from '@features/booking/domains/entities/booking.entity
 export interface IBookingRepository {
   create(dto: CreateBookingDto, userId: string): Promise<BookingEntity | null>;
   findById(id: string): Promise<BookingEntity | null>;
+  findDetailById(id: string, userId: string): Promise<BookingDetailResponseDto>;
   findBySlotId(slotId: string): Promise<BookingEntity[] | null>;
   confirmPayment(
     id: string,

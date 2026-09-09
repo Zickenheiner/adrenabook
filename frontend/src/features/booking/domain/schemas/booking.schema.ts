@@ -7,11 +7,10 @@ export const bookingParticipantSchema = z.object({
     .string()
     .min(1, 'La date de naissance est requise')
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format attendu : AAAA-MM-JJ'),
-  weightKg: z.coerce
-    .number()
-    .positive('Le poids doit être positif')
-    .optional()
-    .or(z.literal('')),
+  // La conversion depuis la valeur texte de l'input est faite dans le champ
+  // (onChange), pas ici : z.coerce donnerait au schema un type d'entree
+  // `unknown`, que le resolver React Hook Form ne sait pas reconcilier.
+  weightKg: z.number().positive('Le poids doit être positif').optional(),
 });
 
 export const createBookingSchema = z.object({
@@ -19,10 +18,8 @@ export const createBookingSchema = z.object({
   participants: z
     .array(bookingParticipantSchema)
     .min(1, 'Au moins un participant est requis'),
-  acceptCenterTerms: z.literal(true, {
-    errorMap: () => ({
-      message: 'Vous devez accepter les conditions du centre',
-    }),
+  acceptCenterTerms: z.boolean().refine((v) => v === true, {
+    message: 'Vous devez accepter les conditions du centre',
   }),
 });
 

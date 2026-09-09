@@ -55,8 +55,9 @@ export class Booking {
   @Prop({ required: true, type: Number })
   vatEur: number;
 
-  @Prop({ required: true, type: String })
-  paymentIntentClientSecret: string;
+  // Rempli plus tard, a la creation du PaymentIntent Stripe
+  @Prop({ required: false, type: String })
+  paymentIntentClientSecret?: string;
 
   @Prop({ required: false, type: String })
   stripePaymentIntentId?: string;

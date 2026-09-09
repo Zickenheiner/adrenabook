@@ -106,6 +106,13 @@ export default function BookingParticipantForm({
                   placeholder="70"
                   {...field}
                   value={field.value ?? ''}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value === ''
+                        ? undefined
+                        : e.target.valueAsNumber,
+                    )
+                  }
                 />
               </FormControl>
               <FormMessage className="text-xs" />

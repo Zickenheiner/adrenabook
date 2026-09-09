@@ -3,7 +3,8 @@ import { Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/core/utils/cn';
 
 interface Props {
-  expiresAt: Date;
+  /** `null` quand la réservation n'a plus de délai d'expiration (déjà payée, annulée…) */
+  expiresAt: Date | null;
   onExpire?: () => void;
 }
 
@@ -15,14 +16,13 @@ function formatCountdown(totalSeconds: number): string {
 
 export default function BookingTimer({ expiresAt, onExpire }: Props) {
   const [secondsLeft, setSecondsLeft] = useState(() => {
-    const diff = Math.max(
-      0,
-      Math.floor((expiresAt.getTime() - Date.now()) / 1000),
-    );
-    return diff;
+    if (!expiresAt) return 0;
+    return Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
   });
 
   useEffect(() => {
+    if (!expiresAt) return;
+
     if (secondsLeft <= 0) {
       onExpire?.();
       return;
@@ -41,6 +41,9 @@ export default function BookingTimer({ expiresAt, onExpire }: Props) {
 
     return () => clearInterval(interval);
   }, [expiresAt, onExpire, secondsLeft]);
+
+  // Aucun délai d'expiration à afficher : on ne rend pas de minuteur trompeur.
+  if (!expiresAt) return null;
 
   const isUrgent = secondsLeft <= 120; // moins de 2 min
   const isExpired = secondsLeft === 0;
