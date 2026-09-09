@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const cancelBookingSchema = z.object({
   reason: z.enum(['personal', 'health', 'weather', 'other'], {
-    required_error: "Veuillez sélectionner un motif d'annulation",
+    error: "Veuillez sélectionner un motif d'annulation",
   }),
   comment: z
     .string()
