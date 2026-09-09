@@ -30,6 +30,11 @@ export interface IUserService {
   findById(id: string): Promise<UserEntity | null>;
   register(dto: RegisterDto): Promise<RegisterResponseDto>;
   login(dto: LoginDto, context?: ILoginContext): Promise<LoginResponseDto>;
+  /**
+   * Echange un refresh token valide contre une nouvelle paire de jetons.
+   * Le refresh token est tourne a chaque appel (rotation).
+   */
+  refreshTokens(refreshToken: string): Promise<LoginResponseDto>;
   requestPasswordReset(
     dto: PasswordResetRequestDto,
   ): Promise<PasswordResetRequestResponseDto>;

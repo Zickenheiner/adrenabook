@@ -11,6 +11,8 @@ import {
   HealthProfileDto,
   NotificationPreferencesDto,
   RegisterDto,
+  RgpdExportBookingDto,
+  RgpdExportInvoiceDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
 import { UserEntity } from '@features/auth/domains/entities/user.entity';
@@ -23,6 +25,10 @@ import {
   Activity,
   ActivityDocument,
 } from '@features/activity/domains/schemas/activity.schema';
+import {
+  Invoice,
+  InvoiceDocument,
+} from '@features/invoice/domains/schemas/invoice.schema';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -33,6 +39,8 @@ export class UserRepository implements IUserRepository {
     private readonly bookingModel: Model<BookingDocument>,
     @InjectModel(Activity.name)
     private readonly activityModel: Model<ActivityDocument>,
+    @InjectModel(Invoice.name)
+    private readonly invoiceModel: Model<InvoiceDocument>,
     private readonly userMapper: UserMapper,
   ) {}
 
@@ -68,7 +76,7 @@ export class UserRepository implements IUserRepository {
       acceptRgpd: dto.acceptRgpd,
       emailVerified: false,
       emailVerificationToken,
-      role: 'Aventurier',
+      role: 'aventurier',
       failedLoginAttempts: 0,
       twoFactorEnabled: false,
     });
@@ -223,10 +231,15 @@ export class UserRepository implements IUserRepository {
 
   // ——— RGPD US-24 ———
 
-  async setRgpdExportRequest(
+  /**
+   * Trace une demande d'export RGPD deja executee (traitement synchrone).
+   * Il n'existe pas de worker asynchrone : la demande est donc directement
+   * enregistree avec le statut `completed`.
+   */
+  async setRgpdExportCompleted(
     id: string,
     requestId: string,
-    _estimatedReadyAt: Date,
+    completedAt: Date,
   ): Promise<boolean> {
     const updated = await this.userModel
       .findByIdAndUpdate(
@@ -235,14 +248,69 @@ export class UserRepository implements IUserRepository {
           rgpdRequest: {
             requestId,
             requestType: 'export',
-            status: 'queued',
+            status: 'completed',
             requestedAt: new Date(),
+            completedAt,
           },
         },
         { new: true },
       )
       .exec();
     return !!updated;
+  }
+
+  /**
+   * Collecte les donnees personnelles de l'utilisateur pour l'export RGPD.
+   * Les contre-indications medicales restent chiffrees ici : le dechiffrement
+   * est fait par le service (detenteur de la cle).
+   */
+  async getRgpdExportData(id: string): Promise<{
+    bookings: RgpdExportBookingDto[];
+    invoices: RgpdExportInvoiceDto[];
+  }> {
+    let userObjectId: Types.ObjectId;
+    try {
+      userObjectId = new Types.ObjectId(id);
+    } catch {
+      return { bookings: [], invoices: [] };
+    }
+
+    const [bookingDocs, invoiceDocs] = await Promise.all([
+      this.bookingModel
+        .find({ userId: userObjectId })
+        .sort({ createdAt: -1 })
+        .lean()
+        .exec(),
+      this.invoiceModel
+        .find({ userId: userObjectId })
+        .sort({ issuedAt: -1 })
+        .lean()
+        .exec(),
+    ]);
+
+    const bookings: RgpdExportBookingDto[] = bookingDocs.map((doc) => ({
+      bookingId: String(doc._id),
+      slotId: String(doc.slotId),
+      status: doc.status,
+      totalEur: doc.totalEur,
+      vatEur: doc.vatEur,
+      participantsCount: doc.participants?.length ?? 0,
+      createdAt: (doc as { createdAt?: Date }).createdAt?.toISOString(),
+    }));
+
+    const invoices: RgpdExportInvoiceDto[] = invoiceDocs.map((doc) => ({
+      invoiceId: String(doc._id),
+      invoiceNumber: doc.invoiceNumber,
+      bookingId: String(doc.bookingId),
+      issuedAt:
+        doc.issuedAt instanceof Date
+          ? doc.issuedAt.toISOString()
+          : String(doc.issuedAt),
+      totalEur: doc.totalEur,
+      vatEur: doc.vatEur,
+    }));
+
+    return { bookings, invoices };
   }
 
   async setRgpdDeleteRequest(

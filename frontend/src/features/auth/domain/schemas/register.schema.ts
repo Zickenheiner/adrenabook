@@ -57,10 +57,10 @@ export const registerSchema = z
       .refine(isAdult, {
         message: 'Vous devez avoir au moins 18 ans pour vous inscrire',
       }),
-    acceptCgu: z.literal(true, {
+    acceptCgu: z.boolean().refine((v) => v === true, {
       message: 'Vous devez accepter les CGU',
     }),
-    acceptRgpd: z.literal(true, {
+    acceptRgpd: z.boolean().refine((v) => v === true, {
       message: 'Vous devez accepter la politique RGPD',
     }),
   })

@@ -134,8 +134,8 @@ export default function RegisterForm({ onSubmit, isSubmitting }: Props) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
-              <FormControl>
-                <div className="relative">
+              <div className="relative">
+                <FormControl>
                   <Input
                     {...field}
                     type={showPassword ? 'text' : 'password'}
@@ -143,24 +143,24 @@ export default function RegisterForm({ onSubmit, isSubmitting }: Props) {
                     placeholder="Au moins 12 caractères"
                     className="pr-10"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                    aria-label={
-                      showPassword
-                        ? 'Masquer le mot de passe'
-                        : 'Afficher le mot de passe'
-                    }
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              </FormControl>
+                </FormControl>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={
+                    showPassword
+                      ? 'Masquer le mot de passe'
+                      : 'Afficher le mot de passe'
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               <FormMessage />
               {passwordValue && (
                 <PasswordStrengthIndicator password={passwordValue} />
@@ -175,8 +175,8 @@ export default function RegisterForm({ onSubmit, isSubmitting }: Props) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Confirmer le mot de passe</FormLabel>
-              <FormControl>
-                <div className="relative">
+              <div className="relative">
+                <FormControl>
                   <Input
                     {...field}
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -184,24 +184,24 @@ export default function RegisterForm({ onSubmit, isSubmitting }: Props) {
                     placeholder="Confirmez votre mot de passe"
                     className="pr-10"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                    aria-label={
-                      showConfirmPassword
-                        ? 'Masquer le mot de passe'
-                        : 'Afficher le mot de passe'
-                    }
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              </FormControl>
+                </FormControl>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={
+                    showConfirmPassword
+                      ? 'Masquer le mot de passe'
+                      : 'Afficher le mot de passe'
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -227,7 +227,7 @@ export default function RegisterForm({ onSubmit, isSubmitting }: Props) {
                       href="/cgu"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium text-primary underline-offset-4 hover:underline"
+                      className="font-medium text-link underline-offset-4 hover:underline"
                     >
                       Conditions Générales d’Utilisation
                     </a>
@@ -256,7 +256,7 @@ export default function RegisterForm({ onSubmit, isSubmitting }: Props) {
                       href="/rgpd"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium text-primary underline-offset-4 hover:underline"
+                      className="font-medium text-link underline-offset-4 hover:underline"
                     >
                       politique de confidentialité (RGPD)
                     </a>

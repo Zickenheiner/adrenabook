@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Inject,
@@ -44,6 +45,8 @@ import {
   RegisterResponseDto,
   RgpdDeleteDto,
   RgpdDeleteResponseDto,
+  RgpdExportDataDto,
+  RgpdExportHealthProfileDto,
   RgpdExportResponseDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
@@ -64,6 +67,19 @@ const REFRESH_TOKEN_TTL = '7d';
 const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 heure
 const PASSWORD_RESET_GENERIC_MESSAGE =
   'Si un compte existe pour cet email, un lien de reinitialisation a ete envoye.';
+
+/**
+ * Chiffrement des donnees de sante US-05
+ * AES-256-GCM : IV de 12 bytes (recommandation NIST SP 800-38D)
+ */
+const AES_GCM_IV_LENGTH = 12;
+
+/**
+ * Marqueur utilise dans l'export RGPD quand une donnee chiffree ne peut pas
+ * etre dechiffree (ancien format, cle changee, donnee alteree).
+ */
+const RGPD_UNDECRYPTABLE_MARKER =
+  '[donnee illisible : chiffrement obsolete ou cle invalide]';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -284,6 +300,68 @@ export class UserService implements IUserService {
       reason: 'login_success',
       context,
     });
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: {
+        id: user.getId(),
+        email: user.getEmail(),
+        role: this.normalizeRole(user.getRole()),
+      },
+    };
+  }
+
+  /**
+   * Echange un refresh token contre une nouvelle paire de jetons (US-02).
+   *
+   * Trois controles successifs :
+   *  1. la signature et la peremption du refresh token (secret dedie) ;
+   *  2. l'existence de l'utilisateur et l'etat de son compte ;
+   *  3. la correspondance avec le hash Argon2 stocke en base, ce qui invalide
+   *     un refresh token vole apres deconnexion ou apres rotation.
+   *
+   * Le refresh token est TOURNE a chaque appel : l'ancien devient inutilisable.
+   */
+  async refreshTokens(refreshToken: string): Promise<LoginResponseDto> {
+    const refreshTokenSecret =
+      this.configService.get<string>('REFRESH_TOKEN_SECRET') ?? 'change-me-rt';
+
+    let payload: { sub: string };
+    try {
+      payload = await this.jwtService.verifyAsync<{ sub: string }>(
+        refreshToken,
+        { secret: refreshTokenSecret },
+      );
+    } catch {
+      throw new UnauthorizedException('Refresh token invalide ou expire');
+    }
+
+    const user = await this.userRepository.findById(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException('Refresh token invalide ou expire');
+    }
+
+    if (user.getStatus() !== 'active') {
+      throw new ForbiddenException('Compte suspendu ou desactive');
+    }
+
+    const hashStocke = user.getRefreshTokenHash();
+    if (!hashStocke) {
+      // Aucune session ouverte : l'utilisateur s'est deconnecte.
+      throw new UnauthorizedException('Refresh token invalide ou expire');
+    }
+
+    const correspond = await argon2.verify(hashStocke, refreshToken);
+    if (!correspond) {
+      throw new UnauthorizedException('Refresh token invalide ou expire');
+    }
+
+    const tokens = await this.generateTokens(user);
+    await this.userRepository.setRefreshTokenHash(
+      user.getId(),
+      await argon2.hash(tokens.refreshToken),
+    );
 
     return {
       accessToken: tokens.accessToken,
@@ -618,7 +696,7 @@ export class UserService implements IUserService {
     return { userId, expiresAtSec };
   }
 
-  // ——— Helpers chiffrement AES-256 US-05 ———
+  // ——— Helpers chiffrement AES-256-GCM US-05 ———
 
   /**
    * Retourne la cle AES-256 de 32 bytes depuis la config.
@@ -633,30 +711,56 @@ export class UserService implements IUserService {
   }
 
   /**
-   * Chiffre un texte en clair avec AES-256-CBC.
-   * Format stocke : iv_hex:ciphertext_hex
+   * Chiffre un texte en clair avec AES-256-GCM (chiffrement authentifie).
+   * Format stocke : iv_hex:authTag_hex:ciphertext_hex
+   * IV de 12 bytes conformement a la recommandation NIST pour GCM.
    */
   private encryptAes256(plaintext: string): string {
     const key = this.getHealthEncryptionKey();
-    const iv = randomBytes(16);
-    const cipher = createCipheriv('aes-256-cbc', key, iv);
+    const iv = randomBytes(AES_GCM_IV_LENGTH);
+    const cipher = createCipheriv('aes-256-gcm', key, iv);
     const encrypted = Buffer.concat([
       cipher.update(plaintext, 'utf8'),
       cipher.final(),
     ]);
-    return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
+    const authTag = cipher.getAuthTag();
+    return [
+      iv.toString('hex'),
+      authTag.toString('hex'),
+      encrypted.toString('hex'),
+    ].join(':');
   }
 
   /**
-   * Dechiffre un texte chiffre avec AES-256-CBC.
-   * Format attendu : iv_hex:ciphertext_hex
+   * Dechiffre un texte chiffre avec AES-256-GCM.
+   * Format attendu : iv_hex:authTag_hex:ciphertext_hex
+   * Le tag d'authentification est verifie par `final()` : toute alteration du
+   * chiffre, de l'IV ou du tag leve une erreur.
    */
   decryptAes256(ciphertext: string): string {
-    const [ivHex, encryptedHex] = ciphertext.split(':');
+    const parts = ciphertext.split(':');
+    if (parts.length !== 3) {
+      throw new InternalServerErrorException(
+        parts.length === 2
+          ? 'Donnee chiffree au format AES-256-CBC obsolete (iv:ciphertext) : dechiffrement impossible, une re-saisie de la donnee est necessaire.'
+          : 'Donnee chiffree invalide : format attendu iv:authTag:ciphertext.',
+      );
+    }
+
+    const [ivHex, authTagHex, encryptedHex] = parts;
     const key = this.getHealthEncryptionKey();
     const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
     const encryptedBuf = Buffer.from(encryptedHex, 'hex');
-    const decipher = createDecipheriv('aes-256-cbc', key, iv);
+
+    if (iv.length !== AES_GCM_IV_LENGTH || authTag.length !== 16) {
+      throw new InternalServerErrorException(
+        'Donnee chiffree invalide : IV ou tag d’authentification de taille incorrecte.',
+      );
+    }
+
+    const decipher = createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(authTag);
     return Buffer.concat([
       decipher.update(encryptedBuf),
       decipher.final(),
@@ -666,10 +770,12 @@ export class UserService implements IUserService {
   // ——— RGPD US-24 ———
 
   /**
-   * Demande d'export RGPD (US-24)
-   * - Verifie qu'aucune demande n'est deja en cours
-   * - Cree une demande asynchrone (queued) avec un requestId unique
-   * - Retourne le statut et la date estimee de disponibilite (J+1)
+   * Export RGPD (US-24) — traitement SYNCHRONE
+   * Aucun worker/scheduler n'existe dans le projet : la demande est donc
+   * executee immediatement et les donnees sont renvoyees dans la reponse.
+   * La demande est tracee en base avec le statut `completed`.
+   * - Profil, profil de sante (contre-indications dechiffrees), preferences
+   *   de notifications, reservations et factures
    */
   async requestRgpdExport(userId: string): Promise<RgpdExportResponseDto> {
     const user = await this.userRepository.findById(userId);
@@ -677,33 +783,87 @@ export class UserService implements IUserService {
       throw new NotFoundException('Utilisateur introuvable');
     }
 
-    const existing = user.getRgpdRequest();
-    if (
-      existing &&
-      (existing.status === 'queued' || existing.status === 'processing')
-    ) {
-      throw new ConflictException('Une demande RGPD est deja en cours');
-    }
-
+    // Aucun controle de concurrence : l'export etant synchrone, il n'existe
+    // pas de demande "en cours". Le controle 'queued'/'processing' precedent
+    // bloquait definitivement les comptes dont une demande n'avait jamais ete
+    // traitee (aucun worker n'existait pour la faire avancer).
     const requestId = `rgpd-export-${userId}-${randomBytes(8).toString('hex')}`;
-    const estimatedReadyAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // J+1
+    const completedAt = new Date();
 
-    const saved = await this.userRepository.setRgpdExportRequest(
+    const { bookings, invoices } =
+      await this.userRepository.getRgpdExportData(userId);
+
+    const birthDate = user.getBirthDate();
+    const data: RgpdExportDataDto = {
+      profile: {
+        userId: user.getId(),
+        email: user.getEmail(),
+        firstName: user.getFirstName(),
+        lastName: user.getLastName(),
+        birthDate:
+          birthDate instanceof Date
+            ? birthDate.toISOString()
+            : String(birthDate),
+        role: user.getRole(),
+        status: user.getStatus(),
+        emailVerified: user.getEmailVerified(),
+        acceptCgu: user.getAcceptCgu(),
+        acceptRgpd: user.getAcceptRgpd(),
+      },
+      healthProfile: this.buildRgpdHealthProfile(user),
+      notificationPreferences: user.getNotificationPreferences(),
+      bookings,
+      invoices,
+    };
+
+    const saved = await this.userRepository.setRgpdExportCompleted(
       userId,
       requestId,
-      estimatedReadyAt,
+      completedAt,
     );
 
     if (!saved) {
       throw new InternalServerErrorException(
-        "Impossible de creer la demande d'export RGPD",
+        "Impossible d'enregistrer la demande d'export RGPD",
       );
     }
 
     return {
       requestId,
-      status: 'queued',
-      estimatedReadyAt: estimatedReadyAt.toISOString(),
+      status: 'completed',
+      completedAt: completedAt.toISOString(),
+      data,
+    };
+  }
+
+  /**
+   * Construit le profil de sante de l'export RGPD en dechiffrant les
+   * contre-indications medicales (droit d'acces : restitution en clair au
+   * proprietaire de la donnee).
+   * Une donnee illisible (ancien format CBC, cle changee, alteration) est
+   * signalee explicitement plutot que de faire echouer tout l'export.
+   */
+  private buildRgpdHealthProfile(
+    user: UserEntity,
+  ): RgpdExportHealthProfileDto | undefined {
+    const healthProfile = user.getHealthProfile();
+    if (!healthProfile) return undefined;
+
+    const medicalContraindications =
+      healthProfile.medicalContraindications?.map((value) => {
+        try {
+          return this.decryptAes256(value);
+        } catch {
+          return RGPD_UNDECRYPTABLE_MARKER;
+        }
+      });
+
+    return {
+      weight: healthProfile.weight,
+      height: healthProfile.height,
+      medicalContraindications,
+      emergencyContact: healthProfile.emergencyContact,
+      medicalCertificateFileId: healthProfile.medicalCertificateFileId,
     };
   }
 

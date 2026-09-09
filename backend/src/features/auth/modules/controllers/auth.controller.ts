@@ -1,5 +1,6 @@
 import {
   Body,
+  UnauthorizedException,
   Controller,
   HttpCode,
   HttpStatus,
@@ -20,6 +21,7 @@ import {
   PasswordResetRequestResponseDto,
   RegisterDto,
   RegisterResponseDto,
+  RefreshTokenDto,
 } from '@features/auth/domains/dtos/user.dto';
 import { IUserService } from '@features/auth/interfaces/services/user.iservice';
 
@@ -106,6 +108,54 @@ export class AuthController {
       ipAddress,
       userAgent,
     });
+
+    res.cookie('refresh_token', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: REFRESH_COOKIE_MAX_AGE_MS,
+      path: '/',
+    });
+
+    return result;
+  }
+
+  @ApiOperation({
+    summary: 'Renouveler la paire de jetons (US-02)',
+    description:
+      'Echange un refresh token valide contre un nouvel access token et un nouveau ' +
+      "refresh token. Le refresh token est tourne a chaque appel : l'ancien devient " +
+      'inutilisable. Le jeton est lu dans le corps de la requete, ou a defaut dans le ' +
+      'cookie httpOnly pose a la connexion.',
+  })
+  @ApiBody({ type: RefreshTokenDto, required: false })
+  @ApiResponse({
+    status: 200,
+    description: 'Nouvelle paire de jetons',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Refresh token absent, invalide, expire ou deja tourne',
+  })
+  @ApiResponse({ status: 403, description: 'Compte suspendu ou desactive' })
+  @Public()
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @Body() dto: RefreshTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponseDto> {
+    const cookies = (req as Request & { cookies?: Record<string, string> })
+      .cookies;
+    const refreshToken = dto?.refreshToken ?? cookies?.refresh_token;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token absent');
+    }
+
+    const result = await this.userService.refreshTokens(refreshToken);
 
     res.cookie('refresh_token', result.refreshToken, {
       httpOnly: true,

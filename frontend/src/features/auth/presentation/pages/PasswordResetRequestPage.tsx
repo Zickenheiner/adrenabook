@@ -70,7 +70,7 @@ export default function PasswordResetRequestPage() {
               <KeyRound className="h-6 w-6 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <CardTitle className="text-2xl sm:text-3xl">
+              <CardTitle as="h1" className="text-2xl sm:text-3xl">
                 Mot de passe oublié ?
               </CardTitle>
               <CardDescription className="mt-2">
@@ -100,7 +100,7 @@ export default function PasswordResetRequestPage() {
                   Vous vous souvenez de votre mot de passe ?{' '}
                   <Link
                     to={routes.login}
-                    className="font-medium text-primary underline-offset-4 hover:underline"
+                    className="font-medium text-link underline-offset-4 hover:underline"
                   >
                     Se connecter
                   </Link>

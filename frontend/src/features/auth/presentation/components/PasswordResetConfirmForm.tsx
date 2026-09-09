@@ -54,8 +54,8 @@ export default function PasswordResetConfirmForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nouveau mot de passe</FormLabel>
-              <FormControl>
-                <div className="relative">
+              <div className="relative">
+                <FormControl>
                   <Input
                     {...field}
                     type={showNewPassword ? 'text' : 'password'}
@@ -64,24 +64,24 @@ export default function PasswordResetConfirmForm({
                     className="pr-10"
                     disabled={isSubmitting}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                    aria-label={
-                      showNewPassword
-                        ? 'Masquer le mot de passe'
-                        : 'Afficher le mot de passe'
-                    }
-                  >
-                    {showNewPassword ? (
-                      <EyeOff className="h-4 w-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              </FormControl>
+                </FormControl>
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={
+                    showNewPassword
+                      ? 'Masquer le mot de passe'
+                      : 'Afficher le mot de passe'
+                  }
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -95,8 +95,8 @@ export default function PasswordResetConfirmForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Confirmer le mot de passe</FormLabel>
-              <FormControl>
-                <div className="relative">
+              <div className="relative">
+                <FormControl>
                   <Input
                     {...field}
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -105,24 +105,24 @@ export default function PasswordResetConfirmForm({
                     className="pr-10"
                     disabled={isSubmitting}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                    aria-label={
-                      showConfirmPassword
-                        ? 'Masquer le mot de passe'
-                        : 'Afficher le mot de passe'
-                    }
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              </FormControl>
+                </FormControl>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={
+                    showConfirmPassword
+                      ? 'Masquer le mot de passe'
+                      : 'Afficher le mot de passe'
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               <FormMessage />
             </FormItem>
           )}

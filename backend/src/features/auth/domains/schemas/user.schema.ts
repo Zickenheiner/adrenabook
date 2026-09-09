@@ -41,7 +41,14 @@ export class User {
   @Prop({ required: false, type: String })
   emailVerificationToken?: string;
 
-  @Prop({ required: false, type: String, default: 'Aventurier' })
+  // Roles normalises en minuscules : 'aventurier' | 'professionnel' | 'admin'
+  // (`lowercase: true` garantit la coherence avec le payload JWT)
+  @Prop({
+    required: false,
+    type: String,
+    default: 'aventurier',
+    lowercase: true,
+  })
   role: string;
 
   // ——— Statut admin US-22 ———
@@ -123,9 +130,10 @@ export class User {
       },
       status: {
         type: String,
-        enum: ['queued', 'processing', 'ready', 'scheduled'],
+        enum: ['queued', 'processing', 'ready', 'scheduled', 'completed'],
       },
       requestedAt: { type: Date },
+      completedAt: { type: Date },
       scheduledDeletionAt: { type: Date },
       confirmationCode: { type: String },
       confirmationCodeExpiresAt: { type: Date },
@@ -135,8 +143,9 @@ export class User {
   rgpdRequest?: {
     requestId: string;
     requestType: 'export' | 'delete';
-    status: 'queued' | 'processing' | 'ready' | 'scheduled';
+    status: 'queued' | 'processing' | 'ready' | 'scheduled' | 'completed';
     requestedAt: Date;
+    completedAt?: Date;
     scheduledDeletionAt?: Date;
     confirmationCode?: string;
     confirmationCodeExpiresAt?: Date;

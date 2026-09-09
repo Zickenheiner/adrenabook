@@ -97,7 +97,7 @@ export default function LoginPage() {
               <Mountain className="h-6 w-6 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <CardTitle className="text-2xl sm:text-3xl">
+              <CardTitle as="h1" className="text-2xl sm:text-3xl">
                 Connexion à AdrenaBook
               </CardTitle>
               <CardDescription className="mt-2">
@@ -135,7 +135,7 @@ export default function LoginPage() {
               <p>
                 <Link
                   to={routes.passwordResetRequest}
-                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  className="font-medium text-link underline-offset-4 hover:underline"
                 >
                   Mot de passe oublié ?
                 </Link>
@@ -144,7 +144,7 @@ export default function LoginPage() {
                 Pas encore de compte ?{' '}
                 <Link
                   to={routes.register}
-                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  className="font-medium text-link underline-offset-4 hover:underline"
                 >
                   Créer un compte
                 </Link>

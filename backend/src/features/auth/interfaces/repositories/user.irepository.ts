@@ -4,6 +4,8 @@ import {
   HealthProfileDto,
   NotificationPreferencesDto,
   RegisterDto,
+  RgpdExportBookingDto,
+  RgpdExportInvoiceDto,
   UpdateUserDto,
 } from '@features/auth/domains/dtos/user.dto';
 import { UserEntity } from '@features/auth/domains/entities/user.entity';
@@ -56,11 +58,15 @@ export interface IUserRepository {
   updateStatus(id: string, status: string): Promise<boolean>;
 
   // ——— RGPD US-24 ———
-  setRgpdExportRequest(
+  setRgpdExportCompleted(
     id: string,
     requestId: string,
-    estimatedReadyAt: Date,
+    completedAt: Date,
   ): Promise<boolean>;
+  getRgpdExportData(id: string): Promise<{
+    bookings: RgpdExportBookingDto[];
+    invoices: RgpdExportInvoiceDto[];
+  }>;
   setRgpdDeleteRequest(
     id: string,
     requestId: string,

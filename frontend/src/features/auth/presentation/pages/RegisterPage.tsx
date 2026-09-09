@@ -64,7 +64,6 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           <RegisterSuccess
             email={successData.email}
-            emailVerificationSent={successData.emailVerificationSent}
             onGoToLogin={() => navigate(routes.login)}
           />
         </div>
@@ -86,7 +85,7 @@ export default function RegisterPage() {
               <Mountain className="h-6 w-6 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <CardTitle className="text-2xl sm:text-3xl">
+              <CardTitle as="h1" className="text-2xl sm:text-3xl">
                 Créer un compte aventurier
               </CardTitle>
               <CardDescription className="mt-2">
@@ -114,7 +113,7 @@ export default function RegisterPage() {
               Vous avez déjà un compte ?{' '}
               <Link
                 to={routes.login}
-                className="font-medium text-primary underline-offset-4 hover:underline"
+                className="font-medium text-link underline-offset-4 hover:underline"
               >
                 Se connecter
               </Link>

@@ -64,8 +64,9 @@ export class UserEntity {
   private rgpdRequest?: {
     requestId: string;
     requestType: 'export' | 'delete';
-    status: 'queued' | 'processing' | 'ready' | 'scheduled';
+    status: 'queued' | 'processing' | 'ready' | 'scheduled' | 'completed';
     requestedAt: Date;
+    completedAt?: Date;
     scheduledDeletionAt?: Date;
     confirmationCode?: string;
     confirmationCodeExpiresAt?: Date;
@@ -317,8 +318,9 @@ export class UserEntity {
     | {
         requestId: string;
         requestType: 'export' | 'delete';
-        status: 'queued' | 'processing' | 'ready' | 'scheduled';
+        status: 'queued' | 'processing' | 'ready' | 'scheduled' | 'completed';
         requestedAt: Date;
+        completedAt?: Date;
         scheduledDeletionAt?: Date;
         confirmationCode?: string;
         confirmationCodeExpiresAt?: Date;
@@ -332,8 +334,9 @@ export class UserEntity {
       | {
           requestId: string;
           requestType: 'export' | 'delete';
-          status: 'queued' | 'processing' | 'ready' | 'scheduled';
+          status: 'queued' | 'processing' | 'ready' | 'scheduled' | 'completed';
           requestedAt: Date;
+          completedAt?: Date;
           scheduledDeletionAt?: Date;
           confirmationCode?: string;
           confirmationCodeExpiresAt?: Date;

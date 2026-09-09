@@ -24,6 +24,10 @@ import {
   Activity,
   ActivitySchema,
 } from '@features/activity/domains/schemas/activity.schema';
+import {
+  Invoice,
+  InvoiceSchema,
+} from '@features/invoice/domains/schemas/invoice.schema';
 
 @Module({
   imports: [
@@ -32,6 +36,7 @@ import {
       { name: LoginLog.name, schema: LoginLogSchema },
       { name: Booking.name, schema: BookingSchema },
       { name: Activity.name, schema: ActivitySchema },
+      { name: Invoice.name, schema: InvoiceSchema },
     ]),
     JwtModule.register({}),
   ],

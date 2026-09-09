@@ -1,4 +1,4 @@
-import { CheckCircle2, Mail } from 'lucide-react';
+import { CheckCircle2, UserCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Button } from '@/core/components/ui/button';
 import {
@@ -11,15 +11,10 @@ import {
 
 interface Props {
   email: string;
-  emailVerificationSent: boolean;
   onGoToLogin: () => void;
 }
 
-export default function RegisterSuccess({
-  email,
-  emailVerificationSent,
-  onGoToLogin,
-}: Props) {
+export default function RegisterSuccess({ email, onGoToLogin }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -45,27 +40,21 @@ export default function RegisterSuccess({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {emailVerificationSent ? (
-            <div className="flex items-start gap-3 rounded-lg border bg-background p-4">
-              <Mail
-                className="mt-0.5 h-5 w-5 shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              <div className="space-y-1 text-sm">
-                <p className="font-medium">Vérifiez votre boîte mail</p>
-                <p className="text-muted-foreground">
-                  Un email de confirmation a été envoyé à{' '}
-                  <span className="font-medium text-foreground">{email}</span>.
-                  Cliquez sur le lien pour activer votre compte.
-                </p>
-              </div>
+          <div className="flex items-start gap-3 rounded-lg border bg-background p-4">
+            <UserCheck
+              className="mt-0.5 h-5 w-5 shrink-0 text-primary"
+              aria-hidden="true"
+            />
+            <div className="space-y-1 text-sm">
+              <p className="font-medium">Votre compte est actif</p>
+              <p className="text-muted-foreground">
+                Aucune étape de vérification n’est nécessaire : connectez-vous
+                dès maintenant avec{' '}
+                <span className="font-medium text-foreground">{email}</span> et
+                votre mot de passe.
+              </p>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Votre compte a été créé mais l’email de confirmation n’a pas pu
-              être envoyé. Vous pourrez le redemander depuis votre profil.
-            </p>
-          )}
+          </div>
 
           <Button onClick={onGoToLogin} className="w-full" size="lg">
             Aller à la page de connexion

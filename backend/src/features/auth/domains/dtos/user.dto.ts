@@ -15,6 +15,7 @@ import {
   IsDefined,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { UserEntity } from '@features/auth/domains/entities/user.entity';
 
 /**
  * RegisterDto — Inscription d'un aventurier (US-01)
@@ -411,6 +412,80 @@ export class CreateUserDto {
   acceptRgpd: boolean;
 }
 
+/**
+ * UserResponseDto — Representation exposee d'un utilisateur.
+ * Liste blanche stricte : aucun secret (password, refreshTokenHash,
+ * emailVerificationToken, passwordResetTokenHash, twoFactorCode) ni donnee de
+ * sante n'est exposee. Seule cette classe doit etre renvoyee par les routes
+ * /users.
+ */
+export class UserResponseDto {
+  @ApiProperty({
+    description: "Identifiant unique de l'utilisateur",
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  id: string;
+
+  @ApiProperty({ description: 'Email', example: 'user@example.com' })
+  email: string;
+
+  @ApiProperty({ description: 'Prenom', example: 'Jean' })
+  firstName: string;
+
+  @ApiProperty({ description: 'Nom', example: 'Dupont' })
+  lastName: string;
+
+  @ApiProperty({
+    description: 'Date de naissance (ISO 8601)',
+    example: '1995-05-15T00:00:00.000Z',
+  })
+  birthDate: string;
+
+  @ApiProperty({
+    description: "Role de l'utilisateur",
+    example: 'aventurier',
+    enum: ['aventurier', 'professionnel', 'admin'],
+  })
+  role: string;
+
+  @ApiProperty({
+    description: 'Statut du compte',
+    example: 'active',
+    enum: ['active', 'suspended', 'banned'],
+  })
+  status: string;
+
+  @ApiProperty({ description: 'Email verifie', example: true })
+  emailVerified: boolean;
+
+  @ApiProperty({ description: 'Acceptation CGU', example: true })
+  acceptCgu: boolean;
+
+  @ApiProperty({ description: 'Acceptation RGPD', example: true })
+  acceptRgpd: boolean;
+
+  @ApiProperty({ description: '2FA activee', example: false })
+  twoFactorEnabled: boolean;
+
+  static fromEntity(entity: UserEntity): UserResponseDto {
+    const dto = new UserResponseDto();
+    dto.id = entity.getId();
+    dto.email = entity.getEmail();
+    dto.firstName = entity.getFirstName();
+    dto.lastName = entity.getLastName();
+    const birthDate = entity.getBirthDate();
+    dto.birthDate =
+      birthDate instanceof Date ? birthDate.toISOString() : String(birthDate);
+    dto.role = entity.getRole();
+    dto.status = entity.getStatus();
+    dto.emailVerified = entity.getEmailVerified();
+    dto.acceptCgu = entity.getAcceptCgu();
+    dto.acceptRgpd = entity.getAcceptRgpd();
+    dto.twoFactorEnabled = entity.getTwoFactorEnabled();
+    return dto;
+  }
+}
+
 export class UpdateUserDto {
   @ApiProperty({
     description: 'Email',
@@ -527,7 +602,140 @@ export class NotificationPreferencesResponseDto {
 // ——— RGPD US-24 ———
 
 /**
+ * RgpdExportProfileDto — Donnees de profil incluses dans l'export RGPD (US-24)
+ */
+export class RgpdExportProfileDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  userId: string;
+
+  @ApiProperty({ example: 'aventurier@example.com' })
+  email: string;
+
+  @ApiProperty({ example: 'Jean' })
+  firstName: string;
+
+  @ApiProperty({ example: 'Dupont' })
+  lastName: string;
+
+  @ApiProperty({ example: '1995-05-15T00:00:00.000Z' })
+  birthDate: string;
+
+  @ApiProperty({ example: 'aventurier' })
+  role: string;
+
+  @ApiProperty({ example: 'active' })
+  status: string;
+
+  @ApiProperty({ example: true })
+  emailVerified: boolean;
+
+  @ApiProperty({ example: true })
+  acceptCgu: boolean;
+
+  @ApiProperty({ example: true })
+  acceptRgpd: boolean;
+}
+
+/**
+ * RgpdExportHealthProfileDto — Profil de sante inclus dans l'export RGPD (US-24)
+ * Les contre-indications medicales sont dechiffrees pour etre restituees en
+ * clair a leur proprietaire (droit d'acces RGPD).
+ */
+export class RgpdExportHealthProfileDto {
+  @ApiProperty({ example: 75, required: false })
+  weight?: number;
+
+  @ApiProperty({ example: 178, required: false })
+  height?: number;
+
+  @ApiProperty({
+    description: 'Contre-indications medicales dechiffrees',
+    example: ['Hypertension'],
+    type: [String],
+    required: false,
+  })
+  medicalContraindications?: string[];
+
+  @ApiProperty({ type: EmergencyContactDto, required: false })
+  emergencyContact?: EmergencyContactDto;
+
+  @ApiProperty({ example: 'file-abc123', required: false })
+  medicalCertificateFileId?: string;
+}
+
+/**
+ * RgpdExportBookingDto — Reservation incluse dans l'export RGPD (US-24)
+ */
+export class RgpdExportBookingDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  bookingId: string;
+
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde30' })
+  slotId: string;
+
+  @ApiProperty({ example: 'confirmed' })
+  status: string;
+
+  @ApiProperty({ example: 150 })
+  totalEur: number;
+
+  @ApiProperty({ example: 30 })
+  vatEur: number;
+
+  @ApiProperty({ example: 2 })
+  participantsCount: number;
+
+  @ApiProperty({ example: '2026-06-15T09:00:00.000Z', required: false })
+  createdAt?: string;
+}
+
+/**
+ * RgpdExportInvoiceDto — Facture incluse dans l'export RGPD (US-24)
+ */
+export class RgpdExportInvoiceDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde40' })
+  invoiceId: string;
+
+  @ApiProperty({ example: 'FA-2026-000123' })
+  invoiceNumber: string;
+
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  bookingId: string;
+
+  @ApiProperty({ example: '2026-06-15T09:00:00.000Z' })
+  issuedAt: string;
+
+  @ApiProperty({ example: 150 })
+  totalEur: number;
+
+  @ApiProperty({ example: 30 })
+  vatEur: number;
+}
+
+/**
+ * RgpdExportDataDto — Contenu de l'export RGPD (US-24)
+ */
+export class RgpdExportDataDto {
+  @ApiProperty({ type: RgpdExportProfileDto })
+  profile: RgpdExportProfileDto;
+
+  @ApiProperty({ type: RgpdExportHealthProfileDto, required: false })
+  healthProfile?: RgpdExportHealthProfileDto;
+
+  @ApiProperty({ type: NotificationPreferencesDto, required: false })
+  notificationPreferences?: NotificationPreferencesDto;
+
+  @ApiProperty({ type: [RgpdExportBookingDto] })
+  bookings: RgpdExportBookingDto[];
+
+  @ApiProperty({ type: [RgpdExportInvoiceDto] })
+  invoices: RgpdExportInvoiceDto[];
+}
+
+/**
  * RgpdExportResponseDto — Reponse a la demande d'export RGPD (US-24)
+ * L'export est traite de facon synchrone : les donnees sont renvoyees
+ * directement dans la reponse (aucun worker asynchrone n'existe).
  */
 export class RgpdExportResponseDto {
   @ApiProperty({
@@ -538,25 +746,22 @@ export class RgpdExportResponseDto {
 
   @ApiProperty({
     description: "Statut de la demande d'export",
-    example: 'queued',
-    enum: ['queued', 'processing', 'ready'],
+    example: 'completed',
+    enum: ['completed'],
   })
-  status: 'queued' | 'processing' | 'ready';
+  status: 'completed';
 
   @ApiProperty({
-    description: 'Date estimee de disponibilite du fichier (ISO 8601)',
+    description: "Date de realisation de l'export (ISO 8601)",
     example: '2026-05-13T12:00:00.000Z',
   })
-  estimatedReadyAt: string;
+  completedAt: string;
 
   @ApiProperty({
-    description:
-      "URL de telechargement du fichier (uniquement si status = 'ready')",
-    example:
-      'https://storage.adrenabook.com/exports/68b4d59919d9b7a94b4fde21.json',
-    required: false,
+    description: "Contenu complet de l'export",
+    type: RgpdExportDataDto,
   })
-  downloadUrl?: string;
+  data: RgpdExportDataDto;
 }
 
 /**
@@ -709,4 +914,17 @@ export class DashboardResponseDto {
     type: [ActivitySummaryDto],
   })
   suggestedActivities: ActivitySummaryDto[];
+}
+
+export class RefreshTokenDto {
+  @ApiProperty({
+    description:
+      'Refresh token obtenu a la connexion. Optionnel : a defaut, le jeton est ' +
+      'lu dans le cookie httpOnly refresh_token.',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  refreshToken?: string;
 }

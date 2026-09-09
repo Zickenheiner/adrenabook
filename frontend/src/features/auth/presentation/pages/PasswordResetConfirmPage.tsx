@@ -74,7 +74,7 @@ export default function PasswordResetConfirmPage() {
               />
             </div>
             <div>
-              <CardTitle className="text-2xl sm:text-3xl">
+              <CardTitle as="h1" className="text-2xl sm:text-3xl">
                 Nouveau mot de passe
               </CardTitle>
               <CardDescription className="mt-2">
@@ -115,7 +115,7 @@ export default function PasswordResetConfirmPage() {
                   Vous vous souvenez de votre mot de passe ?{' '}
                   <Link
                     to={routes.login}
-                    className="font-medium text-primary underline-offset-4 hover:underline"
+                    className="font-medium text-link underline-offset-4 hover:underline"
                   >
                     Se connecter
                   </Link>
