@@ -24,25 +24,22 @@ export class RgpdController {
   ) {}
 
   @ApiOperation({
-    summary: "Demande d'export RGPD (US-24)",
+    summary: 'Export RGPD (US-24)',
     description:
-      "Cree une demande asynchrone d'export de toutes les donnees personnelles (profil, reservations, factures, avis) au format JSON. La demande est mise en file d'attente et le fichier sera disponible sous 24h. Auth JWT requise.",
+      "Exporte immediatement (traitement synchrone) toutes les donnees personnelles de l'utilisateur connecte : profil, profil de sante (contre-indications dechiffrees), preferences de notifications, reservations et factures. Les donnees sont renvoyees directement dans la reponse au format JSON. Auth JWT requise.",
   })
   @ApiResponse({
-    status: 202,
-    description: "Demande d'export acceptee (traitement asynchrone)",
+    status: 200,
+    description:
+      'Export realise, donnees retournees dans le corps de la reponse',
     type: RgpdExportResponseDto,
   })
   @ApiResponse({
     status: 401,
     description: 'Non authentifie',
   })
-  @ApiResponse({
-    status: 409,
-    description: 'Une demande RGPD est deja en cours',
-  })
   @Post('export')
-  @HttpCode(HttpStatus.ACCEPTED)
+  @HttpCode(HttpStatus.OK)
   async requestExport(
     @Req() req: { user: { sub: string } },
   ): Promise<RgpdExportResponseDto> {
