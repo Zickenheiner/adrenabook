@@ -50,8 +50,7 @@ describe('Health (integration)', () => {
   it('should respond with 200 and status "ok" when everything is healthy', async () => {
     app = await buildApp(1, {
       APP_VERSION: '2.0.0',
-      RABBITMQ_URL: 'amqp://localhost',
-      STRIPE_API_KEY: 'sk_test',
+      STRIPE_SECRET_KEY: 'sk_test',
       SENDGRID_API_KEY: 'sg_key',
     });
 
@@ -61,13 +60,13 @@ describe('Health (integration)', () => {
     expect(response.body.status).toBe('ok');
     expect(response.body.version).toBe('2.0.0');
     expect(response.body.checks.mongodb).toBe('ok');
+    expect(response.body.checks).not.toHaveProperty('rabbitmq');
   });
 
   it('should respond with 503 and status "down" when MongoDB is disconnected', async () => {
     app = await buildApp(0, {
       APP_VERSION: '2.0.0',
-      RABBITMQ_URL: 'amqp://localhost',
-      STRIPE_API_KEY: 'sk_test',
+      STRIPE_SECRET_KEY: 'sk_test',
       SENDGRID_API_KEY: 'sg_key',
     });
 
@@ -78,18 +77,17 @@ describe('Health (integration)', () => {
     expect(response.body.checks.mongodb).toBe('fail');
   });
 
-  it('should respond with 503 and status "degraded" when a non-critical dependency fails', async () => {
+  it('should respond with 200 and status "degraded" when a provider is not configured', async () => {
     app = await buildApp(1, {
       APP_VERSION: '2.0.0',
-      RABBITMQ_URL: undefined,
-      STRIPE_API_KEY: 'sk_test',
-      SENDGRID_API_KEY: 'sg_key',
+      STRIPE_SECRET_KEY: 'sk_test',
+      SENDGRID_API_KEY: undefined,
     });
 
     const response = await request(app.getHttpServer()).get('/health');
 
-    expect(response.status).toBe(503);
+    expect(response.status).toBe(200);
     expect(response.body.status).toBe('degraded');
-    expect(response.body.checks.rabbitmq).toBe('fail');
+    expect(response.body.checks.sendgrid).toBe('not_configured');
   });
 });

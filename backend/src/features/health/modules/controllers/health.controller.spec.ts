@@ -47,9 +47,8 @@ describe('HealthController', () => {
         responseTimeMs: 5,
         checks: {
           mongodb: 'ok',
-          rabbitmq: 'ok',
-          stripe: 'ok',
-          sendgrid: 'ok',
+          stripe: 'configured',
+          sendgrid: 'configured',
         },
       };
       healthService.check.mockResolvedValue(expected);
@@ -61,7 +60,7 @@ describe('HealthController', () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should set HTTP 503 when status is "degraded"', async () => {
+    it('should keep HTTP 200 when status is "degraded"', async () => {
       const expected: HealthCheckResponseDto = {
         status: 'degraded',
         version: '1.0.0',
@@ -69,9 +68,8 @@ describe('HealthController', () => {
         responseTimeMs: 5,
         checks: {
           mongodb: 'ok',
-          rabbitmq: 'fail',
-          stripe: 'ok',
-          sendgrid: 'ok',
+          stripe: 'configured',
+          sendgrid: 'not_configured',
         },
       };
       healthService.check.mockResolvedValue(expected);
@@ -80,7 +78,9 @@ describe('HealthController', () => {
       const result = await controller.check(res);
 
       expect(result).toEqual(expected);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.SERVICE_UNAVAILABLE);
+      // "degraded" = service externe optionnel non configure : l'application
+      // reste disponible, seul "down" justifie un 503.
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it('should set HTTP 503 when status is "down"', async () => {
@@ -91,9 +91,8 @@ describe('HealthController', () => {
         responseTimeMs: 5,
         checks: {
           mongodb: 'fail',
-          rabbitmq: 'fail',
-          stripe: 'fail',
-          sendgrid: 'fail',
+          stripe: 'not_configured',
+          sendgrid: 'not_configured',
         },
       };
       healthService.check.mockResolvedValue(expected);

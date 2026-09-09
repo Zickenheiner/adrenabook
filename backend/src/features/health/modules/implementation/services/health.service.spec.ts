@@ -15,8 +15,7 @@ describe('HealthService', () => {
     mongooseConnection = connectionOverride ?? { readyState: 1 };
     configValues = configOverride ?? {
       APP_VERSION: '1.2.3',
-      RABBITMQ_URL: 'amqp://localhost',
-      STRIPE_API_KEY: 'sk_test',
+      STRIPE_SECRET_KEY: 'sk_test',
       SENDGRID_API_KEY: 'sg_key',
     };
 
@@ -47,7 +46,7 @@ describe('HealthService', () => {
   });
 
   describe('check()', () => {
-    it('should return status "ok" when all dependencies are healthy', async () => {
+    it('should return status "ok" when MongoDB is up and every provider is configured', async () => {
       const result = await service.check();
 
       expect(result.status).toBe('ok');
@@ -56,10 +55,15 @@ describe('HealthService', () => {
       expect(result.responseTimeMs).toBeGreaterThanOrEqual(0);
       expect(result.checks).toEqual({
         mongodb: 'ok',
-        rabbitmq: 'ok',
-        stripe: 'ok',
-        sendgrid: 'ok',
+        stripe: 'configured',
+        sendgrid: 'configured',
       });
+    });
+
+    it('should not expose any rabbitmq check', async () => {
+      const result = await service.check();
+
+      expect(result.checks).not.toHaveProperty('rabbitmq');
     });
 
     it('should return default version "0.0.0" if APP_VERSION is not set', async () => {
@@ -67,8 +71,7 @@ describe('HealthService', () => {
         { readyState: 1 },
         {
           APP_VERSION: undefined,
-          RABBITMQ_URL: 'amqp://localhost',
-          STRIPE_API_KEY: 'sk_test',
+          STRIPE_SECRET_KEY: 'sk_test',
           SENDGRID_API_KEY: 'sg_key',
         },
       );
@@ -88,13 +91,12 @@ describe('HealthService', () => {
       expect(result.checks.mongodb).toBe('fail');
     });
 
-    it('should return status "degraded" if a non-critical dependency fails', async () => {
+    it('should report Stripe as "not_configured" when STRIPE_SECRET_KEY is missing', async () => {
       const module = await buildModule(
         { readyState: 1 },
         {
           APP_VERSION: '1.0.0',
-          RABBITMQ_URL: undefined,
-          STRIPE_API_KEY: 'sk_test',
+          STRIPE_SECRET_KEY: undefined,
           SENDGRID_API_KEY: 'sg_key',
         },
       );
@@ -103,17 +105,16 @@ describe('HealthService', () => {
       const result = await service.check();
 
       expect(result.status).toBe('degraded');
-      expect(result.checks.rabbitmq).toBe('fail');
+      expect(result.checks.stripe).toBe('not_configured');
       expect(result.checks.mongodb).toBe('ok');
     });
 
-    it('should report Stripe as failing when STRIPE_API_KEY is missing', async () => {
+    it('should not read the legacy STRIPE_API_KEY variable', async () => {
       const module = await buildModule(
         { readyState: 1 },
         {
           APP_VERSION: '1.0.0',
-          RABBITMQ_URL: 'amqp://localhost',
-          STRIPE_API_KEY: undefined,
+          STRIPE_API_KEY: 'sk_legacy',
           SENDGRID_API_KEY: 'sg_key',
         },
       );
@@ -121,17 +122,31 @@ describe('HealthService', () => {
 
       const result = await service.check();
 
-      expect(result.status).toBe('degraded');
-      expect(result.checks.stripe).toBe('fail');
+      expect(result.checks.stripe).toBe('not_configured');
     });
 
-    it('should report SendGrid as failing when SENDGRID_API_KEY is missing', async () => {
+    it('should report Stripe as "not_configured" when STRIPE_SECRET_KEY is blank', async () => {
       const module = await buildModule(
         { readyState: 1 },
         {
           APP_VERSION: '1.0.0',
-          RABBITMQ_URL: 'amqp://localhost',
-          STRIPE_API_KEY: 'sk_test',
+          STRIPE_SECRET_KEY: '   ',
+          SENDGRID_API_KEY: 'sg_key',
+        },
+      );
+      service = module.get<HealthService>(HealthService);
+
+      const result = await service.check();
+
+      expect(result.checks.stripe).toBe('not_configured');
+    });
+
+    it('should report SendGrid as "not_configured" when SENDGRID_API_KEY is missing', async () => {
+      const module = await buildModule(
+        { readyState: 1 },
+        {
+          APP_VERSION: '1.0.0',
+          STRIPE_SECRET_KEY: 'sk_test',
           SENDGRID_API_KEY: undefined,
         },
       );
@@ -140,16 +155,15 @@ describe('HealthService', () => {
       const result = await service.check();
 
       expect(result.status).toBe('degraded');
-      expect(result.checks.sendgrid).toBe('fail');
+      expect(result.checks.sendgrid).toBe('not_configured');
     });
 
-    it('should report status "down" when MongoDB is down even if other services fail', async () => {
+    it('should report status "down" when MongoDB is down even if providers are misconfigured', async () => {
       const module = await buildModule(
         { readyState: 0 },
         {
           APP_VERSION: '1.0.0',
-          RABBITMQ_URL: undefined,
-          STRIPE_API_KEY: undefined,
+          STRIPE_SECRET_KEY: undefined,
           SENDGRID_API_KEY: undefined,
         },
       );
