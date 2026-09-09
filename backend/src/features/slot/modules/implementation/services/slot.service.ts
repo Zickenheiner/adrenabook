@@ -1,12 +1,21 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ISlotService } from '../../../interfaces/services/slot.iservice';
 import { ISlotRepository } from '@features/slot/interfaces/repositories/slot.irepository';
 import {
   CreateSlotsDto,
   CreateSlotsResponseDto,
+  ProSlotListItemDto,
   SlotConflictDto,
+  SlotDetailResponseDto,
   SlotItemDto,
 } from '@features/slot/domains/dtos/slot.dto';
+import { SlotEntity } from '@features/slot/domains/entities/slot.entity';
 import { RRule } from 'rrule';
 
 @Injectable()
@@ -15,6 +24,68 @@ export class SlotService implements ISlotService {
     @Inject('ISlotRepository')
     private readonly slotRepository: ISlotRepository,
   ) {}
+
+  async findDetailById(id: string): Promise<SlotDetailResponseDto | null> {
+    const slot = await this.slotRepository.findById(id);
+    if (!slot) return null;
+
+    return this.buildSlotDetail(slot);
+  }
+
+  async findByActivityIdForOwner(
+    activityId: string,
+    userId: string,
+  ): Promise<ProSlotListItemDto[]> {
+    const ownership =
+      await this.slotRepository.findActivityOwnership(activityId);
+    if (!ownership) {
+      throw new NotFoundException('Activité introuvable');
+    }
+    if (ownership.ownerId !== userId) {
+      throw new ForbiddenException(
+        'Cette activité appartient à un autre professionnel',
+      );
+    }
+
+    const slots = await this.slotRepository.findByActivityId(activityId);
+    const sorted = [...(slots ?? [])].sort(
+      (a, b) => a.getStartAt().getTime() - b.getStartAt().getTime(),
+    );
+
+    const details = await Promise.all(
+      sorted.map((slot) => this.buildSlotDetail(slot)),
+    );
+
+    // activityId est volontairement omis : il est deja porte par l'URL
+    return details.map((detail) => ({
+      id: detail.id,
+      startAt: detail.startAt,
+      durationMinutes: detail.durationMinutes,
+      maxParticipants: detail.maxParticipants,
+      remainingSeats: detail.remainingSeats,
+      priceEur: detail.priceEur,
+    }));
+  }
+
+  /** Source unique du calcul de remainingSeats, partagee par GET /slots/:id */
+  private async buildSlotDetail(
+    slot: SlotEntity,
+  ): Promise<SlotDetailResponseDto> {
+    const activeBookings = await this.slotRepository.countActiveBookings(
+      slot.getId(),
+    );
+    const maxParticipants = slot.getMaxParticipants();
+
+    return {
+      id: slot.getId(),
+      activityId: slot.getActivityId().toString(),
+      startAt: slot.getStartAt().toISOString(),
+      durationMinutes: slot.getDurationMinutes(),
+      maxParticipants,
+      remainingSeats: Math.max(0, maxParticipants - activeBookings),
+      priceEur: slot.getPriceEur(),
+    };
+  }
 
   async createSlots(
     activityId: string,

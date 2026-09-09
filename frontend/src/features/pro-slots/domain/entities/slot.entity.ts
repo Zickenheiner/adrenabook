@@ -3,6 +3,15 @@ export interface SlotSummaryEntity {
   startAt: Date;
 }
 
+export interface ProSlotEntity {
+  id: string;
+  startAt: Date;
+  durationMinutes: number;
+  maxParticipants: number;
+  remainingSeats: number;
+  priceEur: number;
+}
+
 export interface SlotConflictEntity {
   startAt: Date;
   reason: string;

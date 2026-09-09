@@ -16,6 +16,7 @@ import AdminCenterReviewPage from '@/features/admin-kyc/presentation/pages/Admin
 import HealthProfilePage from '@/features/health-profile/presentation/pages/HealthProfilePage';
 import ProActivityListPage from '@/features/pro-activities/presentation/pages/ProActivityListPage';
 import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/ProActivityCreatePage';
+import ProSlotManagePage from '@/features/pro-slots/presentation/pages/ProSlotManagePage';
 import ActivitySearchPage from '@/features/activity-search/presentation/pages/ActivitySearchPage';
 import ActivityDetailPage from '@/features/activity-detail/presentation/pages/ActivityDetailPage';
 import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPage';
@@ -50,14 +51,6 @@ export default function Router() {
           path={routes.passwordResetConfirm}
           element={<PasswordResetConfirmPage />}
         />
-        <Route
-          path={routes.professionalRegister}
-          element={<ProfessionalRegistrationPage />}
-        />
-        <Route
-          path={routes.professionalRegisterSuccess}
-          element={<ProfessionalRegistrationSuccessPage />}
-        />
       </Route>
     );
   };
@@ -86,6 +79,15 @@ export default function Router() {
         <Route
           path={routes.proActivityCreate}
           element={<ProActivityCreatePage />}
+        />
+        <Route path={routes.proSlotManage} element={<ProSlotManagePage />} />
+        <Route
+          path={routes.professionalRegister}
+          element={<ProfessionalRegistrationPage />}
+        />
+        <Route
+          path={routes.professionalRegisterSuccess}
+          element={<ProfessionalRegistrationSuccessPage />}
         />
         <Route path={routes.bookingNew} element={<BookingPage />} />
         <Route

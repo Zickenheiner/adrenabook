@@ -1,15 +1,28 @@
 import type {
   CreateSlotsResultEntity,
+  ProSlotEntity,
   SlotConflictEntity,
   SlotSummaryEntity,
 } from '../../domain/entities/slot.entity';
 import type {
   CreateSlotsResponseDto,
+  ProSlotDto,
   SlotConflictDto,
   SlotSummaryDto,
 } from '../dtos/slot.dto';
 
 class SlotMapper {
+  toProSlotEntity(dto: ProSlotDto): ProSlotEntity {
+    return {
+      id: dto.id,
+      startAt: new Date(dto.startAt),
+      durationMinutes: dto.durationMinutes,
+      maxParticipants: dto.maxParticipants,
+      remainingSeats: dto.remainingSeats,
+      priceEur: dto.priceEur,
+    };
+  }
+
   toSlotSummaryEntity(dto: SlotSummaryDto): SlotSummaryEntity {
     return {
       id: dto.id,

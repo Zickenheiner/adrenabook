@@ -22,6 +22,15 @@ export interface SlotConflictDto {
   reason: string;
 }
 
+export interface ProSlotDto {
+  id: string;
+  startAt: string;
+  durationMinutes: number;
+  maxParticipants: number;
+  remainingSeats: number;
+  priceEur: number;
+}
+
 export interface CreateSlotsResponseDto {
   createdCount: number;
   slots: SlotSummaryDto[];

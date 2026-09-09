@@ -113,6 +113,88 @@ export class SlotConflictDto {
   reason: string;
 }
 
+export class SlotDetailResponseDto {
+  @ApiProperty({
+    description: 'Slot ID',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'ID of the activity the slot belongs to',
+    example: '68b4d59919d9b7a94b4fde20',
+  })
+  activityId: string;
+
+  @ApiProperty({
+    description: 'Slot start date-time (ISO 8601)',
+    example: '2026-09-16T09:00:00.000Z',
+  })
+  startAt: string;
+
+  @ApiProperty({
+    description: 'Duration of the slot in minutes',
+    example: 120,
+  })
+  durationMinutes: number;
+
+  @ApiProperty({
+    description: 'Maximum number of participants for this slot',
+    example: 8,
+  })
+  maxParticipants: number;
+
+  @ApiProperty({
+    description: 'Remaining available seats (non-cancelled bookings deducted)',
+    example: 8,
+  })
+  remainingSeats: number;
+
+  @ApiProperty({
+    description: 'Price per participant in euros',
+    example: 149,
+  })
+  priceEur: number;
+}
+
+export class ProSlotListItemDto {
+  @ApiProperty({
+    description: 'Slot ID',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Slot start date-time (ISO 8601)',
+    example: '2026-09-16T09:00:00.000Z',
+  })
+  startAt: string;
+
+  @ApiProperty({
+    description: 'Duration of the slot in minutes',
+    example: 120,
+  })
+  durationMinutes: number;
+
+  @ApiProperty({
+    description: 'Maximum number of participants for this slot',
+    example: 8,
+  })
+  maxParticipants: number;
+
+  @ApiProperty({
+    description: 'Remaining available seats (non-cancelled bookings deducted)',
+    example: 6,
+  })
+  remainingSeats: number;
+
+  @ApiProperty({
+    description: 'Price per participant in euros',
+    example: 149,
+  })
+  priceEur: number;
+}
+
 export class CreateSlotsResponseDto {
   @ApiProperty({
     description: 'Number of slots successfully created',

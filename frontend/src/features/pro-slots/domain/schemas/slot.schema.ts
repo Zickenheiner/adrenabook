@@ -11,14 +11,14 @@ export const createSlotSchema = z
     singleStartAt: z.string().optional(),
     recurrence: recurrenceSchema.optional(),
     durationMinutes: z
-      .number({ invalid_type_error: 'Durée requise' })
+      .number({ error: 'Durée requise' })
       .min(15, 'Durée minimum : 15 minutes')
       .max(1440, 'Durée maximum : 24h'),
     maxParticipants: z
-      .number({ invalid_type_error: 'Nombre de participants requis' })
+      .number({ error: 'Nombre de participants requis' })
       .min(1, 'Au moins 1 participant'),
     priceEur: z
-      .number({ invalid_type_error: 'Prix requis' })
+      .number({ error: 'Prix requis' })
       .min(0, 'Le prix ne peut pas être négatif'),
     instructorIds: z
       .array(z.string())

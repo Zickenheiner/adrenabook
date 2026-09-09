@@ -1,12 +1,29 @@
 import { motion } from 'motion/react';
 import { Card, CardContent } from '@/core/components/ui/card';
 import { Badge } from '@/core/components/ui/badge';
-import { Calendar, Clock } from 'lucide-react';
-import type { SlotSummaryEntity } from '../../domain/entities/slot.entity';
+import { Calendar, Clock, Users } from 'lucide-react';
+import type {
+  ProSlotEntity,
+  SlotSummaryEntity,
+} from '../../domain/entities/slot.entity';
 
 interface Props {
-  slot: SlotSummaryEntity;
+  /** Créneau minimal (résultat de création) ou créneau détaillé (liste existante) */
+  slot: SlotSummaryEntity | ProSlotEntity;
   index?: number;
+}
+
+function isDetailedSlot(
+  slot: SlotSummaryEntity | ProSlotEntity,
+): slot is ProSlotEntity {
+  return 'remainingSeats' in slot;
+}
+
+function formatPrice(priceEur: number): string {
+  return priceEur.toLocaleString('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  });
 }
 
 function formatDate(date: Date): string {
@@ -26,6 +43,9 @@ function formatTime(date: Date): string {
 }
 
 export default function SlotCard({ slot, index = 0 }: Props) {
+  const detailed = isDetailedSlot(slot) ? slot : null;
+  const isFull = detailed ? detailed.remainingSeats === 0 : false;
+
   return (
     <motion.div
       variants={{
@@ -45,12 +65,32 @@ export default function SlotCard({ slot, index = 0 }: Props) {
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 {formatTime(slot.startAt)}
+                {detailed && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span>{detailed.durationMinutes} min</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{formatPrice(detailed.priceEur)}</span>
+                  </>
+                )}
               </p>
             </div>
           </div>
-          <Badge variant="secondary" className="text-xs shrink-0">
-            #{slot.id.slice(0, 8)}
-          </Badge>
+          {detailed ? (
+            <Badge
+              variant={isFull ? 'destructive' : 'secondary'}
+              className="text-xs shrink-0"
+            >
+              <Users className="mr-1 h-3 w-3" />
+              {isFull
+                ? 'Complet'
+                : `${detailed.remainingSeats}/${detailed.maxParticipants} places restantes`}
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-xs shrink-0">
+              #{slot.id.slice(0, 8)}
+            </Badge>
+          )}
         </CardContent>
       </Card>
     </motion.div>
