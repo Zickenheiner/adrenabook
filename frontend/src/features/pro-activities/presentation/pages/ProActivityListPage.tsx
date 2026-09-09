@@ -134,6 +134,9 @@ export default function ProActivityListPage() {
                 <ActivityCard
                   key={activity.id}
                   activity={activity}
+                  onManageSlots={(id) =>
+                    navigate(routes.proSlotManage.replace(':id', id))
+                  }
                   onDelete={(id) => setDeleteTargetId(id)}
                 />
               ))}

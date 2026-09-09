@@ -7,7 +7,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/core/components/ui/dropdown-menu';
-import { Clock, Euro, MoreVertical, Pencil, Trash2, Zap } from 'lucide-react';
+import {
+  CalendarClock,
+  Clock,
+  Euro,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Zap,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/core/utils/cn';
 import type {
@@ -20,6 +28,7 @@ interface Props {
   activity: ActivityEntity;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onManageSlots?: (id: string) => void;
 }
 
 const difficultyConfig: Record<
@@ -31,7 +40,12 @@ const difficultyConfig: Record<
   advanced: { label: 'Avancé', className: 'text-red-600' },
 };
 
-export default function ActivityCard({ activity, onEdit, onDelete }: Props) {
+export default function ActivityCard({
+  activity,
+  onEdit,
+  onDelete,
+  onManageSlots,
+}: Props) {
   const diffConfig = difficultyConfig[activity.difficulty];
 
   return (
@@ -63,7 +77,7 @@ export default function ActivityCard({ activity, onEdit, onDelete }: Props) {
               </div>
             </div>
 
-            {(onEdit || onDelete) && (
+            {(onEdit || onDelete || onManageSlots) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -75,13 +89,23 @@ export default function ActivityCard({ activity, onEdit, onDelete }: Props) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {onManageSlots && (
+                    <DropdownMenuItem
+                      onClick={() => onManageSlots(activity.id)}
+                    >
+                      <CalendarClock className="mr-2 h-4 w-4" />
+                      Gérer les créneaux
+                    </DropdownMenuItem>
+                  )}
                   {onEdit && (
                     <DropdownMenuItem onClick={() => onEdit(activity.id)}>
                       <Pencil className="mr-2 h-4 w-4" />
                       Modifier
                     </DropdownMenuItem>
                   )}
-                  {onEdit && onDelete && <DropdownMenuSeparator />}
+                  {(onEdit || onManageSlots) && onDelete && (
+                    <DropdownMenuSeparator />
+                  )}
                   {onDelete && (
                     <DropdownMenuItem
                       onClick={() => onDelete(activity.id)}

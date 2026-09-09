@@ -10,12 +10,15 @@ import {
   UpdateActivityDto,
 } from '@features/activity/domains/dtos/activity.dto';
 import { ActivityEntity } from '@features/activity/domains/entities/activity.entity';
+import { IProfessionalCenterService } from '@features/professional/interfaces/services/professional-center.iservice';
 
 @Injectable()
 export class ActivityService implements IActivityService {
   constructor(
     @Inject('IActivityRepository')
     private readonly activityRepository: IActivityRepository,
+    @Inject('IProfessionalCenterService')
+    private readonly professionalCenterService: IProfessionalCenterService,
   ) {}
 
   async findAll(): Promise<ActivityEntity[] | null> {
@@ -36,9 +39,13 @@ export class ActivityService implements IActivityService {
 
   async create(
     dto: CreateActivityDto,
-    centerId: string,
+    userId: string,
   ): Promise<ActivityResponseDto | null> {
-    const entity = await this.activityRepository.create(dto, centerId);
+    // L'activite est rattachee au centre du professionnel, pas a son compte
+    const center = await this.professionalCenterService.findByOwnerId(userId);
+    if (!center) return null;
+
+    const entity = await this.activityRepository.create(dto, center.getId());
     if (!entity) return null;
     const response = new ActivityResponseDto();
     response.id = entity.getId();

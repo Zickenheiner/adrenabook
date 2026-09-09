@@ -182,7 +182,18 @@ export default function ActivityForm({
                 <FormItem>
                   <FormLabel>Durée (minutes)</FormLabel>
                   <FormControl>
-                    <Input type="number" min={1} {...field} />
+                    <Input
+                      type="number"
+                      min={1}
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(
+                          Number.isNaN(e.target.valueAsNumber)
+                            ? undefined
+                            : e.target.valueAsNumber,
+                        )
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -196,7 +207,19 @@ export default function ActivityForm({
                 <FormItem>
                   <FormLabel>Prix à partir de (€)</FormLabel>
                   <FormControl>
-                    <Input type="number" min={0} step={0.01} {...field} />
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(
+                          Number.isNaN(e.target.valueAsNumber)
+                            ? undefined
+                            : e.target.valueAsNumber,
+                        )
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -221,7 +244,19 @@ export default function ActivityForm({
                 <FormItem>
                   <FormLabel>Âge minimum</FormLabel>
                   <FormControl>
-                    <Input type="number" min={0} max={120} {...field} />
+                    <Input
+                      type="number"
+                      min={0}
+                      max={120}
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(
+                          Number.isNaN(e.target.valueAsNumber)
+                            ? undefined
+                            : e.target.valueAsNumber,
+                        )
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -242,6 +277,13 @@ export default function ActivityForm({
                       placeholder="Sans limite"
                       {...field}
                       value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(
+                          Number.isNaN(e.target.valueAsNumber)
+                            ? undefined
+                            : e.target.valueAsNumber,
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -262,6 +304,13 @@ export default function ActivityForm({
                       placeholder="Sans limite"
                       {...field}
                       value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(
+                          Number.isNaN(e.target.valueAsNumber)
+                            ? undefined
+                            : e.target.valueAsNumber,
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -282,6 +331,13 @@ export default function ActivityForm({
                       placeholder="Sans limite"
                       {...field}
                       value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(
+                          Number.isNaN(e.target.valueAsNumber)
+                            ? undefined
+                            : e.target.valueAsNumber,
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />

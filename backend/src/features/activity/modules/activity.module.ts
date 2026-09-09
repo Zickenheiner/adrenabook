@@ -9,12 +9,14 @@ import {
   ActivitySchema,
 } from '@features/activity/domains/schemas/activity.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ProfessionalCenterBaseModule } from '@features/professional/modules/professional-center.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Activity.name, schema: ActivitySchema },
     ]),
+    ProfessionalCenterBaseModule,
   ],
   controllers: [ActivityController, ActivitySearchController],
   providers: [

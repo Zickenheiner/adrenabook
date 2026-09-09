@@ -1,8 +1,5 @@
 export type ActivityStatus =
-  | 'draft'
-  | 'pending_admin_review'
-  | 'published'
-  | 'archived';
+  'draft' | 'pending_admin_review' | 'published' | 'archived';
 export type ActivityDifficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export interface ActivityPrerequisitesEntity {

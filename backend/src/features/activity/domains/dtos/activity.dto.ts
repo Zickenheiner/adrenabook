@@ -2,6 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
+  IsNotEmptyObject,
+  IsDefined,
   IsOptional,
   IsNumber,
   IsBoolean,
@@ -113,6 +115,8 @@ export class CreateActivityDto {
     description: 'Prerequisites for the activity',
     type: PrerequisitesDto,
   })
+  @IsDefined()
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => PrerequisitesDto)
   prerequisites: PrerequisitesDto;

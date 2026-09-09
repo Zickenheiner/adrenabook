@@ -23,16 +23,25 @@ type MediaItem =
   | { kind: 'video'; url: string; thumbnail: string };
 
 export default function ActivityGallery({ photos, videos }: Props) {
+  // Un média sans URL ne doit jamais produire de <img src="">
   const items: MediaItem[] = [
-    ...photos.map((p) => ({ kind: 'photo' as const, url: p.url, alt: p.alt })),
-    ...videos.map((v) => ({
-      kind: 'video' as const,
-      url: v.url,
-      thumbnail: v.thumbnail,
-    })),
+    ...photos
+      .filter((p) => !!p.url)
+      .map((p) => ({ kind: 'photo' as const, url: p.url, alt: p.alt })),
+    ...videos
+      .filter((v) => !!v.thumbnail)
+      .map((v) => ({
+        kind: 'video' as const,
+        url: v.url,
+        thumbnail: v.thumbnail,
+      })),
   ];
 
   const [current, setCurrent] = useState(0);
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
+
+  const markFailed = (url: string) =>
+    setFailedUrls((urls) => (urls.includes(url) ? urls : [...urls, url]));
 
   if (items.length === 0) {
     return (
@@ -63,15 +72,19 @@ export default function ActivityGallery({ photos, videos }: Props) {
             className="absolute inset-0"
           >
             {active.kind === 'photo' ? (
-              <img
-                src={active.url}
-                alt={active.alt}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80';
-                }}
-              />
+              failedUrls.includes(active.url) ? (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <ImageIcon className="h-10 w-10" aria-hidden="true" />
+                  <p className="text-sm">Image indisponible</p>
+                </div>
+              ) : (
+                <img
+                  src={active.url}
+                  alt={active.alt}
+                  className="w-full h-full object-cover"
+                  onError={() => markFailed(active.url)}
+                />
+              )
             ) : (
               <div className="relative w-full h-full">
                 <img

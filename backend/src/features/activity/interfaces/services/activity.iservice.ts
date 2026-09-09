@@ -15,7 +15,7 @@ export interface IActivityService {
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
   create(
     dto: CreateActivityDto,
-    centerId: string,
+    userId: string,
   ): Promise<ActivityResponseDto | null>;
   update(id: string, dto: UpdateActivityDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;
