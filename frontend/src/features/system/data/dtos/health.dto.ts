@@ -4,7 +4,6 @@ export type HealthCheckState = 'ok' | 'fail';
 
 export interface HealthChecksDto {
   mongodb: HealthCheckState;
-  rabbitmq: HealthCheckState;
   stripe: HealthCheckState;
   sendgrid: HealthCheckState;
 }

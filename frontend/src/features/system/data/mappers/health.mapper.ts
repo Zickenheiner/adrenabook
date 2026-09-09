@@ -9,7 +9,6 @@ class HealthMapper {
       uptime: dto.uptime,
       checks: {
         mongodb: dto.checks.mongodb,
-        rabbitmq: dto.checks.rabbitmq,
         stripe: dto.checks.stripe,
         sendgrid: dto.checks.sendgrid,
       },

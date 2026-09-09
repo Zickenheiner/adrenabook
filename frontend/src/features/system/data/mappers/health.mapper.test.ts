@@ -21,7 +21,6 @@ describe('HealthMapper', () => {
     uptime: 12345,
     checks: {
       mongodb: 'ok',
-      rabbitmq: 'ok',
       stripe: 'ok',
       sendgrid: 'ok',
     },
@@ -37,7 +36,6 @@ describe('HealthMapper', () => {
       uptime: 12345,
       checks: {
         mongodb: 'ok',
-        rabbitmq: 'ok',
         stripe: 'ok',
         sendgrid: 'ok',
       },

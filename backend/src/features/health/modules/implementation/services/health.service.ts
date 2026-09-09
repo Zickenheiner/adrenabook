@@ -4,7 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { Connection } from 'mongoose';
 import { IHealthService } from '@features/health/interfaces/services/health.iservice';
 import {
-  DependencyStatus,
+  ConfigurationStatus,
+  ConnectivityStatus,
   HealthChecksDto,
   HealthCheckResponseDto,
   HealthStatus,
@@ -23,9 +24,8 @@ export class HealthService implements IHealthService {
 
     const checks: HealthChecksDto = {
       mongodb: this.checkMongoDb(),
-      rabbitmq: this.checkRabbitMq(),
-      stripe: this.checkStripe(),
-      sendgrid: this.checkSendGrid(),
+      stripe: this.checkStripeConfiguration(),
+      sendgrid: this.checkSendGridConfiguration(),
     };
 
     const status = this.computeOverallStatus(checks);
@@ -39,38 +39,42 @@ export class HealthService implements IHealthService {
     };
   }
 
-  private checkMongoDb(): DependencyStatus {
+  private checkMongoDb(): ConnectivityStatus {
     // readyState 1 === connected
     return this.mongooseConnection?.readyState === 1 ? 'ok' : 'fail';
   }
 
-  private checkRabbitMq(): DependencyStatus {
-    // Pas de driver RabbitMQ branche actuellement : on considere "ok"
-    // si une URL est configuree, sinon "fail".
-    return this.configService.get<string>('RABBITMQ_URL') ? 'ok' : 'fail';
+  /**
+   * Verifie uniquement la presence de la cle Stripe : aucun appel reseau
+   * n'est effectue vers l'API Stripe, d'ou l'etat "configured".
+   */
+  private checkStripeConfiguration(): ConfigurationStatus {
+    return this.isConfigured('STRIPE_SECRET_KEY');
   }
 
-  private checkStripe(): DependencyStatus {
-    return this.configService.get<string>('STRIPE_API_KEY') ? 'ok' : 'fail';
+  /**
+   * Verifie uniquement la presence de la cle SendGrid : aucun appel reseau
+   * n'est effectue vers l'API SendGrid, d'ou l'etat "configured".
+   */
+  private checkSendGridConfiguration(): ConfigurationStatus {
+    return this.isConfigured('SENDGRID_API_KEY');
   }
 
-  private checkSendGrid(): DependencyStatus {
-    return this.configService.get<string>('SENDGRID_API_KEY') ? 'ok' : 'fail';
+  private isConfigured(key: string): ConfigurationStatus {
+    const value = this.configService.get<string>(key);
+    return value && value.trim().length > 0 ? 'configured' : 'not_configured';
   }
 
   private computeOverallStatus(checks: HealthChecksDto): HealthStatus {
-    const values = Object.values(checks);
-    const failures = values.filter((value) => value === 'fail').length;
-
-    if (failures === 0) {
-      return 'ok';
-    }
-
     // Si MongoDB est down, le service est totalement down.
     if (checks.mongodb === 'fail') {
       return 'down';
     }
 
-    return 'degraded';
+    const misconfigured = Object.values(checks).filter(
+      (value) => value === 'not_configured',
+    ).length;
+
+    return misconfigured === 0 ? 'ok' : 'degraded';
   }
 }

@@ -1,36 +1,49 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export type HealthStatus = 'ok' | 'degraded' | 'down';
-export type DependencyStatus = 'ok' | 'fail';
+
+/**
+ * Etat d'une dependance dont la connectivite est reellement testee.
+ */
+export type ConnectivityStatus = 'ok' | 'fail';
+
+/**
+ * Etat d'une dependance externe dont seule la configuration est verifiee
+ * (aucun appel reseau n'est effectue vers le fournisseur).
+ */
+export type ConfigurationStatus = 'configured' | 'not_configured';
+
+export type DependencyStatus = ConnectivityStatus | ConfigurationStatus;
+
+export const CONNECTIVITY_STATUSES: ConnectivityStatus[] = ['ok', 'fail'];
+export const CONFIGURATION_STATUSES: ConfigurationStatus[] = [
+  'configured',
+  'not_configured',
+];
 
 export class HealthChecksDto {
   @ApiProperty({
-    description: 'MongoDB connection status',
+    description: 'MongoDB connection status (real connectivity check)',
     example: 'ok',
-    enum: ['ok', 'fail'],
+    enum: CONNECTIVITY_STATUSES,
   })
-  mongodb: DependencyStatus;
+  mongodb: ConnectivityStatus;
 
   @ApiProperty({
-    description: 'RabbitMQ broker status',
-    example: 'ok',
-    enum: ['ok', 'fail'],
+    description:
+      'Stripe credentials configuration status. No network call is performed: "configured" only means STRIPE_SECRET_KEY is present.',
+    example: 'configured',
+    enum: CONFIGURATION_STATUSES,
   })
-  rabbitmq: DependencyStatus;
+  stripe: ConfigurationStatus;
 
   @ApiProperty({
-    description: 'Stripe payment provider status',
-    example: 'ok',
-    enum: ['ok', 'fail'],
+    description:
+      'SendGrid credentials configuration status. No network call is performed: "configured" only means SENDGRID_API_KEY is present.',
+    example: 'configured',
+    enum: CONFIGURATION_STATUSES,
   })
-  stripe: DependencyStatus;
-
-  @ApiProperty({
-    description: 'SendGrid email provider status',
-    example: 'ok',
-    enum: ['ok', 'fail'],
-  })
-  sendgrid: DependencyStatus;
+  sendgrid: ConfigurationStatus;
 }
 
 export class HealthCheckResponseDto {

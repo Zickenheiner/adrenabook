@@ -23,7 +23,7 @@ export class HealthController {
   @ApiOperation({
     summary: 'Service health check',
     description:
-      'Returns the global health status of the service and the status of each external dependency (MongoDB, RabbitMQ, Stripe, SendGrid). Used by Kubernetes liveness/readiness probes.',
+      'Returns the global health status of the service. MongoDB connectivity is really tested (ok/fail); Stripe and SendGrid are only checked for credentials presence (configured/not_configured), no network call is made to those providers. Used by Kubernetes liveness/readiness probes.',
   })
   @ApiResponse({
     status: 200,
@@ -44,7 +44,12 @@ export class HealthController {
   ): Promise<HealthCheckResponseDto> {
     const result = await this.healthService.check();
 
-    if (result.status !== 'ok') {
+    // Seul un etat "down" (dependance critique injoignable) doit signaler
+    // l'indisponibilite du service. Un etat "degraded" — un service externe
+    // optionnel non configure, par exemple — reste un 200 : le detail est
+    // dans le corps de la reponse, et une sonde ne doit pas retirer
+    // l'application de la rotation pour autant.
+    if (result.status === 'down') {
       res.status(HttpStatus.SERVICE_UNAVAILABLE);
     }
 

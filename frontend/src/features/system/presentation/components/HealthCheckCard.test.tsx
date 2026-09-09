@@ -10,7 +10,7 @@ describe('HealthCheckCard', () => {
   });
 
   it('affiche "Connexion saine" quand state=ok', () => {
-    render(<HealthCheckCard name="rabbitmq" state="ok" />);
+    render(<HealthCheckCard name="mongodb" state="ok" />);
     expect(screen.getByText('Connexion saine')).toBeInTheDocument();
     expect(screen.getByLabelText('ok')).toBeInTheDocument();
   });
@@ -22,7 +22,7 @@ describe('HealthCheckCard', () => {
   });
 
   it('rend toutes les variantes connues sans erreur', () => {
-    const names = ['mongodb', 'rabbitmq', 'stripe', 'sendgrid'] as const;
+    const names = ['mongodb', 'stripe', 'sendgrid'] as const;
     names.forEach((name) => {
       const { unmount } = render(<HealthCheckCard name={name} state="ok" />);
       unmount();

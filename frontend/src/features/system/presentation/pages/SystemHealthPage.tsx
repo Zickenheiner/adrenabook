@@ -16,7 +16,6 @@ import type { HealthChecksEntity } from '../../domain/entities/health.entity';
 
 const CHECK_KEYS: (keyof HealthChecksEntity)[] = [
   'mongodb',
-  'rabbitmq',
   'stripe',
   'sendgrid',
 ];

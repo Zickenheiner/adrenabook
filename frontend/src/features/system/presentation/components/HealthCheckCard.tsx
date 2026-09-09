@@ -12,7 +12,6 @@ import {
   Database,
   Mail,
   CreditCard,
-  Network,
 } from 'lucide-react';
 import type {
   HealthCheckState,
@@ -34,11 +33,6 @@ const CHECK_META: Record<
     label: 'MongoDB',
     description: 'Base de données principale',
     icon: Database,
-  },
-  rabbitmq: {
-    label: 'RabbitMQ',
-    description: 'Bus de messages asynchrones',
-    icon: Network,
   },
   stripe: {
     label: 'Stripe',
