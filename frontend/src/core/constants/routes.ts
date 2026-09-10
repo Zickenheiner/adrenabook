@@ -33,6 +33,7 @@ const routes = {
   rgpdProfile: '/profile/rgpd',
   cgu: '/cgu',
   rgpdLegal: '/rgpd',
+  notFound: '*',
 };
 
 export default routes;
