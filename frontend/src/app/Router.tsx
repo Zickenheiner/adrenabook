@@ -36,6 +36,7 @@ import AdminUserDetailPage from '@/features/admin-user-management/presentation/p
 import AdminAuditLogsPage from '@/features/admin-audit-logs/presentation/pages/AdminAuditLogsPage';
 import RgpdPage from '@/features/rgpd/presentation/pages/RgpdPage';
 import AdventurerDashboardPage from '@/features/adventurer-dashboard/presentation/pages/AdventurerDashboardPage';
+import NotFoundPage from '@/features/not-found/presentation/pages/NotFoundPage';
 
 export default function Router() {
   const PublicRoutes = () => {
@@ -43,6 +44,10 @@ export default function Router() {
       <Route element={<Public redirect={routes.home} />}>
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
+        <Route
+          path={routes.professionalRegister}
+          element={<ProfessionalRegistrationPage />}
+        />
         <Route
           path={routes.passwordResetRequest}
           element={<PasswordResetRequestPage />}
@@ -81,10 +86,6 @@ export default function Router() {
           element={<ProActivityCreatePage />}
         />
         <Route path={routes.proSlotManage} element={<ProSlotManagePage />} />
-        <Route
-          path={routes.professionalRegister}
-          element={<ProfessionalRegistrationPage />}
-        />
         <Route
           path={routes.professionalRegisterSuccess}
           element={<ProfessionalRegistrationSuccessPage />}
@@ -134,6 +135,7 @@ export default function Router() {
           <Route path={routes.rgpdLegal} element={<RgpdLegalPage />} />
           {PublicRoutes()}
           {PrivateRoutes()}
+          <Route path={routes.notFound} element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
