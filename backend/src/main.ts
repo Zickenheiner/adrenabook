@@ -7,7 +7,7 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.use((req: { query: any }, _res: any, next: () => void) => {
     Object.defineProperty(req, 'query', {
       ...Object.getOwnPropertyDescriptor(req, 'query'),

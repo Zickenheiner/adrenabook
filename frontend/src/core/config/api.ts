@@ -31,11 +31,21 @@ const buildUrl = (url: string, query?: QueryParams) => {
 const buildHeaders = (
   token?: string | null,
   extra?: HeadersInit,
+  isFormData = false,
 ): HeadersInit => ({
-  'Content-Type': 'application/json',
+  // Sur un envoi multipart, on laisse le navigateur poser lui-meme
+  // Content-Type : il doit y inscrire le « boundary », que nous ne
+  // connaissons pas. Le forcer casserait la requete.
+  ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
   ...extra,
   ...(token ? { Authorization: `Bearer ${token}` } : {}),
 });
+
+const buildBody = (data: unknown): BodyInit | undefined => {
+  if (data === undefined) return undefined;
+  if (data instanceof FormData) return data;
+  return JSON.stringify(data);
+};
 
 let isRefreshing = false;
 
@@ -64,10 +74,12 @@ const tryRefresh = async (): Promise<string | null> => {
 const request = async <T = unknown>(config: Config): Promise<T> => {
   const token = getAccessToken();
 
+  const isFormData = config.data instanceof FormData;
+
   const init: RequestInit = {
     method: config.method,
-    headers: buildHeaders(token as string | null, config.headers),
-    body: config.data !== undefined ? JSON.stringify(config.data) : undefined,
+    headers: buildHeaders(token as string | null, config.headers, isFormData),
+    body: buildBody(config.data),
   };
 
   const response = await fetch(buildUrl(config.url, config.query), init);
@@ -85,7 +97,7 @@ const request = async <T = unknown>(config: Config): Promise<T> => {
 
     const retryResponse = await fetch(buildUrl(config.url, config.query), {
       ...init,
-      headers: buildHeaders(newToken, config.headers),
+      headers: buildHeaders(newToken, config.headers, isFormData),
     });
 
     if (!retryResponse.ok) {

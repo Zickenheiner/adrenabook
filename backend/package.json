@@ -17,7 +17,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:unit": "jest --testPathPattern='\\.spec\\.ts$' --testPathIgnorePatterns='\\.integration\\.spec\\.ts$'",
+    "test:integration": "jest --testPathPattern='\\.integration\\.spec\\.ts$'",
+    "test:ci": "jest --ci --coverage --runInBand --reporters=default"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -39,7 +42,9 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rrule": "^2.8.1",
+    "rxjs": "^7.8.1",
+    "stripe": "^22.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -81,9 +86,38 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.module.ts",
+      "!**/main.ts",
+      "!**/*.dto.ts",
+      "!**/*.entity.ts",
+      "!**/*.schema.ts",
+      "!**/*.iservice.ts",
+      "!**/*.irepository.ts",
+      "!**/index.ts",
+      "!**/node_modules/**",
+      "!**/dist/**"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "lcov",
+      "html",
+      "json-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@core/(.*)$": "<rootDir>/core/$1",
+      "^@features/(.*)$": "<rootDir>/features/$1"
+    }
   }
 }

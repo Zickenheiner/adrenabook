@@ -1,0 +1,68 @@
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
+import { UserController } from './controllers/user.controller';
+import { AuthController } from './controllers/auth.controller';
+import { HealthProfileController } from './controllers/health-profile.controller';
+import { NotificationPreferencesController } from './controllers/notification-preferences.controller';
+import { RgpdController } from './controllers/rgpd.controller';
+import { UserService } from './implementation/services/user.service';
+import { UserRepository } from './implementation/repositories/user.repository';
+import { UserMapper } from './implementation/mappers/user.mapper';
+import { LoginLogRepository } from './implementation/repositories/login-log.repository';
+import { LoginLogMapper } from './implementation/mappers/login-log.mapper';
+import { User, UserSchema } from '@features/auth/domains/schemas/user.schema';
+import {
+  LoginLog,
+  LoginLogSchema,
+} from '@features/auth/domains/schemas/login-log.schema';
+import {
+  Booking,
+  BookingSchema,
+} from '@features/booking/domains/schemas/booking.schema';
+import {
+  Activity,
+  ActivitySchema,
+} from '@features/activity/domains/schemas/activity.schema';
+import {
+  Invoice,
+  InvoiceSchema,
+} from '@features/invoice/domains/schemas/invoice.schema';
+
+@Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: LoginLog.name, schema: LoginLogSchema },
+      { name: Booking.name, schema: BookingSchema },
+      { name: Activity.name, schema: ActivitySchema },
+      { name: Invoice.name, schema: InvoiceSchema },
+    ]),
+    JwtModule.register({}),
+  ],
+  controllers: [
+    UserController,
+    AuthController,
+    HealthProfileController,
+    NotificationPreferencesController,
+    RgpdController,
+  ],
+  providers: [
+    UserMapper,
+    LoginLogMapper,
+    {
+      provide: 'IUserService',
+      useClass: UserService,
+    },
+    {
+      provide: 'IUserRepository',
+      useClass: UserRepository,
+    },
+    {
+      provide: 'ILoginLogRepository',
+      useClass: LoginLogRepository,
+    },
+  ],
+  exports: ['IUserService'],
+})
+export class UserBaseModule {}
