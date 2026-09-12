@@ -83,6 +83,10 @@ export class UploadService implements IUploadService {
     return file;
   }
 
+  async findPublicById(id: string): Promise<UploadEntity | null> {
+    return this.uploadRepository.findById(id);
+  }
+
   openDownloadStream(id: string): Readable {
     return this.uploadRepository.openDownloadStream(id);
   }

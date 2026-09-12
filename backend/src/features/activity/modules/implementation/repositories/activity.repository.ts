@@ -73,6 +73,18 @@ export class ActivityRepository implements IActivityRepository {
     return activity ? this.activityMapper.toEntity(activity) : null;
   }
 
+  /**
+   * Une photo n'est servie publiquement que si une activite publiee la
+   * reference : les autres fichiers du depot (justificatifs KYC) restent
+   * inaccessibles sans authentification.
+   */
+  async existsPublishedWithPhoto(fileId: string): Promise<boolean> {
+    const count = await this.activityModel
+      .countDocuments({ status: 'published', photoFileIds: fileId })
+      .exec();
+    return count > 0;
+  }
+
   async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
     const now = new Date();
     const ninetyDaysLater = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);

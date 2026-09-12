@@ -12,6 +12,7 @@ import {
   NotFoundException,
   Param,
   Query,
+  Res,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -20,6 +21,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import type { Response } from 'express';
+import { IUploadService } from '@features/uploads/interfaces/services/upload.iservice';
 
 @ApiTags('Activities — Search')
 @Controller('activities')
@@ -27,6 +30,8 @@ export class ActivitySearchController {
   constructor(
     @Inject('IActivityService')
     private readonly activityService: IActivityService,
+    @Inject('IUploadService')
+    private readonly uploadService: IUploadService,
   ) {}
 
   @Public()
@@ -78,6 +83,37 @@ export class ActivitySearchController {
     @Query() query: SearchActivitiesQueryDto,
   ): Promise<SearchActivitiesResponseDto> {
     return this.activityService.search(query);
+  }
+
+  @Public()
+  @ApiOperation({
+    summary: "Photo publique d'une activité",
+    description:
+      'Sert une image sans authentification, uniquement si une activité publiée la référence. Les autres fichiers du dépôt (justificatifs KYC) restent protégés par GET /uploads/:id.',
+  })
+  @ApiParam({ name: 'fileId', description: 'Identifiant du fichier' })
+  @ApiResponse({ status: 200, description: "Contenu de l'image" })
+  @ApiResponse({ status: 404, description: 'Photo introuvable' })
+  @Get('photos/:fileId')
+  async photo(
+    @Param('fileId') fileId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const file = (await this.activityService.isPublicPhoto(fileId))
+      ? await this.uploadService.findPublicById(fileId)
+      : null;
+
+    // Un fichier non reference par une activite publiee est traite comme
+    // absent : repondre 403 revelerait son existence au depot.
+    if (!file) {
+      throw new NotFoundException('Photo introuvable');
+    }
+
+    res.setHeader('Content-Type', file.getMimeType());
+    res.setHeader('Content-Length', file.getSizeBytes());
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+
+    this.uploadService.openDownloadStream(fileId).pipe(res);
   }
 
   @Public()

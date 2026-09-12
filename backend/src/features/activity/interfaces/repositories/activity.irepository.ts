@@ -10,6 +10,8 @@ import { ActivityEntity } from '@features/activity/domains/entities/activity.ent
 export interface IActivityRepository {
   findAll(): Promise<ActivityEntity[] | null>;
   findById(id: string): Promise<ActivityEntity | null>;
+  /** Une photo n'est publiquement lisible que si une activite publiee la porte. */
+  existsPublishedWithPhoto(fileId: string): Promise<boolean>;
   findDetailById(id: string): Promise<ActivityDetailResponseDto | null>;
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
   create(

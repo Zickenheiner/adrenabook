@@ -34,6 +34,10 @@ export class ActivityService implements IActivityService {
     return this.activityRepository.findById(id);
   }
 
+  async isPublicPhoto(fileId: string): Promise<boolean> {
+    return this.activityRepository.existsPublishedWithPhoto(fileId);
+  }
+
   async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
     return this.activityRepository.findDetailById(id);
   }

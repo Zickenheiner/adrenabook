@@ -9,6 +9,7 @@ import {
   ActivitySchema,
 } from '@features/activity/domains/schemas/activity.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { UploadModule } from '@features/uploads/modules/upload.module';
 import { ProfessionalCenterBaseModule } from '@features/professional/modules/professional-center.module';
 
 @Module({
@@ -17,6 +18,8 @@ import { ProfessionalCenterBaseModule } from '@features/professional/modules/pro
       { name: Activity.name, schema: ActivitySchema },
     ]),
     ProfessionalCenterBaseModule,
+    // Fournit IUploadService pour servir les photos publiques des activites.
+    UploadModule,
   ],
   controllers: [ActivityController, ActivitySearchController],
   providers: [

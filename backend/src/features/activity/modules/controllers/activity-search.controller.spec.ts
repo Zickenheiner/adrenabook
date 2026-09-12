@@ -11,6 +11,10 @@ import {
 describe('ActivitySearchController', () => {
   let controller: ActivitySearchController;
   let activityService: jest.Mocked<IActivityService>;
+  let uploadService: {
+    findPublicById: jest.Mock;
+    openDownloadStream: jest.Mock;
+  };
 
   const activityId = '68b4d59919d9b7a94b4fde21';
 
@@ -24,6 +28,14 @@ describe('ActivitySearchController', () => {
       update: jest.fn(),
       delete: jest.fn(),
       search: jest.fn(),
+      isPublicPhoto: jest.fn(),
+    };
+
+    const uploadServiceMock = {
+      upload: jest.fn(),
+      getForReader: jest.fn(),
+      findPublicById: jest.fn(),
+      openDownloadStream: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -33,11 +45,16 @@ describe('ActivitySearchController', () => {
           provide: 'IActivityService',
           useValue: activityServiceMock,
         },
+        {
+          provide: 'IUploadService',
+          useValue: uploadServiceMock,
+        },
       ],
     }).compile();
 
     controller = module.get<ActivitySearchController>(ActivitySearchController);
     activityService = module.get('IActivityService');
+    uploadService = module.get('IUploadService');
   });
 
   it('should be defined', () => {
@@ -195,6 +212,51 @@ describe('ActivitySearchController', () => {
       await expect(controller.findDetail(activityId)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('photo()', () => {
+    const fileId = '68b4d59919d9b7a94b4fde99';
+
+    const buildResponse = () => ({
+      setHeader: jest.fn(),
+    });
+
+    it('streams a photo carried by a published activity', async () => {
+      const pipe = jest.fn();
+      activityService.isPublicPhoto.mockResolvedValue(true);
+      uploadService.findPublicById.mockResolvedValue({
+        getMimeType: () => 'image/jpeg',
+        getSizeBytes: () => 1234,
+      });
+      uploadService.openDownloadStream.mockReturnValue({ pipe });
+
+      const res = buildResponse();
+      await controller.photo(fileId, res as never);
+
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'image/jpeg');
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Length', 1234);
+      expect(pipe).toHaveBeenCalledWith(res);
+    });
+
+    it('hides a file no published activity references', async () => {
+      activityService.isPublicPhoto.mockResolvedValue(false);
+
+      await expect(
+        controller.photo(fileId, buildResponse() as never),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      // Le depot ne doit pas etre interroge : repondre autre chose que 404
+      // revelerait l'existence du fichier.
+      expect(uploadService.findPublicById).not.toHaveBeenCalled();
+    });
+
+    it('reports a missing file as not found', async () => {
+      activityService.isPublicPhoto.mockResolvedValue(true);
+      uploadService.findPublicById.mockResolvedValue(null);
+
+      await expect(
+        controller.photo(fileId, buildResponse() as never),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 });

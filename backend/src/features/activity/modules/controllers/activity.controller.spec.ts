@@ -24,6 +24,7 @@ describe('ActivityController', () => {
     update: jest.Mock;
     delete: jest.Mock;
     search: jest.Mock;
+    isPublicPhoto: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -36,6 +37,7 @@ describe('ActivityController', () => {
       update: jest.fn(),
       delete: jest.fn(),
       search: jest.fn(),
+      isPublicPhoto: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

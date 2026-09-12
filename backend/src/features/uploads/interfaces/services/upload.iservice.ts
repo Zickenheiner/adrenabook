@@ -22,6 +22,15 @@ export interface IUploadService {
   ): Promise<UploadEntity>;
 
   /**
+   * Metadonnees d'un fichier, sans controle de droit.
+   *
+   * Reserve aux appelants qui ont deja etabli que le fichier est publiquement
+   * exposable — aujourd'hui la photo d'une activite publiee. Pour tout le
+   * reste, passer par getForReader().
+   */
+  findPublicById(id: string): Promise<UploadEntity | null>;
+
+  /**
    * Flux de lecture du contenu.
    */
   openDownloadStream(id: string): Readable;

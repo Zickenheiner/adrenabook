@@ -51,6 +51,7 @@ describe('UploadController', () => {
     const uploadServiceMock: jest.Mocked<IUploadService> = {
       upload: jest.fn(),
       getForReader: jest.fn(),
+      findPublicById: jest.fn(),
       openDownloadStream: jest.fn(),
     };
 
