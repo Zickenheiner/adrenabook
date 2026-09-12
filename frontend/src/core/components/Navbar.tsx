@@ -8,13 +8,13 @@ import {
   Search,
   Home,
   Briefcase,
-  ShieldAlert,
   CalendarClock,
   FileSpreadsheet,
   Upload,
   Users,
   ClipboardList,
   BadgeCheck,
+  Store,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -75,7 +75,8 @@ export default function Navbar() {
         ? proLinks
         : [];
   const roleLabel = user?.role === 'admin' ? 'Administration' : 'Espace pro';
-  const RoleIcon = user?.role === 'admin' ? ShieldAlert : Briefcase;
+  const canRegisterCenter =
+    user?.role !== 'admin' && user?.role !== 'professionnel';
 
   const handleLogout = () => {
     clearTokens();
@@ -119,23 +120,6 @@ export default function Navbar() {
               {label}
             </NavLink>
           ))}
-
-          {roleLinks.length > 0 && (
-            <NavLink
-              to={roleLinks[0].to}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-accent text-primary'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                )
-              }
-            >
-              <RoleIcon className="h-4 w-4" />
-              {roleLabel}
-            </NavLink>
-          )}
         </nav>
 
         {/* Desktop profile dropdown */}
@@ -183,6 +167,17 @@ export default function Navbar() {
                   Mes droits RGPD
                 </Link>
               </DropdownMenuItem>
+              {canRegisterCenter && (
+                <DropdownMenuItem asChild>
+                  <Link
+                    to={routes.professionalRegister}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Store className="h-4 w-4" />
+                    Enregistrer ma structure
+                  </Link>
+                </DropdownMenuItem>
+              )}
               {roleLinks.length > 0 && (
                 <>
                   <DropdownMenuSeparator />
