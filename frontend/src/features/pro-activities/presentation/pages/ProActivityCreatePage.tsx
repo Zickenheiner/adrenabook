@@ -8,13 +8,26 @@ import routes from '@/core/constants/routes';
 import { useCreateActivity } from '../../domain/hooks/activity.hook';
 import ActivityForm from '../components/ActivityForm';
 import type { CreateActivityFormData } from '../../domain/schemas/activity.schema';
+import type { CreateActivityRequestDto } from '../../data/dtos/activity.dto';
+
+/**
+ * Le schema du formulaire couvre les quatre etats pour les besoins de
+ * l'edition ; a la creation seuls `draft` et `published` sont proposes.
+ */
+const toCreatePayload = ({
+  status,
+  ...rest
+}: CreateActivityFormData): CreateActivityRequestDto => ({
+  ...rest,
+  status: status === 'published' ? 'published' : 'draft',
+});
 
 export default function ProActivityCreatePage() {
   const navigate = useNavigate();
   const { createActivity, createActivityIsPending } = useCreateActivity();
 
   function handleSubmit(data: CreateActivityFormData) {
-    createActivity(data, {
+    createActivity(toCreatePayload(data), {
       onSuccess: () => {
         toast.success('Activité créée avec succès');
         navigate(routes.proActivityList);

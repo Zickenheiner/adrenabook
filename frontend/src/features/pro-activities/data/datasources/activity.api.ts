@@ -2,8 +2,9 @@ import endpoints from '@/core/constants/endpoints';
 import request from '@/core/config/api';
 import methods from '@/core/constants/methods';
 import type {
-  CreateActivityRequestDto,
   ActivityResponseDto,
+  CreateActivityRequestDto,
+  UpdateActivityRequestDto,
 } from '../dtos/activity.dto';
 
 class ActivityApi {
@@ -35,7 +36,7 @@ class ActivityApi {
 
   async update(
     id: string,
-    data: Partial<CreateActivityRequestDto>,
+    data: UpdateActivityRequestDto,
   ): Promise<ActivityResponseDto> {
     return request<ActivityResponseDto>({
       url: endpoints.proActivities.byId(id),

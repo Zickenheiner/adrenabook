@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ActivityRepositoryImpl from '../../data/repositories/activity.repository.impl';
-import type { CreateActivityRequestDto } from '../../data/dtos/activity.dto';
+import type {
+  CreateActivityRequestDto,
+  UpdateActivityRequestDto,
+} from '../../data/dtos/activity.dto';
 
 const repository = new ActivityRepositoryImpl();
 
@@ -58,7 +61,7 @@ export function useUpdateActivity() {
       data,
     }: {
       id: string;
-      data: Partial<CreateActivityRequestDto>;
+      data: UpdateActivityRequestDto;
     }) => repository.update(id, data),
     onSuccess: (_, { id }) => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });

@@ -19,6 +19,17 @@ export interface CreateActivityRequestDto {
   status: 'draft' | 'published';
 }
 
+/**
+ * A la difference de la creation, la mise a jour accepte `archived`.
+ * `pending_admin_review` reste pose par le systeme et n'est jamais envoye.
+ */
+export type UpdateActivityRequestDto = Omit<
+  CreateActivityRequestDto,
+  'status'
+> & {
+  status?: 'draft' | 'published' | 'archived';
+};
+
 export interface ActivityResponseDto {
   id: string;
   title: string;

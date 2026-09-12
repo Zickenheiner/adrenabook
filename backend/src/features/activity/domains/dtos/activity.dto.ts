@@ -239,14 +239,15 @@ export class UpdateActivityDto {
   photoFileIds?: string[];
 
   @ApiProperty({
-    description: 'Publication status',
+    description:
+      'Publication status. `pending_admin_review` est attribue par le systeme lors de la publication et ne peut pas etre choisi ici.',
     example: 'draft',
-    enum: ['draft', 'published'],
+    enum: ['draft', 'published', 'archived'],
     required: false,
   })
-  @IsEnum(['draft', 'published'])
+  @IsEnum(['draft', 'published', 'archived'])
   @IsOptional()
-  status?: 'draft' | 'published';
+  status?: 'draft' | 'published' | 'archived';
 }
 
 export class ActivityResponseDto {

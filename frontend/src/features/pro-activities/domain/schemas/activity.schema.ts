@@ -29,7 +29,10 @@ export const createActivitySchema = z.object({
   prerequisites: prerequisitesSchema,
   includedEquipment: z.array(z.string()),
   photoFileIds: z.array(z.string()),
-  status: z.enum(['draft', 'published']),
+  // `pending_admin_review` est attribue par le systeme a la publication : il
+  // est accepte ici pour qu'une activite en revision garde son etat a
+  // l'edition, mais le formulaire ne le propose pas comme choix.
+  status: z.enum(['draft', 'published', 'archived', 'pending_admin_review']),
 });
 
 export type CreateActivityFormData = z.infer<typeof createActivitySchema>;

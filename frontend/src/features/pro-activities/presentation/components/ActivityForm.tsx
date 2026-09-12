@@ -432,6 +432,14 @@ export default function ActivityForm({
                 <SelectContent>
                   <SelectItem value="draft">Brouillon</SelectItem>
                   <SelectItem value="published">Publier</SelectItem>
+                  <SelectItem value="archived">Archiver</SelectItem>
+                  {/* Etat pose par le systeme : visible pour ne pas le perdre
+                      a l'enregistrement, mais non selectionnable. */}
+                  {field.value === 'pending_admin_review' && (
+                    <SelectItem value="pending_admin_review" disabled>
+                      En attente de validation
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
