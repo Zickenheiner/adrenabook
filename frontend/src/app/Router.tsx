@@ -45,10 +45,6 @@ export default function Router() {
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
         <Route
-          path={routes.professionalRegister}
-          element={<ProfessionalRegistrationPage />}
-        />
-        <Route
           path={routes.passwordResetRequest}
           element={<PasswordResetRequestPage />}
         />
@@ -86,6 +82,10 @@ export default function Router() {
           element={<ProActivityCreatePage />}
         />
         <Route path={routes.proSlotManage} element={<ProSlotManagePage />} />
+        <Route
+          path={routes.professionalRegister}
+          element={<ProfessionalRegistrationPage />}
+        />
         <Route
           path={routes.professionalRegisterSuccess}
           element={<ProfessionalRegistrationSuccessPage />}
