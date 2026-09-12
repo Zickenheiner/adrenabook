@@ -128,6 +128,26 @@ export default function ActivityForm({
             )}
           />
 
+          {/* Image */}
+          <FormField
+            control={form.control}
+            name="photoFileIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image de l'activité</FormLabel>
+                <FormControl>
+                  <ActivityImageField
+                    fileId={field.value[0]}
+                    onChange={(fileId) =>
+                      field.onChange(fileId ? [fileId] : [])
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -414,26 +434,6 @@ export default function ActivityForm({
             </div>
           )}
         </div>
-
-        <Separator />
-
-        {/* Image */}
-        <FormField
-          control={form.control}
-          name="photoFileIds"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Image de l'activité</FormLabel>
-              <FormControl>
-                <ActivityImageField
-                  fileId={field.value[0]}
-                  onChange={(fileId) => field.onChange(fileId ? [fileId] : [])}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <Separator />
 
