@@ -19,8 +19,8 @@ export default function NotFoundPage() {
             Cette page a disparu de la carte
           </h1>
           <p className="text-muted-foreground">
-            La page que vous cherchez n'existe pas ou a été déplacée.
-            Vérifiez l'adresse ou repartez à l'aventure depuis l'accueil.
+            La page que vous cherchez n'existe pas ou a été déplacée. Vérifiez
+            l'adresse ou repartez à l'aventure depuis l'accueil.
           </p>
         </div>
 
