@@ -16,9 +16,6 @@ export const createSlotSchema = z
     maxParticipants: z
       .number({ error: 'Nombre de participants requis' })
       .min(1, 'Au moins 1 participant'),
-    instructorIds: z
-      .array(z.string())
-      .min(1, 'Au moins un moniteur doit être sélectionné'),
   })
   .refine(
     (data) => {

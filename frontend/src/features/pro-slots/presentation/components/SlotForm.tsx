@@ -48,7 +48,6 @@ export default function SlotForm({
         untilDate: '',
       },
       maxParticipants: 10,
-      instructorIds: [''],
     },
   });
 
@@ -59,7 +58,9 @@ export default function SlotForm({
       durationMinutes: activityDurationMinutes,
       maxParticipants: values.maxParticipants,
       priceEur: activityPriceEur,
-      instructorIds: values.instructorIds.filter((id) => id.trim() !== ''),
+      // Les creneaux ne portent pas encore d'affectation de moniteur : le
+      // schema Mongo accepte une liste vide.
+      instructorIds: [],
     };
 
     if (values.slotType === 'single' && values.singleStartAt) {
@@ -212,30 +213,6 @@ export default function SlotForm({
             )}
           />
         </div>
-
-        <Separator />
-
-        {/* Moniteurs */}
-        <FormField
-          control={form.control}
-          name="instructorIds"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>ID du moniteur principal</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="UUID du moniteur"
-                  value={field.value[0] ?? ''}
-                  onChange={(e) => field.onChange([e.target.value])}
-                />
-              </FormControl>
-              <p className="text-xs text-muted-foreground">
-                Identifiant unique du moniteur responsable du créneau
-              </p>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? (
