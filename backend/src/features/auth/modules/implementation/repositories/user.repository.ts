@@ -229,6 +229,13 @@ export class UserRepository implements IUserRepository {
     return !!updated;
   }
 
+  async updateRole(id: string, role: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { role }, { new: true })
+      .exec();
+    return !!updated;
+  }
+
   // ——— RGPD US-24 ———
 
   /**

@@ -13,6 +13,7 @@ import {
 } from '@features/admin/domains/dtos/center-review.dto';
 import { IProfessionalCenterService } from '@features/professional/interfaces/services/professional-center.iservice';
 import { ISensitiveActionLogService } from '@features/admin/interfaces/services/sensitive-action-log.iservice';
+import { IUserService } from '@features/auth/interfaces/services/user.iservice';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -41,6 +42,8 @@ export class CenterReviewService implements ICenterReviewService {
     private readonly professionalCenterModel: Model<ProfessionalCenterDocument>,
     @Inject('ISensitiveActionLogService')
     private readonly sensitiveActionLogService: ISensitiveActionLogService,
+    @Inject('IUserService')
+    private readonly userService: IUserService,
   ) {}
 
   async reviewCenter(
@@ -76,6 +79,16 @@ export class CenterReviewService implements ICenterReviewService {
     await this.professionalCenterModel
       .findByIdAndUpdate(centerId, { status: newStatus }, { new: true })
       .exec();
+
+    // Le dossier valide donne acces a l'espace pro : sans cette promotion, le
+    // proprietaire reste aventurier et les endpoints pro lui restent fermes.
+    // Uniquement sur `approve` : un rejet ne doit pas retrograder un compte
+    // deja professionnel ayant depose un second dossier.
+    if (dto.decision === 'approve') {
+      await this.userService.promoteToProfessional(
+        center.getOwnerId().toString(),
+      );
+    }
 
     // Journal des actions sensibles (US-25) : qui / quoi / sur quoi / quand.
     await this.sensitiveActionLogService.createLog({

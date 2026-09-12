@@ -483,6 +483,20 @@ export class UserService implements IUserService {
     return this.userRepository.update(id, dto);
   }
 
+  /**
+   * Promotion en professionnel apres validation du dossier KYC (US-23).
+   *
+   * Le role est porte par le JWT : la promotion ne prend effet qu'a la
+   * prochaine connexion de l'utilisateur.
+   */
+  async promoteToProfessional(id: string): Promise<boolean> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+    return this.userRepository.updateRole(id, 'professionnel');
+  }
+
   async delete(id: string): Promise<boolean> {
     return this.userRepository.delete(id);
   }
