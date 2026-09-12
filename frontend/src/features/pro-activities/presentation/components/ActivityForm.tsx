@@ -205,7 +205,7 @@ export default function ActivityForm({
               name="priceFromEur"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Prix à partir de (€)</FormLabel>
+                  <FormLabel>Prix (€)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
