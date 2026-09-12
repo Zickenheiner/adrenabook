@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { ActivityEntity } from '@features/activity/domains/entities/activity.entity';
 import { ProfessionalCenterEntity } from '@features/professional/domains/entities/professional-center.entity';
@@ -10,6 +11,7 @@ import {
 
 const USER_ID = '68b4d59919d9b7a94b4fde21';
 const CENTER_ID = '68b4d59919d9b7a94b4fde22';
+const OTHER_CENTER_ID = '68b4d59919d9b7a94b4fde23';
 
 const buildActivity = (
   id: string,
@@ -185,36 +187,97 @@ describe('ActivityService', () => {
     });
   });
 
+  // Controle de propriete partage par update() et delete().
+  const ownedActivity = (): ActivityEntity => {
+    const entity = buildActivity('a');
+    entity.setCenterId(CENTER_ID as never);
+    return entity;
+  };
+
+  const ownedCenter = (): ProfessionalCenterEntity =>
+    new ProfessionalCenterEntity(CENTER_ID as never);
+
   describe('update()', () => {
     it('should delegate to the repository', async () => {
       const dto = { title: 'Nouveau titre' } as UpdateActivityDto;
+      repository.findById.mockResolvedValue(ownedActivity());
+      centerService.findByOwnerId.mockResolvedValue(ownedCenter());
       repository.update.mockResolvedValue(true);
 
-      await expect(service.update('a', dto)).resolves.toBe(true);
+      await expect(service.update('a', dto, USER_ID)).resolves.toBe(true);
       expect(repository.update).toHaveBeenCalledWith('a', dto);
     });
 
     it('should return false when nothing was updated', async () => {
+      repository.findById.mockResolvedValue(ownedActivity());
+      centerService.findByOwnerId.mockResolvedValue(ownedCenter());
       repository.update.mockResolvedValue(false);
 
       await expect(
-        service.update('unknown', {} as UpdateActivityDto),
+        service.update('a', {} as UpdateActivityDto, USER_ID),
       ).resolves.toBe(false);
+    });
+
+    it('should throw when the activity does not exist', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.update('unknown', {} as UpdateActivityDto, USER_ID),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw when the activity belongs to another center', async () => {
+      const foreign = buildActivity('a');
+      foreign.setCenterId(OTHER_CENTER_ID as never);
+      repository.findById.mockResolvedValue(foreign);
+      centerService.findByOwnerId.mockResolvedValue(ownedCenter());
+
+      await expect(
+        service.update('a', {} as UpdateActivityDto, USER_ID),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw when the professional owns no center', async () => {
+      repository.findById.mockResolvedValue(ownedActivity());
+      centerService.findByOwnerId.mockResolvedValue(null);
+
+      await expect(
+        service.update('a', {} as UpdateActivityDto, USER_ID),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(repository.update).not.toHaveBeenCalled();
     });
   });
 
   describe('delete()', () => {
     it('should delegate to the repository', async () => {
+      repository.findById.mockResolvedValue(ownedActivity());
+      centerService.findByOwnerId.mockResolvedValue(ownedCenter());
       repository.delete.mockResolvedValue(true);
 
-      await expect(service.delete('a')).resolves.toBe(true);
+      await expect(service.delete('a', USER_ID)).resolves.toBe(true);
       expect(repository.delete).toHaveBeenCalledWith('a');
     });
 
     it('should return false when nothing was deleted', async () => {
+      repository.findById.mockResolvedValue(ownedActivity());
+      centerService.findByOwnerId.mockResolvedValue(ownedCenter());
       repository.delete.mockResolvedValue(false);
 
-      await expect(service.delete('unknown')).resolves.toBe(false);
+      await expect(service.delete('a', USER_ID)).resolves.toBe(false);
+    });
+
+    it('should throw when the activity belongs to another center', async () => {
+      const foreign = buildActivity('a');
+      foreign.setCenterId(OTHER_CENTER_ID as never);
+      repository.findById.mockResolvedValue(foreign);
+      centerService.findByOwnerId.mockResolvedValue(ownedCenter());
+
+      await expect(service.delete('a', USER_ID)).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+      expect(repository.delete).not.toHaveBeenCalled();
     });
   });
 

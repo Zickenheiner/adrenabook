@@ -17,7 +17,11 @@ export interface IActivityService {
     dto: CreateActivityDto,
     userId: string,
   ): Promise<ActivityResponseDto | null>;
-  update(id: string, dto: UpdateActivityDto): Promise<boolean>;
-  delete(id: string): Promise<boolean>;
+  /**
+   * `userId` sert au controle de propriete : une activite n'est modifiable que
+   * par le professionnel dont le centre la porte.
+   */
+  update(id: string, dto: UpdateActivityDto, userId: string): Promise<boolean>;
+  delete(id: string, userId: string): Promise<boolean>;
   search(query: SearchActivitiesQueryDto): Promise<SearchActivitiesResponseDto>;
 }

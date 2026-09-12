@@ -154,35 +154,63 @@ describe('ActivityController', () => {
   });
 
   describe('update()', () => {
-    it('should delegate to the service', async () => {
+    const proRequest = { user: { sub: USER_ID, role: 'professionnel' } };
+
+    it('should delegate to the service with the caller id', async () => {
       const dto = { title: 'Nouveau titre' } as UpdateActivityDto;
       service.update.mockResolvedValue(true);
 
-      await expect(controller.update('activity-1', dto)).resolves.toBe(true);
-      expect(service.update).toHaveBeenCalledWith('activity-1', dto);
+      await expect(
+        controller.update('activity-1', dto, proRequest),
+      ).resolves.toBe(true);
+      expect(service.update).toHaveBeenCalledWith('activity-1', dto, USER_ID);
     });
 
     it('should return false when nothing was updated', async () => {
       service.update.mockResolvedValue(false);
 
       await expect(
-        controller.update('unknown', {} as UpdateActivityDto),
+        controller.update('unknown', {} as UpdateActivityDto, proRequest),
       ).resolves.toBe(false);
+    });
+
+    it('should reject a caller who is not a professional', async () => {
+      await expect(
+        controller.update('activity-1', {} as UpdateActivityDto, {
+          user: { sub: USER_ID, role: 'client' },
+        }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.update).not.toHaveBeenCalled();
     });
   });
 
   describe('delete()', () => {
-    it('should delegate to the service', async () => {
+    const proRequest = { user: { sub: USER_ID, role: 'professionnel' } };
+
+    it('should delegate to the service with the caller id', async () => {
       service.delete.mockResolvedValue(true);
 
-      await expect(controller.delete('activity-1')).resolves.toBe(true);
-      expect(service.delete).toHaveBeenCalledWith('activity-1');
+      await expect(controller.delete('activity-1', proRequest)).resolves.toBe(
+        true,
+      );
+      expect(service.delete).toHaveBeenCalledWith('activity-1', USER_ID);
     });
 
     it('should return false when nothing was deleted', async () => {
       service.delete.mockResolvedValue(false);
 
-      await expect(controller.delete('unknown')).resolves.toBe(false);
+      await expect(controller.delete('unknown', proRequest)).resolves.toBe(
+        false,
+      );
+    });
+
+    it('should reject a caller who is not a professional', async () => {
+      await expect(
+        controller.delete('activity-1', {
+          user: { sub: USER_ID, role: 'client' },
+        }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.delete).not.toHaveBeenCalled();
     });
   });
 });

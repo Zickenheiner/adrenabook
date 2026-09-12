@@ -155,12 +155,18 @@ export class ActivityController {
   })
   @ApiResponse({ status: 401, description: 'Non authentifié' })
   @ApiResponse({ status: 403, description: 'Accès interdit' })
+  @ApiResponse({ status: 404, description: 'Activité introuvable' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateActivityDto,
+    @Req() req: { user: { sub: string; role: string } },
   ): Promise<boolean> {
-    return this.activityService.update(id, dto);
+    const user = req.user;
+    if (!user || user.role !== 'professionnel') {
+      throw new ForbiddenException('Accès réservé aux professionnels');
+    }
+    return this.activityService.update(id, dto, user.sub);
   }
 
   @ApiOperation({
@@ -180,8 +186,17 @@ export class ActivityController {
     type: Boolean,
   })
   @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès interdit' })
+  @ApiResponse({ status: 404, description: 'Activité introuvable' })
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<boolean> {
-    return this.activityService.delete(id);
+  async delete(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string; role: string } },
+  ): Promise<boolean> {
+    const user = req.user;
+    if (!user || user.role !== 'professionnel') {
+      throw new ForbiddenException('Accès réservé aux professionnels');
+    }
+    return this.activityService.delete(id, user.sub);
   }
 }

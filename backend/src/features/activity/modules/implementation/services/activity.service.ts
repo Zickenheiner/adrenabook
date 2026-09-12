@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { IActivityService } from '../../../interfaces/services/activity.iservice';
 import { IActivityRepository } from '@features/activity/interfaces/repositories/activity.irepository';
 import {
@@ -55,11 +60,38 @@ export class ActivityService implements IActivityService {
     return response;
   }
 
-  async update(id: string, dto: UpdateActivityDto): Promise<boolean> {
+  /**
+   * Verifie que l'activite ciblee appartient bien au centre du professionnel
+   * appelant. Sans ce controle, connaitre un identifiant suffit a modifier ou
+   * supprimer l'activite d'un concurrent.
+   */
+  private async assertOwnership(
+    activityId: string,
+    userId: string,
+  ): Promise<void> {
+    const activity = await this.activityRepository.findById(activityId);
+    if (!activity) {
+      throw new NotFoundException('Activité introuvable');
+    }
+    const center = await this.professionalCenterService.findByOwnerId(userId);
+    if (!center || activity.getCenterId().toString() !== center.getId()) {
+      throw new ForbiddenException(
+        "Cette activité n'appartient pas à votre centre",
+      );
+    }
+  }
+
+  async update(
+    id: string,
+    dto: UpdateActivityDto,
+    userId: string,
+  ): Promise<boolean> {
+    await this.assertOwnership(id, userId);
     return this.activityRepository.update(id, dto);
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, userId: string): Promise<boolean> {
+    await this.assertOwnership(id, userId);
     return this.activityRepository.delete(id);
   }
 
