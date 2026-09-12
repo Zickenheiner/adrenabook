@@ -279,6 +279,35 @@ describe('SlotService', () => {
       expect(result.conflicts).toEqual([]);
     });
 
+    it('should fall back to a twelve month horizon without untilDate', async () => {
+      slotRepository.findByActivityId.mockResolvedValue([]);
+      slotRepository.createMany.mockImplementation((_id, _dto, dates) =>
+        Promise.resolve(
+          dates.map((date, index) =>
+            buildSlot({ id: `slot-${index}`, startAt: date.toISOString() }),
+          ),
+        ),
+      );
+
+      const dto: CreateSlotsDto = {
+        ...baseDto,
+        singleStartAt: undefined,
+        recurrence: { rrule: 'FREQ=WEEKLY;BYDAY=TU;BYHOUR=9;BYMINUTE=0' },
+      };
+
+      const result = await service.createSlots(activityId, userId, dto);
+
+      // Une regle hebdomadaire sur un an : 52 ou 53 occurrences selon la date
+      // de depart. L'essentiel est qu'elle soit bornee, et sur ~12 mois.
+      expect(result.createdCount).toBeGreaterThanOrEqual(52);
+      expect(result.createdCount).toBeLessThanOrEqual(53);
+
+      const horizon = new Date();
+      horizon.setFullYear(horizon.getFullYear() + 1);
+      const last = new Date(result.slots[result.slots.length - 1].startAt);
+      expect(last.getTime()).toBeLessThanOrEqual(horizon.getTime());
+    });
+
     it('should split recurrence occurrences between creations and conflicts', async () => {
       slotRepository.findByActivityId.mockResolvedValue([
         buildSlot({ id: 'existing', startAt: '2026-09-08T09:00:00.000Z' }),

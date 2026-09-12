@@ -147,9 +147,20 @@ export class SlotService implements ISlotService {
     throw new BadRequestException('Fournir soit recurrence soit singleStartAt');
   }
 
-  private expandRrule(rruleStr: string, untilDate: string): Date[] {
+  /** Horizon applique a une recurrence sans date de fin : 12 mois. */
+  private static defaultRecurrenceHorizon(): Date {
+    const horizon = new Date();
+    horizon.setFullYear(horizon.getFullYear() + 1);
+    return horizon;
+  }
+
+  private expandRrule(rruleStr: string, untilDate?: string): Date[] {
     try {
-      const until = new Date(untilDate);
+      // Une RRULE sans borne est infinie : `all()` ne peut pas la developper.
+      // Sans date de fin choisie, on genere un an de creneaux.
+      const until = untilDate
+        ? new Date(untilDate)
+        : SlotService.defaultRecurrenceHorizon();
       if (isNaN(until.getTime())) {
         throw new BadRequestException('untilDate est une date invalide');
       }

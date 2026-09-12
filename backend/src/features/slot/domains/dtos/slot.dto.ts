@@ -22,11 +22,14 @@ export class RecurrenceDto {
   rrule: string;
 
   @ApiProperty({
-    description: 'ISO 8601 date until which the recurrence applies',
+    description:
+      'ISO 8601 date until which the recurrence applies. Omise, la recurrence est generee sur 12 mois : une regle sans borne est infinie et ne peut pas etre developpee.',
     example: '2026-12-31',
+    required: false,
   })
   @IsISO8601()
-  untilDate: string;
+  @IsOptional()
+  untilDate?: string;
 }
 
 export class CreateSlotsDto {
