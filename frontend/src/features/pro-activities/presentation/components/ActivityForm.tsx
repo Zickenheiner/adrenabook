@@ -416,6 +416,56 @@ export default function ActivityForm({
 
         <Separator />
 
+        {/* Image */}
+        <FormField
+          control={form.control}
+          name="photoFileIds"
+          render={({ field }) => {
+            // Le backend expose la premiere entree de photoFileIds comme
+            // couverture (coverPhotoUrl) et la sert telle quelle au navigateur.
+            const url = field.value[0] ?? '';
+            return (
+              <FormItem>
+                <FormLabel>Image de l'activité</FormLabel>
+                <FormControl>
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://exemple.com/photo.jpg"
+                    value={url}
+                    onChange={(e) => {
+                      const next = e.target.value.trim();
+                      field.onChange(next ? [next] : []);
+                    }}
+                  />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  Adresse d'une image en ligne, affichée sur la fiche et dans
+                  les résultats de recherche.
+                </p>
+                {url && (
+                  <div className="mt-2 h-40 w-full overflow-hidden rounded-lg border border-border bg-muted">
+                    <img
+                      src={url}
+                      alt="Aperçu de l'activité"
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={(e) => {
+                        e.currentTarget.style.display = '';
+                      }}
+                    />
+                  </div>
+                )}
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+
+        <Separator />
+
         {/* Statut */}
         <FormField
           control={form.control}
