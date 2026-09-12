@@ -6,6 +6,9 @@ import { Separator } from '@/core/components/ui/separator';
 import { Skeleton } from '@/core/components/ui/skeleton';
 import routes from '@/core/constants/routes';
 import { useCreateSlots, useProSlots } from '../../domain/hooks/slot.hook';
+// La duree et le prix du creneau sont ceux de l'activite : on les lit a la
+// source plutot que de les ressaisir.
+import { useActivity } from '@/features/pro-activities/domain/hooks/activity.hook';
 import type { CreateSlotRequestDto } from '../../data/dtos/slot.dto';
 import SlotForm from '../components/SlotForm';
 import SlotCard, { SlotConflictCard } from '../components/SlotCard';
@@ -20,6 +23,7 @@ export default function ProSlotManagePage() {
     createSlotsResult,
   } = useCreateSlots(activityId ?? '');
   const { slots, slotsIsLoading, slotsError } = useProSlots(activityId ?? '');
+  const { activity, activityIsLoading } = useActivity(activityId ?? '');
 
   const existingSlots = slots
     ? [...slots].sort((a, b) => a.startAt.getTime() - b.startAt.getTime())
@@ -90,7 +94,16 @@ export default function ProSlotManagePage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <SlotForm onSubmit={handleSubmit} isPending={createSlotsIsPending} />
+          {activityIsLoading || !activity ? (
+            <Skeleton className="h-96 w-full rounded-xl" />
+          ) : (
+            <SlotForm
+              onSubmit={handleSubmit}
+              isPending={createSlotsIsPending}
+              activityDurationMinutes={activity.durationMinutes}
+              activityPriceEur={activity.priceFromEur}
+            />
+          )}
         </motion.div>
 
         {/* Erreur API */}

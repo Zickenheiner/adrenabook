@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const recurrenceSchema = z.object({
   rrule: z.string().min(1, 'La règle de récurrence est requise'),
-  untilDate: z.string().min(1, 'La date de fin est requise'),
+  // Sans date de fin, l'API genere la recurrence sur douze mois.
+  untilDate: z.string().optional(),
 });
 
 export const createSlotSchema = z
@@ -10,16 +11,11 @@ export const createSlotSchema = z
     slotType: z.enum(['single', 'recurring']),
     singleStartAt: z.string().optional(),
     recurrence: recurrenceSchema.optional(),
-    durationMinutes: z
-      .number({ error: 'Durée requise' })
-      .min(15, 'Durée minimum : 15 minutes')
-      .max(1440, 'Durée maximum : 24h'),
+    // La duree et le prix sont portes par l'activite : un creneau ne peut pas
+    // les contredire, ils ne sont donc pas saisis ici.
     maxParticipants: z
       .number({ error: 'Nombre de participants requis' })
       .min(1, 'Au moins 1 participant'),
-    priceEur: z
-      .number({ error: 'Prix requis' })
-      .min(0, 'Le prix ne peut pas être négatif'),
     instructorIds: z
       .array(z.string())
       .min(1, 'Au moins un moniteur doit être sélectionné'),

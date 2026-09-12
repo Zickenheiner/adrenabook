@@ -1,6 +1,6 @@
 export interface RecurrenceDto {
   rrule: string; // RFC 5545 RRULE
-  untilDate: string;
+  untilDate?: string;
 }
 
 export interface CreateSlotRequestDto {

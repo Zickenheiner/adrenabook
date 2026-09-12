@@ -19,13 +19,25 @@ import { RadioGroup, RadioGroupItem } from '@/core/components/ui/radio-group';
 import { Label } from '@/core/components/ui/label';
 import { Separator } from '@/core/components/ui/separator';
 import { CalendarDays, Repeat, Loader2 } from 'lucide-react';
+import RecurrenceBuilder from './RecurrenceBuilder';
 
 interface Props {
   onSubmit: (data: CreateSlotRequestDto) => void;
   isPending: boolean;
+  /**
+   * Duree et prix definis sur l'activite : ils font autorite pour tous ses
+   * creneaux, qui ne peuvent donc pas les contredire.
+   */
+  activityDurationMinutes: number;
+  activityPriceEur: number;
 }
 
-export default function SlotForm({ onSubmit, isPending }: Props) {
+export default function SlotForm({
+  onSubmit,
+  isPending,
+  activityDurationMinutes,
+  activityPriceEur,
+}: Props) {
   const form = useForm<CreateSlotFormData>({
     resolver: zodResolver(createSlotSchema),
     defaultValues: {
@@ -35,9 +47,7 @@ export default function SlotForm({ onSubmit, isPending }: Props) {
         rrule: '',
         untilDate: '',
       },
-      durationMinutes: 60,
       maxParticipants: 10,
-      priceEur: 0,
       instructorIds: [''],
     },
   });
@@ -46,16 +56,18 @@ export default function SlotForm({ onSubmit, isPending }: Props) {
 
   function handleSubmit(values: CreateSlotFormData) {
     const payload: CreateSlotRequestDto = {
-      durationMinutes: values.durationMinutes,
+      durationMinutes: activityDurationMinutes,
       maxParticipants: values.maxParticipants,
-      priceEur: values.priceEur,
+      priceEur: activityPriceEur,
       instructorIds: values.instructorIds.filter((id) => id.trim() !== ''),
     };
 
     if (values.slotType === 'single' && values.singleStartAt) {
       payload.singleStartAt = values.singleStartAt;
     } else if (values.slotType === 'recurring' && values.recurrence) {
-      payload.recurrence = values.recurrence;
+      const { rrule, untilDate } = values.recurrence;
+      // Un champ vide ne doit pas partir comme date : l'API la validerait.
+      payload.recurrence = untilDate?.trim() ? { rrule, untilDate } : { rrule };
     }
 
     onSubmit(payload);
@@ -78,44 +90,34 @@ export default function SlotForm({ onSubmit, isPending }: Props) {
                     onValueChange={field.onChange}
                     className="grid grid-cols-2 gap-3"
                   >
-                    <div
+                    <label
+                      htmlFor="single"
                       className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                         field.value === 'single'
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:bg-muted/50'
                       }`}
-                      onClick={() => field.onChange('single')}
                     >
                       <RadioGroupItem value="single" id="single" />
                       <div className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                        <label
-                          htmlFor="single"
-                          className="text-sm font-medium cursor-pointer"
-                        >
-                          Ponctuel
-                        </label>
+                        <span className="text-sm font-medium">Ponctuel</span>
                       </div>
-                    </div>
-                    <div
+                    </label>
+                    <label
+                      htmlFor="recurring"
                       className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                         field.value === 'recurring'
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:bg-muted/50'
                       }`}
-                      onClick={() => field.onChange('recurring')}
                     >
                       <RadioGroupItem value="recurring" id="recurring" />
                       <div className="flex items-center gap-2">
                         <Repeat className="h-4 w-4 text-muted-foreground" />
-                        <label
-                          htmlFor="recurring"
-                          className="text-sm font-medium cursor-pointer"
-                        >
-                          Récurrent
-                        </label>
+                        <span className="text-sm font-medium">Récurrent</span>
                       </div>
-                    </div>
+                    </label>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -151,16 +153,14 @@ export default function SlotForm({ onSubmit, isPending }: Props) {
               name="recurrence.rrule"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Règle RRULE (RFC 5545)</FormLabel>
+                  <FormLabel>Récurrence</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="ex: FREQ=WEEKLY;BYDAY=MO,WE,FR"
-                      {...field}
+                    <RecurrenceBuilder
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      durationMinutes={activityDurationMinutes}
                     />
                   </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    Format iCal standard (ex: FREQ=WEEKLY;BYDAY=MO)
-                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -170,10 +170,18 @@ export default function SlotForm({ onSubmit, isPending }: Props) {
               name="recurrence.untilDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date de fin de récurrence</FormLabel>
+                  <FormLabel>
+                    Date de fin de récurrence{' '}
+                    <span className="font-normal text-muted-foreground">
+                      (facultatif)
+                    </span>
+                  </FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} value={field.value ?? ''} />
                   </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Sans date de fin, les créneaux sont générés sur 12 mois.
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -187,26 +195,6 @@ export default function SlotForm({ onSubmit, isPending }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="durationMinutes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Durée (minutes)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={15}
-                    max={1440}
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="maxParticipants"
             render={({ field }) => (
               <FormItem>
@@ -215,26 +203,6 @@ export default function SlotForm({ onSubmit, isPending }: Props) {
                   <Input
                     type="number"
                     min={1}
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="priceEur"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Prix (€)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
