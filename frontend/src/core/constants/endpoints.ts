@@ -37,6 +37,7 @@ const endpoints = {
   },
   activitySearch: {
     search: '/activities/search',
+    photo: (fileId: string) => `/activities/photos/${fileId}`,
   },
   activityDetail: {
     byId: (id: string) => `/activities/${id}`,

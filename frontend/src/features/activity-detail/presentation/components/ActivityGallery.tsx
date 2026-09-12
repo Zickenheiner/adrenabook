@@ -6,6 +6,7 @@ import {
   Play,
   Image as ImageIcon,
 } from 'lucide-react';
+import { resolvePhotoUrl } from '@/core/utils/photo-url';
 import { Button } from '@/core/components/ui/button';
 import { cn } from '@/core/utils/cn';
 import type {
@@ -27,7 +28,11 @@ export default function ActivityGallery({ photos, videos }: Props) {
   const items: MediaItem[] = [
     ...photos
       .filter((p) => !!p.url)
-      .map((p) => ({ kind: 'photo' as const, url: p.url, alt: p.alt })),
+      .map((p) => ({
+        kind: 'photo' as const,
+        url: resolvePhotoUrl(p.url),
+        alt: p.alt,
+      })),
     ...videos
       .filter((v) => !!v.thumbnail)
       .map((v) => ({
