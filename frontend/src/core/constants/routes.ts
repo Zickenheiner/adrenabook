@@ -12,6 +12,7 @@ const routes = {
   healthProfile: '/profile/health',
   proActivityList: '/pro/activities',
   proActivityCreate: '/pro/activities/new',
+  proActivityEdit: '/pro/activities/:id/edit',
   proSlotManage: '/pro/activities/:id/slots',
   activitySearch: '/activities/search',
   activityDetail: '/activities/:id',

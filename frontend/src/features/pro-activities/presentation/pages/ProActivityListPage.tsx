@@ -137,6 +137,9 @@ export default function ProActivityListPage() {
                   onManageSlots={(id) =>
                     navigate(routes.proSlotManage.replace(':id', id))
                   }
+                  onEdit={(id) =>
+                    navigate(routes.proActivityEdit.replace(':id', id))
+                  }
                   onDelete={(id) => setDeleteTargetId(id)}
                 />
               ))}
