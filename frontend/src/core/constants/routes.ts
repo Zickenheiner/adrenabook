@@ -17,6 +17,7 @@ const routes = {
   activitySearch: '/activities/search',
   activityDetail: '/activities/:id',
   centerMap: '/centers/map',
+  centerDetail: '/centers/:id',
   bookingNew: '/bookings/new',
   bookingConfirmation: '/bookings/:id/confirmation',
   waiverSign: '/bookings/:id/waiver',

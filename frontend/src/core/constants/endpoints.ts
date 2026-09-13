@@ -45,6 +45,9 @@ const endpoints = {
   centerMap: {
     list: '/centers',
   },
+  centers: {
+    byId: (id: string) => `/centers/${id}`,
+  },
   bookings: {
     base: '/bookings',
     byId: (id: string) => `/bookings/${id}`,

@@ -21,6 +21,7 @@ import ProSlotManagePage from '@/features/pro-slots/presentation/pages/ProSlotMa
 import ActivitySearchPage from '@/features/activity-search/presentation/pages/ActivitySearchPage';
 import ActivityDetailPage from '@/features/activity-detail/presentation/pages/ActivityDetailPage';
 import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPage';
+import CenterDetailPage from '@/features/center-detail/presentation/pages/CenterDetailPage';
 import BookingPage from '@/features/booking/presentation/pages/BookingPage';
 import BookingConfirmationPage from '@/features/booking/presentation/pages/BookingConfirmationPage';
 import WaiverSignPage from '@/features/waiver/presentation/pages/WaiverSignPage';
@@ -64,6 +65,7 @@ export default function Router() {
         <Route path={routes.activitySearch} element={<ActivitySearchPage />} />
         <Route path={routes.activityDetail} element={<ActivityDetailPage />} />
         <Route path={routes.centerMap} element={<CenterMapPage />} />
+        <Route path={routes.centerDetail} element={<CenterDetailPage />} />
         <Route path={routes.systemHealth} element={<SystemHealthPage />} />
         <Route
           path={routes.adminCenterList}
