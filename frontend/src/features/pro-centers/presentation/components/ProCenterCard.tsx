@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Building2, MapPin, Trash2 } from 'lucide-react';
+import { Building2, MapPin, Trash2 } from 'lucide-react';
 import { Badge } from '@/core/components/ui/badge';
 import { Button } from '@/core/components/ui/button';
 import { Card } from '@/core/components/ui/card';
@@ -89,12 +89,7 @@ export default function ProCenterCard({ center, onDelete }: Props) {
         </div>
       </div>
 
-      {manageable ? (
-        <p className="mt-auto flex items-center gap-1.5 text-sm font-medium text-link">
-          Gérer les activités
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </p>
-      ) : (
+      {!manageable && (
         <p className="mt-auto text-sm text-muted-foreground">
           Les activités seront accessibles une fois le dossier validé.
         </p>
