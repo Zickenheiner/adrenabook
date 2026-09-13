@@ -25,6 +25,18 @@ import DocumentUploadField from './DocumentUploadField';
 import AddressAutocomplete from '@/core/components/AddressAutocomplete';
 import ProfessionalRegistrationStep from './ProfessionalRegistrationStep';
 
+/**
+ * Un depot de document ne signale son absence qu'une fois l'utilisateur passe
+ * dessus, ou apres une tentative d'envoi : afficher l'erreur des l'arrivee sur
+ * l'etape reprocherait une faute qu'il n'a pas encore eu l'occasion de
+ * commettre.
+ */
+const showError = (
+  fieldState: { error?: { message?: string }; isTouched: boolean },
+  submitted: boolean,
+): string | undefined =>
+  fieldState.isTouched || submitted ? fieldState.error?.message : undefined;
+
 const STEPS = [
   { label: 'Société', description: 'Informations générales' },
   { label: 'Adresse', description: 'Localisation du centre' },
@@ -260,7 +272,7 @@ export default function ProfessionalRegistrationForm({
             <FormField
               control={form.control}
               name="documents.kbisFileId"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormControl>
                     <DocumentUploadField
@@ -268,9 +280,7 @@ export default function ProfessionalRegistrationForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isSubmitting}
-                      error={
-                        form.formState.errors.documents?.kbisFileId?.message
-                      }
+                      error={showError(fieldState, form.formState.isSubmitted)}
                     />
                   </FormControl>
                 </FormItem>
@@ -279,7 +289,7 @@ export default function ProfessionalRegistrationForm({
             <FormField
               control={form.control}
               name="documents.rcProFileId"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormControl>
                     <DocumentUploadField
@@ -287,9 +297,7 @@ export default function ProfessionalRegistrationForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isSubmitting}
-                      error={
-                        form.formState.errors.documents?.rcProFileId?.message
-                      }
+                      error={showError(fieldState, form.formState.isSubmitted)}
                     />
                   </FormControl>
                 </FormItem>
