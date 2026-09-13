@@ -14,7 +14,7 @@ export class ActivityEntity {
   private type: string;
   private difficulty: string;
   private durationMinutes: number;
-  private priceFromEur: number;
+  private priceEur: number;
   private prerequisites: {
     minAge: number;
     maxAge?: number;
@@ -62,8 +62,8 @@ export class ActivityEntity {
     return this.durationMinutes;
   }
 
-  getPriceFromEur(): number {
-    return this.priceFromEur;
+  getPriceEur(): number {
+    return this.priceEur;
   }
 
   getPrerequisites(): {
@@ -118,8 +118,8 @@ export class ActivityEntity {
     this.durationMinutes = value;
   }
 
-  setPriceFromEur(value: number): void {
-    this.priceFromEur = value;
+  setPriceEur(value: number): void {
+    this.priceEur = value;
   }
 
   setPrerequisites(value: {

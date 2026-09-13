@@ -5,7 +5,7 @@ export interface ActivityDetailResponseDto {
   type: string;
   difficulty: string;
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: {
     minAge: number;
     maxAge?: number;

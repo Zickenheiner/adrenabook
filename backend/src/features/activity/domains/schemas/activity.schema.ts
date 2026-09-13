@@ -46,7 +46,7 @@ export class Activity {
   durationMinutes: number;
 
   @Prop({ required: true, type: Number })
-  priceFromEur: number;
+  priceEur: number;
 
   @Prop({ required: true, type: Prerequisites })
   prerequisites: Prerequisites;

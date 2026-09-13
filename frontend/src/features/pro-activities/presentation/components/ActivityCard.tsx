@@ -131,8 +131,8 @@ export default function ActivityCard({
               {activity.durationMinutes} min
             </span>
             <span className="flex items-center gap-1">
-              <Euro className="h-3.5 w-3.5" />À partir de{' '}
-              {activity.priceFromEur} €
+              <Euro className="h-3.5 w-3.5" />
+              {activity.priceEur} € / personne
             </span>
             <span className="text-xs capitalize">{activity.type}</span>
           </div>

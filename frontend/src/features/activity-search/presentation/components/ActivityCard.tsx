@@ -124,9 +124,11 @@ export default function ActivityCard({ activity }: Props) {
 
           <div className="flex items-end justify-between pt-1 border-t border-border/50">
             <div>
-              <span className="text-xs text-muted-foreground">À partir de</span>
+              <span className="text-xs text-muted-foreground">
+                Par personne
+              </span>
               <p className="text-lg font-bold text-primary">
-                {activity.priceFromEur.toLocaleString('fr-FR', {
+                {activity.priceEur.toLocaleString('fr-FR', {
                   style: 'currency',
                   currency: 'EUR',
                 })}

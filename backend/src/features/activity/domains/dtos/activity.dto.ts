@@ -104,12 +104,12 @@ export class CreateActivityDto {
   durationMinutes: number;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
   })
   @IsNumber()
   @Min(0)
-  priceFromEur: number;
+  priceEur: number;
 
   @ApiProperty({
     description: 'Prerequisites for the activity',
@@ -197,14 +197,14 @@ export class UpdateActivityDto {
   durationMinutes?: number;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
     required: false,
   })
   @IsNumber()
   @Min(0)
   @IsOptional()
-  priceFromEur?: number;
+  priceEur?: number;
 
   @ApiProperty({
     description: 'Prerequisites for the activity',
@@ -433,10 +433,10 @@ export class SearchActivitiesItemDto {
   type: string;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
   })
-  priceFromEur: number;
+  priceEur: number;
 
   @ApiProperty({
     description: 'Duration in minutes',
@@ -648,10 +648,10 @@ export class ActivityDetailResponseDto {
   durationMinutes: number;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
   })
-  priceFromEur: number;
+  priceEur: number;
 
   @ApiProperty({
     description: 'Prerequisites for the activity',

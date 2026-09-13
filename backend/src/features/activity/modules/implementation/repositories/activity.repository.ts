@@ -24,7 +24,7 @@ interface ActivityDetailAggregationResult {
   type: string;
   difficulty: string;
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: {
     minAge: number;
     maxAge?: number;
@@ -153,7 +153,7 @@ export class ActivityRepository implements IActivityRepository {
     dto.type = doc.type;
     dto.difficulty = doc.difficulty;
     dto.durationMinutes = doc.durationMinutes;
-    dto.priceFromEur = doc.priceFromEur;
+    dto.priceEur = doc.priceEur;
     dto.prerequisites = doc.prerequisites;
     dto.includedEquipment = doc.includedEquipment ?? [];
 
@@ -193,7 +193,7 @@ export class ActivityRepository implements IActivityRepository {
           ? slot.startAt.toISOString()
           : String(slot.startAt),
       remainingSeats: slot.maxParticipants,
-      priceEur: slot.priceEur,
+      priceEur: doc.priceEur,
     }));
 
     dto.reviewsSummary = {
@@ -251,7 +251,7 @@ export class ActivityRepository implements IActivityRepository {
       const priceFilter: Record<string, number> = {};
       if (query.priceMin !== undefined) priceFilter['$gte'] = query.priceMin;
       if (query.priceMax !== undefined) priceFilter['$lte'] = query.priceMax;
-      matchFilter['priceFromEur'] = priceFilter;
+      matchFilter['priceEur'] = priceFilter;
     }
     if (query.query) {
       matchFilter['$text'] = { $search: query.query };
@@ -260,10 +260,10 @@ export class ActivityRepository implements IActivityRepository {
     let sortField: string;
     let sortOrder: 1 | -1;
     if (query.sortBy === 'price_asc') {
-      sortField = 'priceFromEur';
+      sortField = 'priceEur';
       sortOrder = 1;
     } else if (query.sortBy === 'price_desc') {
-      sortField = 'priceFromEur';
+      sortField = 'priceEur';
       sortOrder = -1;
     } else {
       sortField = '_id';
@@ -294,7 +294,7 @@ export class ActivityRepository implements IActivityRepository {
           _id: 1,
           title: 1,
           type: 1,
-          priceFromEur: 1,
+          priceEur: 1,
           durationMinutes: 1,
           difficulty: 1,
           centerName: '$center.companyName',
@@ -316,7 +316,7 @@ export class ActivityRepository implements IActivityRepository {
         _id: unknown;
         title: string;
         type: string;
-        priceFromEur: number;
+        priceEur: number;
         durationMinutes: number;
         difficulty: string;
         centerName: string;
@@ -327,7 +327,7 @@ export class ActivityRepository implements IActivityRepository {
       item.id = String(doc._id);
       item.title = doc.title;
       item.type = doc.type;
-      item.priceFromEur = doc.priceFromEur;
+      item.priceEur = doc.priceEur;
       item.durationMinutes = doc.durationMinutes;
       item.difficulty = doc.difficulty;
       item.centerName = doc.centerName ?? '';

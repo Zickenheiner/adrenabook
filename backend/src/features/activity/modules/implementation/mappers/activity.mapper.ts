@@ -11,7 +11,7 @@ export class ActivityMapper {
     entity.setType(doc.type);
     entity.setDifficulty(doc.difficulty);
     entity.setDurationMinutes(doc.durationMinutes);
-    entity.setPriceFromEur(doc.priceFromEur);
+    entity.setPriceEur(doc.priceEur);
     entity.setPrerequisites(doc.prerequisites);
     entity.setIncludedEquipment(doc.includedEquipment);
     entity.setPhotoFileIds(doc.photoFileIds);

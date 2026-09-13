@@ -68,7 +68,7 @@ describe('ActivitySearchController', () => {
           id: activityId,
           title: 'Parachute en tandem',
           type: 'paragliding',
-          priceFromEur: 150,
+          priceEur: 150,
           durationMinutes: 60,
           difficulty: 'beginner',
           centerName: 'Centre Aventure Alpes',
@@ -146,7 +146,7 @@ describe('ActivitySearchController', () => {
       type: 'paragliding',
       difficulty: 'beginner',
       durationMinutes: 60,
-      priceFromEur: 150,
+      priceEur: 150,
       prerequisites: {
         minAge: 18,
         medicalCertificateRequired: false,

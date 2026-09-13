@@ -41,7 +41,7 @@ export interface ActivityDetailEntity {
   type: string;
   difficulty: string;
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: ActivityDetailPrerequisites;
   includedEquipment: string[];
   photos: ActivityDetailPhoto[];

@@ -17,7 +17,7 @@ export interface ActivityEntity {
   type: string;
   difficulty: ActivityDifficulty;
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: ActivityPrerequisitesEntity;
   includedEquipment: string[];
   photoFileIds: string[];

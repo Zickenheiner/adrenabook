@@ -33,7 +33,7 @@ const toFormValues = (
   type: activity.type,
   difficulty: activity.difficulty,
   durationMinutes: activity.durationMinutes,
-  priceFromEur: activity.priceFromEur,
+  priceEur: activity.priceEur,
   prerequisites: activity.prerequisites,
   includedEquipment: activity.includedEquipment,
   photoFileIds: activity.photoFileIds,

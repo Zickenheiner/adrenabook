@@ -101,7 +101,7 @@ export default function ProSlotManagePage() {
               onSubmit={handleSubmit}
               isPending={createSlotsIsPending}
               activityDurationMinutes={activity.durationMinutes}
-              activityPriceEur={activity.priceFromEur}
+              activityPriceEur={activity.priceEur}
             />
           )}
         </motion.div>

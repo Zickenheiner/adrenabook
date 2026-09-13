@@ -23,7 +23,7 @@ export const createActivitySchema = z.object({
   durationMinutes: z
     .number({ error: 'La durée est requise' })
     .min(1, 'La durée doit être supérieure à 0'),
-  priceFromEur: z
+  priceEur: z
     .number({ error: 'Le prix est requis' })
     .min(0, 'Le prix doit être positif'),
   prerequisites: prerequisitesSchema,

@@ -2,7 +2,7 @@ export interface ActivityItemEntity {
   id: string;
   title: string;
   type: string;
-  priceFromEur: number;
+  priceEur: number;
   durationMinutes: number;
   difficulty: string;
   centerName: string;

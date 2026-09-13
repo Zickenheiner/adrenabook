@@ -154,7 +154,7 @@ describe('ActivityRepository', () => {
       type: 'bungee',
       difficulty: 'beginner',
       durationMinutes: 45,
-      priceFromEur: 120,
+      priceEur: 120,
       prerequisites: { minAge: 18, medicalCertificateRequired: false },
       includedEquipment: ['harnais'],
       photoFileIds: ['file_1'],
@@ -235,7 +235,7 @@ describe('ActivityRepository', () => {
       type: 'canyoning',
       difficulty: 'intermediate',
       durationMinutes: 180,
-      priceFromEur: 95,
+      priceEur: 95,
       prerequisites: { minAge: 16, medicalCertificateRequired: true },
       includedEquipment: ['combinaison', 'casque'],
       photoFileIds: ['file_1', 'file_2'],
@@ -301,7 +301,7 @@ describe('ActivityRepository', () => {
       expect(result!.type).toBe('canyoning');
       expect(result!.difficulty).toBe('intermediate');
       expect(result!.durationMinutes).toBe(180);
-      expect(result!.priceFromEur).toBe(95);
+      expect(result!.priceEur).toBe(95);
       expect(result!.prerequisites).toEqual(doc.prerequisites);
       expect(result!.includedEquipment).toEqual(['combinaison', 'casque']);
       expect(result!.videos).toEqual([]);
@@ -511,7 +511,7 @@ describe('ActivityRepository', () => {
       } as SearchActivitiesQueryDto);
 
       expect(lastPipelines().count[0]).toEqual({
-        $match: { status: 'published', priceFromEur: { $gte: 50 } },
+        $match: { status: 'published', priceEur: { $gte: 50 } },
       });
     });
 
@@ -523,7 +523,7 @@ describe('ActivityRepository', () => {
       } as SearchActivitiesQueryDto);
 
       expect(lastPipelines().count[0]).toEqual({
-        $match: { status: 'published', priceFromEur: { $lte: 300 } },
+        $match: { status: 'published', priceEur: { $lte: 300 } },
       });
     });
 
@@ -538,7 +538,7 @@ describe('ActivityRepository', () => {
       expect(lastPipelines().count[0]).toEqual({
         $match: {
           status: 'published',
-          priceFromEur: { $gte: 50, $lte: 300 },
+          priceEur: { $gte: 50, $lte: 300 },
         },
       });
     });
@@ -574,7 +574,7 @@ describe('ActivityRepository', () => {
       } as SearchActivitiesQueryDto);
 
       expect(lastPipelines().count).toContainEqual({
-        $sort: { priceFromEur: 1 },
+        $sort: { priceEur: 1 },
       });
     });
 
@@ -586,7 +586,7 @@ describe('ActivityRepository', () => {
       } as SearchActivitiesQueryDto);
 
       expect(lastPipelines().count).toContainEqual({
-        $sort: { priceFromEur: -1 },
+        $sort: { priceEur: -1 },
       });
     });
 
@@ -609,7 +609,7 @@ describe('ActivityRepository', () => {
             _id: docId,
             title: 'Plongee Marseille',
             type: 'diving',
-            priceFromEur: 70,
+            priceEur: 70,
             durationMinutes: 90,
             difficulty: 'beginner',
             centerName: 'Adrena Sud',
@@ -625,7 +625,7 @@ describe('ActivityRepository', () => {
         id: docId.toString(),
         title: 'Plongee Marseille',
         type: 'diving',
-        priceFromEur: 70,
+        priceEur: 70,
         durationMinutes: 90,
         difficulty: 'beginner',
         centerName: 'Adrena Sud',
@@ -641,7 +641,7 @@ describe('ActivityRepository', () => {
             _id: 'a1',
             title: 'Sans centre',
             type: 'bungee',
-            priceFromEur: 120,
+            priceEur: 120,
             durationMinutes: 30,
             difficulty: 'beginner',
           },

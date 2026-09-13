@@ -74,7 +74,7 @@ export default function ActivityHeader({ activity }: Props) {
 
       <div className="flex items-baseline gap-2 pt-2">
         <span className="text-3xl font-bold text-primary">
-          {activity.priceFromEur.toLocaleString('fr-FR', {
+          {activity.priceEur.toLocaleString('fr-FR', {
             style: 'currency',
             currency: 'EUR',
           })}

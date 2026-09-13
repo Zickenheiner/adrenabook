@@ -52,7 +52,7 @@ export default function ActivityForm({
       type: '',
       difficulty: 'beginner',
       durationMinutes: 60,
-      priceFromEur: 0,
+      priceEur: 0,
       prerequisites: {
         minAge: 18,
         medicalCertificateRequired: false,
@@ -223,7 +223,7 @@ export default function ActivityForm({
 
             <FormField
               control={form.control}
-              name="priceFromEur"
+              name="priceEur"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Prix (€)</FormLabel>

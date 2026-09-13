@@ -12,7 +12,7 @@ export interface CreateActivityRequestDto {
   type: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: ActivityPrerequisitesDto;
   includedEquipment: string[];
   photoFileIds: string[];
@@ -37,7 +37,7 @@ export interface ActivityResponseDto {
   type: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: ActivityPrerequisitesDto;
   includedEquipment: string[];
   photoFileIds: string[];
