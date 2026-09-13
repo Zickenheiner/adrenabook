@@ -1,4 +1,6 @@
-import { MapPin, Clock, Star } from 'lucide-react';
+import routes from '@/core/constants/routes';
+import { Link } from 'react-router-dom';
+import { Building2, Clock, MapPin, Star } from 'lucide-react';
 import { Badge } from '@/core/components/ui/badge';
 import { cn } from '@/core/utils/cn';
 import type { ActivityDetailEntity } from '../../domain/entities/activity-detail.entity';
@@ -70,6 +72,15 @@ export default function ActivityHeader({ activity }: Props) {
           <MapPin className="h-4 w-4" />
           <span>{activity.center.location.address}</span>
         </div>
+        {activity.center.id && (
+          <Link
+            to={routes.centerDetail.replace(':id', activity.center.id)}
+            className="flex items-center gap-1 font-medium text-link underline-offset-4 hover:underline"
+          >
+            <Building2 className="h-4 w-4" aria-hidden="true" />
+            {activity.center.name || 'Voir le centre'}
+          </Link>
+        )}
       </div>
 
       <div className="flex items-baseline gap-2 pt-2">
