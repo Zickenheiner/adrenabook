@@ -2,18 +2,21 @@ import {
   CreateSlotsDto,
   CreateSlotsResponseDto,
   ProSlotMonthResponseDto,
+  UpdateSlotDto,
 } from '@features/slot/domains/dtos/slot.dto';
 import { ISlotService } from '@features/slot/interfaces/services/slot.iservice';
 import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -125,5 +128,64 @@ export class SlotController {
     }
 
     return this.slotService.findByActivityIdForOwner(id, user.sub, target);
+  }
+  @ApiOperation({
+    summary: 'Modifier un créneau (US-19)',
+    description:
+      "Modifie la date/heure ou le nombre de places d'un créneau. Un créneau " +
+      'déjà réservé ne peut pas être déplacé, et sa capacité ne peut pas ' +
+      'descendre sous le nombre de places déjà prises.',
+  })
+  @ApiParam({ name: 'id', description: "L'identifiant de l'activité" })
+  @ApiParam({ name: 'slotId', description: "L'identifiant du créneau" })
+  @ApiBody({ type: UpdateSlotDto })
+  @ApiResponse({ status: 200, description: 'Créneau modifié', type: Boolean })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès réservé au propriétaire' })
+  @ApiResponse({ status: 404, description: 'Activité ou créneau introuvable' })
+  @ApiResponse({
+    status: 409,
+    description: 'Créneau réservé : déplacement ou réduction impossible',
+  })
+  @Patch(':id/slots/:slotId')
+  @HttpCode(HttpStatus.OK)
+  async updateSlot(
+    @Param('id') id: string,
+    @Param('slotId') slotId: string,
+    @Body() dto: UpdateSlotDto,
+    @Req() req: { user: { sub: string; role: string } },
+  ): Promise<boolean> {
+    const user = req.user;
+    if (!user || user.role !== 'professionnel') {
+      throw new ForbiddenException('Accès réservé aux professionnels');
+    }
+    return this.slotService.updateSlotForOwner(id, slotId, user.sub, dto);
+  }
+
+  @ApiOperation({
+    summary: 'Supprimer un créneau (US-19)',
+    description:
+      "Supprime un créneau de l'activité. Refusé tant qu'il porte des " +
+      'réservations actives.',
+  })
+  @ApiParam({ name: 'id', description: "L'identifiant de l'activité" })
+  @ApiParam({ name: 'slotId', description: "L'identifiant du créneau" })
+  @ApiResponse({ status: 200, description: 'Créneau supprimé', type: Boolean })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès réservé au propriétaire' })
+  @ApiResponse({ status: 404, description: 'Activité ou créneau introuvable' })
+  @ApiResponse({ status: 409, description: 'Créneau réservé' })
+  @Delete(':id/slots/:slotId')
+  @HttpCode(HttpStatus.OK)
+  async deleteSlot(
+    @Param('id') id: string,
+    @Param('slotId') slotId: string,
+    @Req() req: { user: { sub: string; role: string } },
+  ): Promise<boolean> {
+    const user = req.user;
+    if (!user || user.role !== 'professionnel') {
+      throw new ForbiddenException('Accès réservé aux professionnels');
+    }
+    return this.slotService.deleteSlotForOwner(id, slotId, user.sub);
   }
 }

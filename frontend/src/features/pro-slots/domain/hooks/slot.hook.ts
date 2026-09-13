@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import SlotRepositoryImpl from '../../data/repositories/slot.repository.impl';
-import type { CreateSlotRequestDto } from '../../data/dtos/slot.dto';
+import type {
+  CreateSlotRequestDto,
+  UpdateSlotRequestDto,
+} from '../../data/dtos/slot.dto';
 
 const repository = new SlotRepositoryImpl();
 
@@ -54,5 +57,46 @@ export function useCreateSlots(activityId: string) {
     createSlotsIsPending: isPending,
     createSlotsError: error,
     createSlotsResult: data,
+  };
+}
+
+/**
+ * Modification et suppression d'un creneau.
+ *
+ * Toute ecriture invalide l'ensemble des mois de l'activite : un creneau
+ * deplace change de mois, et disparaitrait autrement des deux caches.
+ */
+export function useSlotMutations(activityId: string) {
+  const queryClient = useQueryClient();
+
+  const invalidate = () =>
+    queryClient.invalidateQueries({
+      queryKey: QUERY_KEYS.allSlots(activityId),
+    });
+
+  const update = useMutation({
+    mutationFn: ({
+      slotId,
+      data,
+    }: {
+      slotId: string;
+      data: UpdateSlotRequestDto;
+    }) => repository.updateSlot(activityId, slotId, data),
+    onSuccess: () => void invalidate(),
+  });
+
+  const remove = useMutation({
+    mutationFn: (slotId: string) => repository.deleteSlot(activityId, slotId),
+    onSuccess: () => void invalidate(),
+  });
+
+  return {
+    updateSlot: update.mutate,
+    updateSlotIsPending: update.isPending,
+    updateSlotError: update.error,
+    resetUpdateSlot: update.reset,
+    deleteSlot: remove.mutate,
+    deleteSlotIsPending: remove.isPending,
+    deleteSlotError: remove.error,
   };
 }

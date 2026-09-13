@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -13,8 +14,8 @@ import {
 import {
   CreateSlotsDto,
   CreateSlotsResponseDto,
-  ProSlotListItemDto,
   ProSlotMonthResponseDto,
+  UpdateSlotDto,
   RecurrenceDto,
   SlotConflictDto,
   SlotDetailResponseDto,
@@ -98,6 +99,98 @@ export class SlotService implements ISlotService {
       })),
       availableMonths,
     };
+  }
+
+  /**
+   * Verifie que le creneau appartient bien a l'activite du professionnel, et
+   * renvoie le nombre de reservations encore actives dessus.
+   */
+  private async assertOwnedSlot(
+    activityId: string,
+    slotId: string,
+    userId: string,
+  ): Promise<number> {
+    const ownership =
+      await this.slotRepository.findActivityOwnership(activityId);
+    if (!ownership) {
+      throw new NotFoundException('Activité introuvable');
+    }
+    if (ownership.ownerId !== userId) {
+      throw new ForbiddenException(
+        'Cette activité appartient à un autre professionnel',
+      );
+    }
+
+    const slot = await this.slotRepository.findById(slotId);
+    // Un creneau d'une autre activite n'a pas a etre distinguable d'un
+    // creneau inexistant.
+    if (!slot || slot.getActivityId().toString() !== activityId) {
+      throw new NotFoundException('Créneau introuvable');
+    }
+
+    return this.slotRepository.countActiveBookings(slotId);
+  }
+
+  async updateSlotForOwner(
+    activityId: string,
+    slotId: string,
+    userId: string,
+    changes: UpdateSlotDto,
+  ): Promise<boolean> {
+    const activeBookings = await this.assertOwnedSlot(
+      activityId,
+      slotId,
+      userId,
+    );
+
+    // Deplacer un creneau deja reserve imposerait aux clients une date
+    // qu'ils n'ont pas choisie.
+    if (changes.startAt !== undefined && activeBookings > 0) {
+      throw new ConflictException(
+        `Ce créneau ne peut plus être déplacé : ${activeBookings} réservation${
+          activeBookings > 1 ? 's' : ''
+        } en cours.`,
+      );
+    }
+
+    // Reduire la capacite sous les places deja prises rendrait le creneau
+    // incoherent avec ses propres reservations.
+    if (
+      changes.maxParticipants !== undefined &&
+      changes.maxParticipants < activeBookings
+    ) {
+      throw new ConflictException(
+        `Impossible de descendre à ${changes.maxParticipants} place${
+          changes.maxParticipants > 1 ? 's' : ''
+        } : ${activeBookings} sont déjà réservées.`,
+      );
+    }
+
+    return this.slotRepository.updateSlot(slotId, changes);
+  }
+
+  async deleteSlotForOwner(
+    activityId: string,
+    slotId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const activeBookings = await this.assertOwnedSlot(
+      activityId,
+      slotId,
+      userId,
+    );
+
+    // Rien ne previent ni ne rembourse les clients aujourd'hui : supprimer
+    // leur ferait perdre leur place sans qu'ils en soient informes.
+    if (activeBookings > 0) {
+      throw new ConflictException(
+        `Ce créneau ne peut pas être supprimé : ${activeBookings} réservation${
+          activeBookings > 1 ? 's' : ''
+        } en cours.`,
+      );
+    }
+
+    return this.slotRepository.deleteSlot(slotId);
   }
 
   /** Source unique du calcul de remainingSeats, partagee par GET /slots/:id */

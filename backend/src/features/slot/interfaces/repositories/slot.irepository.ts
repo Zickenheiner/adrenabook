@@ -1,4 +1,7 @@
-import { CreateSlotsDto } from '@features/slot/domains/dtos/slot.dto';
+import {
+  CreateSlotsDto,
+  UpdateSlotDto,
+} from '@features/slot/domains/dtos/slot.dto';
 import { Prerequisites } from '@features/activity/domains/schemas/activity.schema';
 import { SlotEntity } from '@features/slot/domains/entities/slot.entity';
 
@@ -38,6 +41,10 @@ export interface ISlotRepository {
   findActivityConditions(
     activityId: string,
   ): Promise<ActivityConditions | null>;
+  /** false si le creneau n'existe pas */
+  updateSlot(slotId: string, changes: UpdateSlotDto): Promise<boolean>;
+  /** false si le creneau n'existe pas */
+  deleteSlot(slotId: string): Promise<boolean>;
   createMany(
     activityId: string,
     dto: CreateSlotsDto,

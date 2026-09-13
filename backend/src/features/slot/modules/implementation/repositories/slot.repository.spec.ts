@@ -45,6 +45,8 @@ describe('SlotRepository', () => {
     slotModel.findById = jest.fn();
     slotModel.find = jest.fn();
     slotModel.aggregate = jest.fn();
+    slotModel.findByIdAndUpdate = jest.fn();
+    slotModel.findByIdAndDelete = jest.fn();
 
     bookingModel = { countDocuments: jest.fn() };
     activityModel = { findById: jest.fn() };
@@ -259,6 +261,51 @@ describe('SlotRepository', () => {
         durationMinutes: 90,
         priceEur: 45,
       });
+    });
+  });
+
+  describe('updateSlot() / deleteSlot()', () => {
+    it('should refuse an invalid slot id without querying', async () => {
+      expect(await repository.updateSlot('bad-id', {})).toBe(false);
+      expect(await repository.deleteSlot('bad-id')).toBe(false);
+      expect(slotModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(slotModel.findByIdAndDelete).not.toHaveBeenCalled();
+    });
+
+    it('should only write the fields that were provided', async () => {
+      slotModel.findByIdAndUpdate.mockReturnValue(selectChain({ _id: 'a' }));
+
+      await repository.updateSlot(VALID_ID, { maxParticipants: 12 });
+
+      expect(slotModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        VALID_ID,
+        { maxParticipants: 12 },
+        { new: true },
+      );
+    });
+
+    it('should convert startAt into a Date', async () => {
+      slotModel.findByIdAndUpdate.mockReturnValue(selectChain({ _id: 'a' }));
+
+      await repository.updateSlot(VALID_ID, {
+        startAt: '2026-07-01T09:00:00.000Z',
+      });
+
+      const update = slotModel.findByIdAndUpdate.mock.calls[0][1] as {
+        startAt: Date;
+      };
+      expect(update.startAt).toBeInstanceOf(Date);
+    });
+
+    it('should do nothing when no field changes', async () => {
+      expect(await repository.updateSlot(VALID_ID, {})).toBe(true);
+      expect(slotModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should report a missing slot', async () => {
+      slotModel.findByIdAndDelete.mockReturnValue(selectChain(null));
+
+      expect(await repository.deleteSlot(VALID_ID)).toBe(false);
     });
   });
 

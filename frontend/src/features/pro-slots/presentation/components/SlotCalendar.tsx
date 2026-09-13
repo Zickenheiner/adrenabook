@@ -3,7 +3,18 @@ import { CalendarX, AlertCircle, Loader2 } from 'lucide-react';
 import { fr } from 'date-fns/locale';
 import { motion } from 'motion/react';
 import { Calendar } from '@/core/components/ui/calendar';
-import { useProSlots } from '../../domain/hooks/slot.hook';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/core/components/ui/alert-dialog';
+import { useProSlots, useSlotMutations } from '../../domain/hooks/slot.hook';
+import SlotEditDialog from './SlotEditDialog';
 import type { ProSlotEntity } from '../../domain/entities/slot.entity';
 import SlotCard from './SlotCard';
 
@@ -56,6 +67,23 @@ export default function SlotCalendar({ activityId, focusMonth }: Props) {
     activityId,
     monthKey,
   );
+
+  const [editing, setEditing] = useState<ProSlotEntity | null>(null);
+  const [deleting, setDeleting] = useState<ProSlotEntity | null>(null);
+  const {
+    updateSlot,
+    updateSlotIsPending,
+    updateSlotError,
+    resetUpdateSlot,
+    deleteSlot,
+    deleteSlotIsPending,
+    deleteSlotError,
+  } = useSlotMutations(activityId);
+
+  const closeEdit = () => {
+    setEditing(null);
+    resetUpdateSlot();
+  };
 
   // Le calendrier raisonne par jour, la liste par horaire.
   const slotsByDay = useMemo(() => {
@@ -148,12 +176,85 @@ export default function SlotCalendar({ activityId, focusMonth }: Props) {
               className="space-y-2"
             >
               {selectedSlots.map((slot, index) => (
-                <SlotCard key={slot.id} slot={slot} index={index} />
+                <SlotCard
+                  key={slot.id}
+                  slot={slot}
+                  index={index}
+                  onEdit={setEditing}
+                  onDelete={setDeleting}
+                />
               ))}
             </motion.div>
           </>
         )}
       </div>
+
+      <SlotEditDialog
+        slot={editing}
+        isPending={updateSlotIsPending}
+        error={updateSlotError}
+        onClose={closeEdit}
+        onSubmit={(data) =>
+          editing &&
+          updateSlot(
+            { slotId: editing.id, data },
+            { onSuccess: () => closeEdit() },
+          )
+        }
+      />
+
+      <AlertDialog
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce créneau ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleting && formatDayLabel(deleting.startAt)} à{' '}
+              {deleting?.startAt.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+              . Cette action est définitive.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {deleteSlotError != null && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>
+                {(deleteSlotError as Error).message ||
+                  'Le créneau n’a pas pu être supprimé.'}
+              </span>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteSlotIsPending}
+              onClick={(event) => {
+                // On garde la boite ouverte : un refus du serveur doit rester
+                // lisible plutot que de disparaitre avec elle.
+                event.preventDefault();
+                if (!deleting) return;
+                deleteSlot(deleting.id, {
+                  onSuccess: () => setDeleting(null),
+                });
+              }}
+            >
+              {deleteSlotIsPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

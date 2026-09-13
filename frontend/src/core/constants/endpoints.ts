@@ -37,6 +37,8 @@ const endpoints = {
     create: (activityId: string) => `/pro/activities/${activityId}/slots`,
     list: (activityId: string, month: string) =>
       `/pro/activities/${activityId}/slots?month=${month}`,
+    byId: (activityId: string, slotId: string) =>
+      `/pro/activities/${activityId}/slots/${slotId}`,
   },
   uploads: {
     create: '/uploads',

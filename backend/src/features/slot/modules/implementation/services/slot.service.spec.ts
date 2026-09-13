@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
@@ -65,6 +66,8 @@ describe('SlotService', () => {
       findActivityConditions: jest.fn(),
       findByActivityIdAndMonth: jest.fn(),
       findMonthsWithSlots: jest.fn(),
+      updateSlot: jest.fn(),
+      deleteSlot: jest.fn(),
       createMany: jest.fn(),
     };
 
@@ -244,6 +247,137 @@ describe('SlotService', () => {
       await expect(
         service.findByActivityIdForOwner(activityId, userId, month),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('updateSlotForOwner() / deleteSlotForOwner()', () => {
+    const slotId = '68b4d59919d9b7a94b4fde21';
+
+    const ownedSlot = (bookings: number) => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: userId,
+      });
+      slotRepository.findById.mockResolvedValue(buildSlot({ id: slotId }));
+      slotRepository.countActiveBookings.mockResolvedValue(bookings);
+      slotRepository.updateSlot.mockResolvedValue(true);
+      slotRepository.deleteSlot.mockResolvedValue(true);
+    };
+
+    it('should update a free slot', async () => {
+      ownedSlot(0);
+
+      const result = await service.updateSlotForOwner(
+        activityId,
+        slotId,
+        userId,
+        { startAt: '2026-07-01T09:00:00.000Z', maxParticipants: 12 },
+      );
+
+      expect(result).toBe(true);
+      expect(slotRepository.updateSlot).toHaveBeenCalledWith(slotId, {
+        startAt: '2026-07-01T09:00:00.000Z',
+        maxParticipants: 12,
+      });
+    });
+
+    it('should refuse to move a booked slot', async () => {
+      ownedSlot(3);
+
+      // Les clients ont reserve une date precise : la deplacer leur imposerait
+      // un creneau qu'ils n'ont pas choisi.
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          startAt: '2026-07-01T09:00:00.000Z',
+        }),
+      ).rejects.toThrow(ConflictException);
+      expect(slotRepository.updateSlot).not.toHaveBeenCalled();
+    });
+
+    it('should refuse to shrink capacity below the booked seats', async () => {
+      ownedSlot(5);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 4,
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should allow raising the capacity of a booked slot', async () => {
+      ownedSlot(5);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 20,
+        }),
+      ).resolves.toBe(true);
+    });
+
+    it('should allow keeping the capacity equal to the booked seats', async () => {
+      ownedSlot(5);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 5,
+        }),
+      ).resolves.toBe(true);
+    });
+
+    it('should delete a free slot', async () => {
+      ownedSlot(0);
+
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).resolves.toBe(true);
+      expect(slotRepository.deleteSlot).toHaveBeenCalledWith(slotId);
+    });
+
+    it('should refuse to delete a booked slot', async () => {
+      ownedSlot(1);
+
+      // Rien ne previent ni ne rembourse les clients : ils perdraient leur
+      // place sans le savoir.
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).rejects.toThrow(ConflictException);
+      expect(slotRepository.deleteSlot).not.toHaveBeenCalled();
+    });
+
+    it('should throw a ForbiddenException for another professional', async () => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: 'another-owner',
+      });
+
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).rejects.toThrow(ForbiddenException);
+      expect(slotRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it('should throw a NotFoundException for a slot of another activity', async () => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: userId,
+      });
+      slotRepository.findById.mockResolvedValue(
+        buildSlot({ id: slotId, activityId: 'another-activity' }),
+      );
+
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw a NotFoundException when the slot does not exist', async () => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: userId,
+      });
+      slotRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 4,
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

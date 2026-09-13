@@ -19,7 +19,10 @@ import {
   ProfessionalCenterDocument,
 } from '@features/professional/domains/schemas/professional-center.schema';
 import { Model } from 'mongoose';
-import { CreateSlotsDto } from '@features/slot/domains/dtos/slot.dto';
+import {
+  CreateSlotsDto,
+  UpdateSlotDto,
+} from '@features/slot/domains/dtos/slot.dto';
 import { SlotEntity } from '@features/slot/domains/entities/slot.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
@@ -146,6 +149,36 @@ export class SlotRepository implements ISlotRepository {
       priceEur: activity.priceEur,
       prerequisites: activity.prerequisites,
     };
+  }
+
+  async updateSlot(slotId: string, changes: UpdateSlotDto): Promise<boolean> {
+    if (!mongoose.Types.ObjectId.isValid(slotId)) {
+      return false;
+    }
+
+    const update: Record<string, unknown> = {};
+    if (changes.startAt !== undefined) {
+      update.startAt = new Date(changes.startAt);
+    }
+    if (changes.maxParticipants !== undefined) {
+      update.maxParticipants = changes.maxParticipants;
+    }
+    if (Object.keys(update).length === 0) {
+      return true;
+    }
+
+    const updated = await this.slotModel
+      .findByIdAndUpdate(slotId, update, { new: true })
+      .exec();
+    return !!updated;
+  }
+
+  async deleteSlot(slotId: string): Promise<boolean> {
+    if (!mongoose.Types.ObjectId.isValid(slotId)) {
+      return false;
+    }
+    const deleted = await this.slotModel.findByIdAndDelete(slotId).exec();
+    return !!deleted;
   }
 
   async createMany(

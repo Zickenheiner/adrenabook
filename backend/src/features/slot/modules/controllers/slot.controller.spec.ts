@@ -37,6 +37,8 @@ describe('SlotController', () => {
     const slotServiceMock: jest.Mocked<ISlotService> = {
       findDetailById: jest.fn(),
       findByActivityIdForOwner: jest.fn(),
+      updateSlotForOwner: jest.fn(),
+      deleteSlotForOwner: jest.fn(),
       createSlots: jest.fn(),
     };
 
@@ -56,6 +58,65 @@ describe('SlotController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('updateSlot() / deleteSlot()', () => {
+    const slotId = '68b4d59919d9b7a94b4fde99';
+
+    it('should forward the changes for a professional user', async () => {
+      slotService.updateSlotForOwner.mockResolvedValue(true);
+
+      const result = await controller.updateSlot(
+        activityId,
+        slotId,
+        { maxParticipants: 12 },
+        buildRequest(),
+      );
+
+      expect(result).toBe(true);
+      expect(slotService.updateSlotForOwner).toHaveBeenCalledWith(
+        activityId,
+        slotId,
+        proUserId,
+        { maxParticipants: 12 },
+      );
+    });
+
+    it('should forward the deletion for a professional user', async () => {
+      slotService.deleteSlotForOwner.mockResolvedValue(true);
+
+      const result = await controller.deleteSlot(
+        activityId,
+        slotId,
+        buildRequest(),
+      );
+
+      expect(result).toBe(true);
+      expect(slotService.deleteSlotForOwner).toHaveBeenCalledWith(
+        activityId,
+        slotId,
+        proUserId,
+      );
+    });
+
+    it('should refuse a non professional role on update', async () => {
+      await expect(
+        controller.updateSlot(
+          activityId,
+          slotId,
+          {},
+          buildRequest('aventurier'),
+        ),
+      ).rejects.toThrow(ForbiddenException);
+      expect(slotService.updateSlotForOwner).not.toHaveBeenCalled();
+    });
+
+    it('should refuse a non professional role on delete', async () => {
+      await expect(
+        controller.deleteSlot(activityId, slotId, buildRequest('aventurier')),
+      ).rejects.toThrow(ForbiddenException);
+      expect(slotService.deleteSlotForOwner).not.toHaveBeenCalled();
+    });
   });
 
   describe('createSlots()', () => {

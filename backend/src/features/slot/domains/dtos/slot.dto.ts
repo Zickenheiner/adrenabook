@@ -71,6 +71,27 @@ export class CreateSlotsDto {
   instructorIds: string[];
 }
 
+export class UpdateSlotDto {
+  @ApiProperty({
+    description: 'Nouvelle date/heure de debut (ISO 8601)',
+    example: '2026-06-15T09:00:00.000Z',
+    required: false,
+  })
+  @IsOptional()
+  @IsISO8601()
+  startAt?: string;
+
+  @ApiProperty({
+    description: 'Nouveau nombre maximum de participants',
+    example: 12,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxParticipants?: number;
+}
+
 export class SlotItemDto {
   @ApiProperty({
     description: 'Slot ID',

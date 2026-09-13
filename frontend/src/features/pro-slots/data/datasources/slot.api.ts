@@ -5,6 +5,7 @@ import type {
   CreateSlotRequestDto,
   CreateSlotsResponseDto,
   ProSlotMonthResponseDto,
+  UpdateSlotRequestDto,
 } from '../dtos/slot.dto';
 
 class SlotApi {
@@ -26,6 +27,24 @@ class SlotApi {
       url: endpoints.proSlots.create(activityId),
       method: methods.POST,
       data,
+    });
+  }
+  async updateSlot(
+    activityId: string,
+    slotId: string,
+    data: UpdateSlotRequestDto,
+  ): Promise<boolean> {
+    return request<boolean>({
+      url: endpoints.proSlots.byId(activityId, slotId),
+      method: methods.PATCH,
+      data,
+    });
+  }
+
+  async deleteSlot(activityId: string, slotId: string): Promise<boolean> {
+    return request<boolean>({
+      url: endpoints.proSlots.byId(activityId, slotId),
+      method: methods.DELETE,
     });
   }
 }

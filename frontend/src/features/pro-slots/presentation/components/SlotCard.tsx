@@ -1,7 +1,21 @@
 import { motion } from 'motion/react';
 import { Card, CardContent } from '@/core/components/ui/card';
 import { Badge } from '@/core/components/ui/badge';
-import { Calendar, Clock, Users } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Users,
+} from 'lucide-react';
+import { Button } from '@/core/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/core/components/ui/dropdown-menu';
 import type {
   ProSlotEntity,
   SlotSummaryEntity,
@@ -11,6 +25,9 @@ interface Props {
   /** Créneau minimal (résultat de création) ou créneau détaillé (liste existante) */
   slot: SlotSummaryEntity | ProSlotEntity;
   index?: number;
+  /** Actions reservees aux creneaux detailles : un resume n'est pas gerable. */
+  onEdit?: (slot: ProSlotEntity) => void;
+  onDelete?: (slot: ProSlotEntity) => void;
 }
 
 function isDetailedSlot(
@@ -42,7 +59,7 @@ function formatTime(date: Date): string {
   });
 }
 
-export default function SlotCard({ slot, index = 0 }: Props) {
+export default function SlotCard({ slot, index = 0, onEdit, onDelete }: Props) {
   const detailed = isDetailedSlot(slot) ? slot : null;
   const isFull = detailed ? detailed.remainingSeats === 0 : false;
 
@@ -90,6 +107,40 @@ export default function SlotCard({ slot, index = 0 }: Props) {
             <Badge variant="secondary" className="text-xs shrink-0">
               #{slot.id.slice(0, 8)}
             </Badge>
+          )}
+
+          {(onEdit || onDelete) && detailed && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                {/* Toujours visible : un menu au survol est inatteignable
+                    sur tactile. */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Actions du créneau</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onEdit && (
+                  <DropdownMenuItem onClick={() => onEdit(detailed)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Modifier
+                  </DropdownMenuItem>
+                )}
+                {onDelete && (
+                  <DropdownMenuItem
+                    onClick={() => onDelete(detailed)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </CardContent>
       </Card>
