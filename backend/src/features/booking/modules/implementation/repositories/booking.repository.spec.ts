@@ -748,43 +748,23 @@ describe('BookingRepository', () => {
       );
     });
 
-    it('should charge a 30 % deposit when no payment intent is provided', async () => {
-      bookingModel.findById
-        .mockReturnValueOnce(mockQuery(buildBooking()))
-        .mockReturnValueOnce(mockQuery({ slotId }));
+    it('settles the whole amount, leaving nothing due', async () => {
+      bookingModel.findById.mockReturnValue(
+        mockQuery(buildBooking({ totalEur: 99.99 })),
+      );
       bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
 
-      const result = await repository.confirmPayment(
-        bookingId.toString(),
-        {} as ConfirmPaymentDto,
-      );
+      const result = await repository.confirmPayment(bookingId.toString(), {
+        paymentIntentId: 'pi_1',
+      } as ConfirmPaymentDto);
 
-      expect(result.status).toBe('partial_paid');
-      expect(result.paidAmountEur).toBe(72);
-      expect(result.remainingAmountEur).toBe(168);
+      // Une reservation se regle en une fois : plus d'acompte ni de solde.
+      expect(result.status).toBe('confirmed');
+      expect(result.paidAmountEur).toBe(99.99);
+      expect(result.remainingAmountEur).toBe(0);
     });
 
-    it('should set a J-7 final payment due date for a partial payment', async () => {
-      bookingModel.findById
-        .mockReturnValueOnce(mockQuery(buildBooking()))
-        .mockReturnValueOnce(mockQuery({ slotId }));
-      bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
-
-      const result = await repository.confirmPayment(
-        bookingId.toString(),
-        {} as ConfirmPaymentDto,
-      );
-
-      expect(result.finalPaymentDueAt).toBe('2026-08-27T12:00:00.000Z');
-      const payload = bookingModel.findByIdAndUpdate.mock.calls[0][1] as {
-        finalPaymentDueAt?: Date;
-      };
-      expect(payload.finalPaymentDueAt).toEqual(
-        new Date('2026-08-27T12:00:00.000Z'),
-      );
-    });
-
-    it('should not expose a final payment due date for a full payment', async () => {
+    it('never sets a final payment due date', async () => {
       bookingModel.findById.mockReturnValue(mockQuery(buildBooking()));
       bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
 
@@ -793,21 +773,10 @@ describe('BookingRepository', () => {
       } as ConfirmPaymentDto);
 
       expect(result).not.toHaveProperty('finalPaymentDueAt');
-    });
-
-    it('should round the deposit to two decimals', async () => {
-      bookingModel.findById
-        .mockReturnValueOnce(mockQuery(buildBooking({ totalEur: 99.99 })))
-        .mockReturnValueOnce(mockQuery({ slotId }));
-      bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
-
-      const result = await repository.confirmPayment(
-        bookingId.toString(),
-        {} as ConfirmPaymentDto,
-      );
-
-      expect(result.paidAmountEur).toBe(30);
-      expect(result.remainingAmountEur).toBe(69.99);
+      const payload = bookingModel.findByIdAndUpdate.mock.calls[0][1] as {
+        finalPaymentDueAt?: Date;
+      };
+      expect(payload.finalPaymentDueAt).toBeUndefined();
     });
   });
 

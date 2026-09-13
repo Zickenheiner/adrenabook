@@ -27,8 +27,10 @@ const STATUS: Record<BookingStatus, { label: string; className: string }> = {
     label: 'En attente de paiement',
     className: 'bg-amber-500/10 text-amber-600 border-amber-500/30',
   },
+  // Statut hérité : plus aucune réservation n'est créée ainsi, mais celles
+  // enregistrées avant le passage au paiement intégral le portent encore.
   partial_paid: {
-    label: 'Acompte versé',
+    label: 'Partiellement réglée',
     className: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
   },
   confirmed: {
@@ -142,16 +144,6 @@ export default function MyBookingCard({ booking }: Props) {
                 currency: 'EUR',
               })}
             </span>
-            {booking.remainingAmountEur > 0 && (
-              <span className="text-muted-foreground">
-                — reste{' '}
-                {booking.remainingAmountEur.toLocaleString('fr-FR', {
-                  style: 'currency',
-                  currency: 'EUR',
-                })}{' '}
-                à régler
-              </span>
-            )}
           </div>
 
           <div className="flex flex-wrap gap-2 pt-1">

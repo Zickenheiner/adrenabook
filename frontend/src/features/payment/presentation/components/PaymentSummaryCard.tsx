@@ -9,7 +9,6 @@ import { CreditCard, Euro } from 'lucide-react';
 
 interface Props {
   bookingId: string;
-  depositPercent?: number;
   totalAmountEur: number;
 }
 
@@ -22,12 +21,8 @@ function formatEur(amount: number): string {
 
 export default function PaymentSummaryCard({
   bookingId,
-  depositPercent = 30,
   totalAmountEur,
 }: Props) {
-  const depositAmount = (totalAmountEur * depositPercent) / 100;
-  const remainingAmount = totalAmountEur - depositAmount;
-
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -40,19 +35,6 @@ export default function PaymentSummaryCard({
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Référence réservation</span>
           <span className="font-mono text-xs">{bookingId}</span>
-        </div>
-        <Separator />
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span>Acompte ({depositPercent}%)</span>
-            <span className="font-semibold text-primary">
-              {formatEur(depositAmount)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>Solde restant (dû à J-7)</span>
-            <span>{formatEur(remainingAmount)}</span>
-          </div>
         </div>
         <Separator />
         <div className="flex items-center justify-between font-semibold">

@@ -88,16 +88,11 @@ describe('MyBookingCard', () => {
     expect(screen.queryByRole('link', { name: /^Payer/i })).toBeNull();
   });
 
-  it('spells out what is left to pay after a deposit', () => {
-    renderCard(
-      booking({
-        status: 'partial_paid',
-        paidAmountEur: 72,
-        remainingAmountEur: 168,
-      }),
-    );
+  it('shows the amount settled at booking time', () => {
+    renderCard(booking());
 
-    expect(screen.getByText(/reste/i)).toBeTruthy();
-    expect(screen.getByText(/168/)).toBeTruthy();
+    // Une réservation se règle en une fois : il n'y a pas de solde à afficher.
+    expect(screen.getByText(/240,00/)).toBeTruthy();
+    expect(screen.queryByText(/reste/i)).toBeNull();
   });
 });

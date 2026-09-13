@@ -124,7 +124,7 @@ export class BookingController {
   @ApiOperation({
     summary: 'Confirmer le paiement Stripe (US-12)',
     description:
-      "Confirme le paiement d'une reservation via un PaymentIntent Stripe. Applique un acompte de 30% (partial_paid) ou le paiement total (confirmed). Idempotent : rejet si la reservation est deja payee.",
+      "Confirme le paiement d'une reservation. Le montant est regle en une fois : la reservation passe en confirmed. Idempotent : rejet si la reservation est deja payee.",
   })
   @ApiParam({
     name: 'id',

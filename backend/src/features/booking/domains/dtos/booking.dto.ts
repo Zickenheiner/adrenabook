@@ -206,13 +206,6 @@ export class ConfirmPaymentResponseDto {
     example: 84.0,
   })
   remainingAmountEur: number;
-
-  @ApiProperty({
-    description: 'Date limite pour le paiement du solde (ISO 8601, J-7)',
-    example: '2026-06-04T10:00:00.000Z',
-    required: false,
-  })
-  finalPaymentDueAt?: string;
 }
 
 export class CancelBookingDto {

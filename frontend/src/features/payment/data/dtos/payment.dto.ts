@@ -15,5 +15,4 @@ export interface ConfirmPaymentResponseDto {
   status: 'confirmed' | 'partial_paid';
   paidAmountEur: number;
   remainingAmountEur: number;
-  finalPaymentDueAt?: string; // ISO 8601, J-7
 }

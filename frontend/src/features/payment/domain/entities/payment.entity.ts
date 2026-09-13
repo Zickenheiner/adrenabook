@@ -3,5 +3,4 @@ export interface PaymentConfirmationEntity {
   status: 'confirmed' | 'partial_paid';
   paidAmountEur: number;
   remainingAmountEur: number;
-  finalPaymentDueAt?: Date;
 }

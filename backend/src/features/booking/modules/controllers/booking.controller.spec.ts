@@ -192,7 +192,6 @@ describe('BookingController', () => {
       status: 'partial_paid',
       paidAmountEur: 36,
       remainingAmountEur: 84,
-      finalPaymentDueAt: '2026-06-08T09:00:00.000Z',
     };
 
     it('should confirm the payment and return the payment summary', async () => {

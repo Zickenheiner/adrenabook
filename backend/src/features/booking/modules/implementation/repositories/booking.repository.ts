@@ -43,11 +43,9 @@ const StripeLib = require('stripe');
 /**
  * Regles metier de la reservation (US-11 a US-13).
  *
- * Un acompte de 30 % est preleve a la reservation, le solde etant regle sur
- * place au centre. La TVA de 20 % est le taux normal applicable aux activites
- * de loisir sportif encadre.
+ * La reservation se regle integralement au moment de la reservation. La TVA de
+ * 20 % est le taux normal applicable aux activites de loisir sportif encadre.
  */
-const DEPOSIT_RATE = 0.3;
 
 const VAT_RATE = 0.2;
 
@@ -110,7 +108,7 @@ export class BookingRepository implements IBookingRepository {
    * construction. Les annulees sont exclues, elles liberent leur place.
    *
    * La reservation expire au bout de 15 minutes, delai laisse au client pour
-   * regler l'acompte avant que les places ne soient rendues disponibles.
+   * regler avant que les places ne soient rendues disponibles.
    *
    * Les montants sont arrondis au centime a chaque etape, et non seulement sur
    * le total : c'est le montant affiche ligne par ligne au client qui doit
@@ -475,29 +473,10 @@ export class BookingRepository implements IBookingRepository {
       );
     }
 
-    const depositAmount =
-      Math.round(booking.totalEur * DEPOSIT_RATE * 100) / 100;
-    const remainingAmount =
-      Math.round((booking.totalEur - depositAmount) * 100) / 100;
-
-    const isFullPayment = dto.paymentIntentId !== undefined;
-    const paidAmount = isFullPayment ? booking.totalEur : depositAmount;
-    const remaining = isFullPayment ? 0 : remainingAmount;
-    const status: 'confirmed' | 'partial_paid' =
-      remaining === 0 ? 'confirmed' : 'partial_paid';
-
-    // J-7 final payment due date (only relevant for partial payments)
-    let finalPaymentDueAt: Date | undefined;
-    if (status === 'partial_paid') {
-      const slot = await this.bookingModel
-        .findById(id)
-        .select('slotId')
-        .populate('slotId')
-        .exec();
-      // Fallback: set 7 days from now if slot date not available
-      finalPaymentDueAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      void slot;
-    }
+    // Une reservation se regle en une fois : rien ne reste du.
+    const paidAmount = booking.totalEur;
+    const remaining = 0;
+    const status = 'confirmed' as const;
 
     await this.bookingModel
       .findByIdAndUpdate(
@@ -507,7 +486,6 @@ export class BookingRepository implements IBookingRepository {
           stripePaymentIntentId: dto.paymentIntentId,
           paidAmountEur: paidAmount,
           remainingAmountEur: remaining,
-          ...(finalPaymentDueAt && { finalPaymentDueAt }),
         },
         { new: true },
       )
@@ -518,9 +496,6 @@ export class BookingRepository implements IBookingRepository {
       status,
       paidAmountEur: paidAmount,
       remainingAmountEur: remaining,
-      ...(finalPaymentDueAt && {
-        finalPaymentDueAt: finalPaymentDueAt.toISOString(),
-      }),
     };
   }
 
