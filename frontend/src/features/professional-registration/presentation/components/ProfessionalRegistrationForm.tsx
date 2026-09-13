@@ -117,7 +117,16 @@ export default function ProfessionalRegistrationForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleValid, handleInvalid)}
+        onSubmit={(event) => {
+          // Seule la derniere etape envoie le dossier : une soumission
+          // declenchee autrement (touche Entree, bouton recycle par React)
+          // signalerait des champs que l'utilisateur n'a pas encore vus.
+          if (step < STEPS.length - 1) {
+            event.preventDefault();
+            return;
+          }
+          void form.handleSubmit(handleValid, handleInvalid)(event);
+        }}
         className="space-y-6"
         noValidate
       >
@@ -347,12 +356,12 @@ export default function ProfessionalRegistrationForm({
           )}
 
           {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={handleNext}>
+            <Button key="next" type="button" onClick={handleNext}>
               Suivant
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting}>
+            <Button key="submit" type="submit" disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
