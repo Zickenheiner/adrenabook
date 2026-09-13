@@ -4,6 +4,7 @@ import {
   Bell,
   Briefcase,
   Building2,
+  CalendarClock,
   ClipboardList,
   FileSpreadsheet,
   Heart,
@@ -34,6 +35,8 @@ import {
   DropdownMenuTrigger,
 } from '@/core/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/core/components/ui/avatar';
+import CenterSwitcher from './CenterSwitcher';
+import { useCenterStore } from '@/core/stores/center.store';
 import NavbarMobileDrawer from './NavbarMobileDrawer';
 
 const navLinks = [
@@ -52,6 +55,11 @@ const navLinks = [
 const proLinks = [
   { label: 'Tableau de bord', to: routes.proDashboard, icon: Briefcase },
   { label: 'Mes centres', to: routes.proCenterList, icon: Building2 },
+  {
+    label: 'Mes activités',
+    to: routes.proActivityList,
+    icon: CalendarClock,
+  },
   { label: 'Import CSV', to: routes.proCsvImport, icon: Upload },
   {
     label: 'Export comptable',
@@ -69,6 +77,7 @@ const adminLinks = [
 export default function Navbar() {
   const navigate = useNavigate();
   const user = getSessionUser();
+  const currentCenterId = useCenterStore((s) => s.currentCenterId);
   const roleLinks =
     user?.role === 'admin'
       ? adminLinks
@@ -76,7 +85,16 @@ export default function Navbar() {
         ? proLinks
         : [];
   const roleLabel = user?.role === 'admin' ? 'Administration' : 'Espace pro';
-  const canRegisterCenter = user?.role !== 'admin';
+  // Certaines entrees pro sont parametrees par le centre : sans centre
+  // courant, le lien resterait sur un ':centerId' litteral.
+  const resolveTo = (to: string) =>
+    to.includes(':centerId')
+      ? currentCenterId
+        ? to.replace(':centerId', currentCenterId)
+        : routes.proCenterList
+      : to;
+  const canRegisterCenter =
+    user?.role !== 'admin' && user?.role !== 'professionnel';
 
   const handleLogout = () => {
     clearTokens();
@@ -124,6 +142,7 @@ export default function Navbar() {
 
         {/* Desktop profile dropdown */}
         <div className="hidden md:flex items-center gap-2">
+          {user?.role === 'professionnel' && <CenterSwitcher />}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -187,7 +206,7 @@ export default function Navbar() {
                   {roleLinks.map(({ label, to, icon: Icon }) => (
                     <DropdownMenuItem key={to} asChild>
                       <Link
-                        to={to}
+                        to={resolveTo(to)}
                         className="flex cursor-pointer items-center gap-2"
                       >
                         <Icon className="h-4 w-4" />
@@ -214,7 +233,10 @@ export default function Navbar() {
           <NavbarMobileDrawer
             onLogout={handleLogout}
             navLinks={navLinks}
-            roleLinks={roleLinks}
+            roleLinks={roleLinks.map((link) => ({
+              ...link,
+              to: resolveTo(link.to),
+            }))}
             roleLabel={roleLabel}
           />
         </div>

@@ -1,10 +1,28 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { motion } from 'motion/react';
 import { AlertCircle, Building2, Inbox, Plus } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Skeleton } from '@/core/components/ui/skeleton';
 import routes from '@/core/constants/routes';
-import { useMyCenters } from '../../domain/hooks/pro-center.hook';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/core/components/ui/alert-dialog';
+import { ApiError } from '@/core/errors/api.error';
+import { useCenterStore } from '@/core/stores/center.store';
+import {
+  useDeleteCenter,
+  useMyCenters,
+} from '../../domain/hooks/pro-center.hook';
+import type { ProCenterEntity } from '../../domain/entities/pro-center.entity';
 import ProCenterCard from '../components/ProCenterCard';
 
 function ProCenterListSkeleton() {
@@ -42,6 +60,30 @@ function ProCenterListError() {
 export default function ProCenterListPage() {
   const navigate = useNavigate();
   const { centers, centersIsLoading, centersError } = useMyCenters();
+  const { deleteCenter, deleteCenterIsPending } = useDeleteCenter();
+  const { currentCenterId, setCurrentCenterId } = useCenterStore();
+  const [target, setTarget] = useState<ProCenterEntity | null>(null);
+
+  const confirmDelete = () => {
+    if (!target) return;
+    deleteCenter(target.id, {
+      onSuccess: () => {
+        // Le centre courant ne doit pas rester sur un centre disparu : les
+        // ecrans pro continueraient de s'y referer.
+        if (currentCenterId === target.id) setCurrentCenterId(null);
+        toast.success('Centre supprimé');
+        setTarget(null);
+      },
+      onError: (error) => {
+        toast.error(
+          error instanceof ApiError && error.status === 409
+            ? 'Supprimez d’abord les activités de ce centre.'
+            : 'La suppression a échoué.',
+        );
+        setTarget(null);
+      },
+    });
+  };
 
   if (centersIsLoading) return <ProCenterListSkeleton />;
   if (centersError) return <ProCenterListError />;
@@ -100,11 +142,42 @@ export default function ProCenterListPage() {
             className="grid grid-cols-1 gap-4 sm:grid-cols-2"
           >
             {centers.map((center) => (
-              <ProCenterCard key={center.id} center={center} />
+              <ProCenterCard
+                key={center.id}
+                center={center}
+                onDelete={setTarget}
+              />
             ))}
           </motion.div>
         )}
       </div>
+
+      <AlertDialog
+        open={!!target}
+        onOpenChange={(open) => !open && setTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce centre ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {target?.name} sera définitivement supprimé. Un centre qui porte
+              encore des activités ne peut pas être supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteCenterIsPending}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleteCenterIsPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

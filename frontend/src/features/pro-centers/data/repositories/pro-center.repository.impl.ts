@@ -13,6 +13,10 @@ class ProCenterRepositoryImpl implements ProCenterRepository {
     const dtos = await this.api.getMine();
     return (dtos ?? []).map((dto) => this.mapper.toEntity(dto));
   }
+
+  async delete(id: string): Promise<void> {
+    return this.api.delete(id);
+  }
 }
 
 export default ProCenterRepositoryImpl;

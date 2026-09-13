@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Building2, MapPin } from 'lucide-react';
+import { ArrowRight, Building2, MapPin, Trash2 } from 'lucide-react';
 import { Badge } from '@/core/components/ui/badge';
+import { Button } from '@/core/components/ui/button';
 import { Card } from '@/core/components/ui/card';
 import { cn } from '@/core/utils/cn';
 import routes from '@/core/constants/routes';
@@ -33,9 +34,10 @@ const STATUS_CONFIG: Record<
 
 interface Props {
   center: ProCenterEntity;
+  onDelete: (center: ProCenterEntity) => void;
 }
 
-export default function ProCenterCard({ center }: Props) {
+export default function ProCenterCard({ center, onDelete }: Props) {
   const status = STATUS_CONFIG[center.status];
   // Un centre encore en instruction n'a pas d'activites a gerer : l'API
   // refuserait la creation tant qu'il n'est pas approuve.
@@ -65,12 +67,26 @@ export default function ProCenterCard({ center }: Props) {
             )}
           </div>
         </div>
-        <Badge
-          variant="outline"
-          className={cn('shrink-0 text-xs', status?.className)}
-        >
-          {status?.label ?? center.status}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge variant="outline" className={cn('text-xs', status?.className)}>
+            {status?.label ?? center.status}
+          </Badge>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+            aria-label={`Supprimer ${center.name}`}
+            onClick={(e) => {
+              // La carte entiere est un lien : sans cela, supprimer
+              // naviguerait aussi vers les activites.
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(center);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {manageable ? (

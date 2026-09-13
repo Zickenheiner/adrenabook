@@ -10,6 +10,13 @@ class ProCenterApi {
       method: methods.GET,
     });
   }
+
+  async delete(id: string): Promise<void> {
+    await request<void>({
+      url: endpoints.professionalCenter.byId(id),
+      method: methods.DELETE,
+    });
+  }
 }
 
 export default ProCenterApi;

@@ -9,6 +9,7 @@ const endpoints = {
   professionalCenter: {
     create: '/professional-center',
     mine: '/professional-center/mine',
+    byId: (id: string) => `/professional-center/${id}`,
   },
   system: {
     health: '/health',
