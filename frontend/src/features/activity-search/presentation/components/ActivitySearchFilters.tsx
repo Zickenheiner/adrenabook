@@ -7,7 +7,6 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
-import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
 import {
   Select,
@@ -37,7 +36,7 @@ export default function ActivitySearchFilters({
   // Le rayon et le tri par distance se mesurent depuis la position : sans
   // elle, les proposer donnerait un filtre sans effet.
   const locationReady = geoStatus === 'granted';
-  const { register, handleSubmit, setValue, watch, reset } =
+  const { handleSubmit, setValue, watch, reset } =
     useForm<ActivitySearchFormData>({
       resolver: zodResolver(activitySearchSchema),
       defaultValues: {
@@ -133,20 +132,6 @@ export default function ActivitySearchFilters({
           }}
           className="w-full"
         />
-      </div>
-
-      {/* Dates */}
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-          Du
-        </Label>
-        <Input type="date" {...register('dateFrom')} className="w-full" />
-      </div>
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-          Au
-        </Label>
-        <Input type="date" {...register('dateTo')} className="w-full" />
       </div>
 
       {/* Rayon de recherche */}

@@ -30,8 +30,6 @@ export interface ActivitySearchParamsEntity {
   lat?: number;
   lng?: number;
   radiusKm?: number;
-  dateFrom?: string;
-  dateTo?: string;
   priceMin?: number;
   priceMax?: number;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
