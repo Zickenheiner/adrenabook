@@ -3,8 +3,9 @@ import {
   IsBoolean,
   IsEnum,
   IsNotEmpty,
-  IsString,
   IsObject,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class CsvImportDto {
@@ -40,6 +41,16 @@ export class CsvImportDto {
   })
   @IsBoolean()
   dryRun: boolean;
+
+  @ApiProperty({
+    description:
+      "Centre auquel rattacher les lignes importees. Facultatif si le professionnel n'en detient qu'un.",
+    example: '68b4d59919d9b7a94b4fde21',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  centerId?: string;
 }
 
 export class CsvImportErrorDto {

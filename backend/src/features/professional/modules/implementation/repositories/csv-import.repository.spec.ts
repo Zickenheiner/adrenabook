@@ -13,6 +13,14 @@ const chain = (value: unknown) => ({
 const PROFESSIONAL_ID = '68b4d59919d9b7a94b4fde10';
 
 describe('CsvImportRepository', () => {
+  const OUTCOME = {
+    status: 'completed',
+    rowsTotal: 0,
+    rowsSuccess: 0,
+    rowsErrors: 0,
+    errors: [],
+  };
+
   let repository: CsvImportRepository;
   let csvImportModel: jest.Mock & Record<string, jest.Mock>;
   let mapper: { toEntity: jest.Mock };
@@ -57,7 +65,7 @@ describe('CsvImportRepository', () => {
 
   describe('create()', () => {
     it('should persist the import job and map the saved document', async () => {
-      const result = await repository.create(dto, PROFESSIONAL_ID);
+      const result = await repository.create(dto, PROFESSIONAL_ID, OUTCOME);
 
       expect(saveMock).toHaveBeenCalledTimes(1);
       expect(mapper.toEntity).toHaveBeenCalledWith({ _id: 'import-1' });
@@ -65,7 +73,7 @@ describe('CsvImportRepository', () => {
     });
 
     it('should build the payload from the dto and the professional id', async () => {
-      await repository.create(dto, PROFESSIONAL_ID);
+      await repository.create(dto, PROFESSIONAL_ID, OUTCOME);
 
       const payload = csvImportModel.mock.calls[0][0] as {
         entityType: string;
@@ -84,8 +92,17 @@ describe('CsvImportRepository', () => {
       expect(payload.professionalId).toBe(PROFESSIONAL_ID);
     });
 
-    it('should initialise the counters and the queued status', async () => {
-      await repository.create(dto, PROFESSIONAL_ID);
+    it('should record the outcome of the run', async () => {
+      // Le traitement est synchrone : le job porte son resultat des sa
+      // creation, il n'y a plus de statut d'attente.
+      const outcome = {
+        status: 'completed',
+        rowsTotal: 3,
+        rowsSuccess: 2,
+        rowsErrors: 1,
+        errors: [{ line: 2, column: 'Prix', reason: 'Prix invalide' }],
+      };
+      await repository.create(dto, PROFESSIONAL_ID, outcome);
 
       const payload = csvImportModel.mock.calls[0][0] as {
         status: string;
@@ -94,15 +111,19 @@ describe('CsvImportRepository', () => {
         rowsErrors: number;
         errors: unknown[];
       };
-      expect(payload.status).toBe('queued');
-      expect(payload.rowsTotal).toBe(0);
-      expect(payload.rowsSuccess).toBe(0);
-      expect(payload.rowsErrors).toBe(0);
-      expect(payload.errors).toEqual([]);
+      expect(payload.status).toBe('completed');
+      expect(payload.rowsTotal).toBe(3);
+      expect(payload.rowsSuccess).toBe(2);
+      expect(payload.rowsErrors).toBe(1);
+      expect(payload.errors).toEqual(outcome.errors);
     });
 
     it('should accept the other entity types', async () => {
-      await repository.create({ ...dto, entityType: 'customers' }, 'pro-1');
+      await repository.create(
+        { ...dto, entityType: 'customers' },
+        'pro-1',
+        OUTCOME,
+      );
 
       const payload = csvImportModel.mock.calls[0][0] as {
         entityType: string;
@@ -113,16 +134,18 @@ describe('CsvImportRepository', () => {
     it('should return null when the save resolves to a falsy document', async () => {
       saveMock.mockResolvedValue(null);
 
-      await expect(repository.create(dto, PROFESSIONAL_ID)).resolves.toBeNull();
+      await expect(
+        repository.create(dto, PROFESSIONAL_ID, OUTCOME),
+      ).resolves.toBeNull();
       expect(mapper.toEntity).not.toHaveBeenCalled();
     });
 
     it('should propagate a save failure', async () => {
       saveMock.mockRejectedValue(new Error('validation failed'));
 
-      await expect(repository.create(dto, PROFESSIONAL_ID)).rejects.toThrow(
-        'validation failed',
-      );
+      await expect(
+        repository.create(dto, PROFESSIONAL_ID, OUTCOME),
+      ).rejects.toThrow('validation failed');
     });
   });
 

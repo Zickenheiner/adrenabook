@@ -9,6 +9,7 @@ import {
 } from '@/core/components/ui/card';
 import { cn } from '@/core/utils/cn';
 import { useCsvImport } from '../../domain/hooks/csv-import.hook';
+import { useCenterStore } from '@/core/stores/center.store';
 import CsvUploadStep, { type EntityType } from '../components/CsvUploadStep';
 import ColumnMappingStep from '../components/ColumnMappingStep';
 import ImportPreviewStep from '../components/ImportPreviewStep';
@@ -77,6 +78,7 @@ export default function CsvImportPage() {
   const [step, setStep] = useState<Step>('upload');
   const [entityType, setEntityType] = useState<EntityType>('slots');
   const [fileId, setFileId] = useState('');
+  const [columns, setColumns] = useState<string[]>([]);
   const [fileName, setFileName] = useState('');
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>(
     {},
@@ -87,11 +89,20 @@ export default function CsvImportPage() {
   const [finalResult, setFinalResult] = useState<CsvImportEntity | null>(null);
 
   const { importCsvAsync, importIsLoading } = useCsvImport();
+  // L'import ecrit dans un centre : celui que la barre de navigation designe.
+  const centerId =
+    useCenterStore((state) => state.currentCenterId) ?? undefined;
 
-  const handleUploadNext = (type: EntityType, fid: string, fname: string) => {
+  const handleUploadNext = (
+    type: EntityType,
+    fid: string,
+    fname: string,
+    csvColumns: string[],
+  ) => {
     setEntityType(type);
     setFileId(fid);
     setFileName(fname);
+    setColumns(csvColumns);
     setStep('mapping');
   };
 
@@ -105,6 +116,7 @@ export default function CsvImportPage() {
       entityType,
       fileId,
       columnMapping,
+      centerId,
       dryRun: true,
     };
     const result = await importCsvAsync(payload);
@@ -116,6 +128,7 @@ export default function CsvImportPage() {
       entityType,
       fileId,
       columnMapping,
+      centerId,
       dryRun: false,
     };
     const result = await importCsvAsync(payload);
@@ -172,6 +185,7 @@ export default function CsvImportPage() {
           {step === 'upload' && <CsvUploadStep onNext={handleUploadNext} />}
           {step === 'mapping' && (
             <ColumnMappingStep
+              columns={columns}
               entityType={entityType}
               fileName={fileName}
               onNext={handleMappingNext}

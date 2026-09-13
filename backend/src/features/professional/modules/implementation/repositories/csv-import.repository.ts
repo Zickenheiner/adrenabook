@@ -21,18 +21,23 @@ export class CsvImportRepository implements ICsvImportRepository {
   async create(
     dto: CsvImportDto,
     professionalId: string,
+    outcome: {
+      status: string;
+      rowsTotal: number;
+      rowsSuccess: number;
+      rowsErrors: number;
+      errors: { line: number; column: string; reason: string }[];
+    },
   ): Promise<CsvImportEntity | null> {
+    // Le traitement est synchrone : le job est enregistre avec son resultat,
+    // il n'y a pas de file d'attente a reprendre.
     const document = new this.csvImportModel({
       entityType: dto.entityType,
       fileId: dto.fileId,
       columnMapping: dto.columnMapping,
       dryRun: dto.dryRun,
       professionalId,
-      status: 'queued',
-      rowsTotal: 0,
-      rowsSuccess: 0,
-      rowsErrors: 0,
-      errors: [],
+      ...outcome,
     });
     const created = await document.save();
     return created ? this.csvImportMapper.toEntity(created) : null;

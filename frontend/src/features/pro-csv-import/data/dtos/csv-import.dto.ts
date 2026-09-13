@@ -3,6 +3,8 @@ export interface CsvImportRequestDto {
   fileId: string;
   columnMapping: Record<string, string>;
   dryRun: boolean;
+  /** Centre auquel rattacher les lignes importees. */
+  centerId?: string;
 }
 
 export interface CsvImportErrorDto {

@@ -38,7 +38,7 @@ export class UploadService implements IUploadService {
       )
     ) {
       throw new BadRequestException(
-        `Format non accepté : ${file.mimetype}. Formats autorisés : PDF, JPEG, PNG.`,
+        `Format non accepté : ${file.mimetype}. Formats autorisés : PDF, JPEG, PNG, CSV.`,
       );
     }
 
