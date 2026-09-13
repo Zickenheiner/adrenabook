@@ -22,6 +22,9 @@ const endpoints = {
   healthProfile: {
     update: '/users/me/health-profile',
   },
+  users: {
+    byId: (id: string) => `/users/${id}`,
+  },
   proActivities: {
     base: '/pro/activities',
     mine: (centerId: string) =>

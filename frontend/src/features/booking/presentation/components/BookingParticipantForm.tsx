@@ -1,6 +1,10 @@
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
+import { Checkbox } from '@/core/components/ui/checkbox';
+import { Label } from '@/core/components/ui/label';
+import { useCurrentAccount } from '@/features/account/domain/hooks/account.hook';
 import {
   FormControl,
   FormField,
@@ -20,6 +24,8 @@ interface Props {
   onRemove?: () => void;
   canRemove: boolean;
   prerequisites?: SlotPrerequisites;
+  /** Seul le premier participant peut etre le titulaire du compte. */
+  canBeSelf?: boolean;
 }
 
 export default function BookingParticipantForm({
@@ -27,8 +33,37 @@ export default function BookingParticipantForm({
   onRemove,
   canRemove,
   prerequisites,
+  canBeSelf = false,
 }: Props) {
   const form = useFormContext<CreateBookingFormData>();
+  const { account } = useCurrentAccount();
+  const [isSelf, setIsSelf] = useState(false);
+
+  // Cocher remplit l'etat civil du titulaire, decocher rend la main : on vide
+  // pour ne pas laisser croire que les champs restent lies au compte.
+  useEffect(() => {
+    if (!canBeSelf) return;
+    if (isSelf && account) {
+      form.setValue(`participants.${index}.firstName`, account.firstName, {
+        shouldValidate: true,
+      });
+      form.setValue(`participants.${index}.lastName`, account.lastName, {
+        shouldValidate: true,
+      });
+      form.setValue(`participants.${index}.birthDate`, account.birthDate, {
+        shouldValidate: true,
+      });
+    }
+  }, [isSelf, account, canBeSelf, form, index]);
+
+  const handleSelfChange = (checked: boolean) => {
+    setIsSelf(checked);
+    if (!checked) {
+      form.setValue(`participants.${index}.firstName`, '');
+      form.setValue(`participants.${index}.lastName`, '');
+      form.setValue(`participants.${index}.birthDate`, '');
+    }
+  };
 
   // Le poids ne sert qu'aux activites qui le bornent : ailleurs, le demander
   // reviendrait a collecter une donnee personnelle sans usage.
@@ -50,18 +85,35 @@ export default function BookingParticipantForm({
         <h4 className="text-sm font-semibold text-foreground">
           Participant {index + 1}
         </h4>
-        {canRemove && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onRemove}
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            <span className="sr-only">Supprimer le participant</span>
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          {canBeSelf && account && (
+            <div className="flex items-center gap-1.5">
+              <Checkbox
+                id={`self-${index}`}
+                checked={isSelf}
+                onCheckedChange={(v) => handleSelfChange(v === true)}
+              />
+              <Label
+                htmlFor={`self-${index}`}
+                className="text-xs font-normal cursor-pointer"
+              >
+                C'est moi
+              </Label>
+            </div>
+          )}
+          {canRemove && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onRemove}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span className="sr-only">Supprimer le participant</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

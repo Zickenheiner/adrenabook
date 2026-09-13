@@ -72,6 +72,7 @@ export default function BookingParticipantsSection({ prerequisites }: Props) {
               <BookingParticipantForm
                 prerequisites={prerequisites}
                 index={index}
+                canBeSelf={index === 0}
                 canRemove={fields.length > 1}
                 onRemove={() => remove(index)}
               />
