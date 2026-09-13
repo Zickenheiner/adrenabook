@@ -21,35 +21,30 @@ describe('SlotService', () => {
     id?: string;
     activityId?: string;
     startAt?: string;
-    durationMinutes?: number;
     maxParticipants?: number;
-    priceEur?: number;
   }): SlotEntity => {
     const values = {
       id: '68b4d59919d9b7a94b4fde21',
       activityId,
       startAt: '2026-06-15T09:00:00.000Z',
-      durationMinutes: 60,
       maxParticipants: 10,
-      priceEur: 150,
       ...overrides,
     };
 
     return {
       getId: () => values.id,
-      getActivityId: () => values.activityId,
+      getActivityId: () => ({ toString: () => values.activityId }),
       getStartAt: () => new Date(values.startAt),
-      getDurationMinutes: () => values.durationMinutes,
       getMaxParticipants: () => values.maxParticipants,
-      getPriceEur: () => values.priceEur,
     } as unknown as SlotEntity;
   };
 
+  // Duree et prix font autorite au niveau de l'activite.
+  const activityPricing = { durationMinutes: 60, priceEur: 150 };
+
   const baseDto: CreateSlotsDto = {
     singleStartAt: '2026-06-15T09:00:00.000Z',
-    durationMinutes: 60,
     maxParticipants: 10,
-    priceEur: 150,
     instructorIds: ['68b4d59919d9b7a94b4fde11'],
   };
 
@@ -59,6 +54,7 @@ describe('SlotService', () => {
       countActiveBookings: jest.fn(),
       findByActivityId: jest.fn(),
       findActivityOwnership: jest.fn(),
+      findActivityPricing: jest.fn(),
       createMany: jest.fn(),
     };
 
@@ -74,6 +70,7 @@ describe('SlotService', () => {
 
     service = module.get<SlotService>(SlotService);
     slotRepository = module.get('ISlotRepository');
+    slotRepository.findActivityPricing.mockResolvedValue(activityPricing);
   });
 
   it('should be defined', () => {
@@ -306,6 +303,38 @@ describe('SlotService', () => {
       horizon.setFullYear(horizon.getFullYear() + 1);
       const last = new Date(result.slots[result.slots.length - 1].startAt);
       expect(last.getTime()).toBeLessThanOrEqual(horizon.getTime());
+    });
+
+    it('should persist the computed horizon when untilDate is omitted', async () => {
+      slotRepository.findByActivityId.mockResolvedValue([]);
+      slotRepository.createMany.mockImplementation((_id, _dto, dates) =>
+        Promise.resolve(
+          dates.map((date, index) =>
+            buildSlot({ id: `slot-${index}`, startAt: date.toISOString() }),
+          ),
+        ),
+      );
+
+      const dto: CreateSlotsDto = {
+        ...baseDto,
+        singleStartAt: undefined,
+        recurrence: { rrule: 'FREQ=WEEKLY;BYDAY=TU;BYHOUR=9;BYMINUTE=0' },
+      };
+
+      await service.createSlots(activityId, userId, dto);
+
+      // Le sous-document Mongoose exige untilDate : le service doit donc
+      // persister l'horizon qu'il a effectivement applique, pas `undefined`.
+      const persistedDto = slotRepository.createMany.mock.calls[0][1];
+      expect(persistedDto.recurrence?.untilDate).toEqual(expect.any(String));
+
+      const horizon = new Date();
+      horizon.setFullYear(horizon.getFullYear() + 1);
+      const persisted = new Date(persistedDto.recurrence!.untilDate!);
+      expect(isNaN(persisted.getTime())).toBe(false);
+      expect(Math.abs(persisted.getTime() - horizon.getTime())).toBeLessThan(
+        60_000,
+      );
     });
 
     it('should split recurrence occurrences between creations and conflicts', async () => {

@@ -6,11 +6,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ISlotService } from '../../../interfaces/services/slot.iservice';
-import { ISlotRepository } from '@features/slot/interfaces/repositories/slot.irepository';
+import {
+  ActivityPricing,
+  ISlotRepository,
+} from '@features/slot/interfaces/repositories/slot.irepository';
 import {
   CreateSlotsDto,
   CreateSlotsResponseDto,
   ProSlotListItemDto,
+  RecurrenceDto,
   SlotConflictDto,
   SlotDetailResponseDto,
   SlotItemDto,
@@ -29,7 +33,14 @@ export class SlotService implements ISlotService {
     const slot = await this.slotRepository.findById(id);
     if (!slot) return null;
 
-    return this.buildSlotDetail(slot);
+    const pricing = await this.slotRepository.findActivityPricing(
+      slot.getActivityId().toString(),
+    );
+    if (!pricing) {
+      throw new NotFoundException('Activité introuvable');
+    }
+
+    return this.buildSlotDetail(slot, pricing);
   }
 
   async findByActivityIdForOwner(
@@ -52,8 +63,14 @@ export class SlotService implements ISlotService {
       (a, b) => a.getStartAt().getTime() - b.getStartAt().getTime(),
     );
 
+    // Tous ces creneaux partagent la meme activite : un seul chargement suffit.
+    const pricing = await this.slotRepository.findActivityPricing(activityId);
+    if (!pricing) {
+      throw new NotFoundException('Activité introuvable');
+    }
+
     const details = await Promise.all(
-      sorted.map((slot) => this.buildSlotDetail(slot)),
+      sorted.map((slot) => this.buildSlotDetail(slot, pricing)),
     );
 
     // activityId est volontairement omis : il est deja porte par l'URL
@@ -70,6 +87,7 @@ export class SlotService implements ISlotService {
   /** Source unique du calcul de remainingSeats, partagee par GET /slots/:id */
   private async buildSlotDetail(
     slot: SlotEntity,
+    pricing: ActivityPricing,
   ): Promise<SlotDetailResponseDto> {
     const activeBookings = await this.slotRepository.countActiveBookings(
       slot.getId(),
@@ -80,10 +98,10 @@ export class SlotService implements ISlotService {
       id: slot.getId(),
       activityId: slot.getActivityId().toString(),
       startAt: slot.getStartAt().toISOString(),
-      durationMinutes: slot.getDurationMinutes(),
+      durationMinutes: pricing.durationMinutes,
       maxParticipants,
       remainingSeats: Math.max(0, maxParticipants - activeBookings),
-      priceEur: slot.getPriceEur(),
+      priceEur: pricing.priceEur,
     };
   }
 
@@ -92,7 +110,7 @@ export class SlotService implements ISlotService {
     _userId: string,
     dto: CreateSlotsDto,
   ): Promise<CreateSlotsResponseDto> {
-    const candidateDates = this.resolveCandidateDates(dto);
+    const { dates: candidateDates, recurrence } = this.resolvePlan(dto);
 
     const existing = await this.slotRepository.findByActivityId(activityId);
     const existingTimes = new Set(
@@ -119,7 +137,9 @@ export class SlotService implements ISlotService {
 
     const created = await this.slotRepository.createMany(
       activityId,
-      dto,
+      // La borne resolue remplace celle du DTO : le sous-document Mongoose
+      // exige untilDate, et on veut tracer l'horizon reellement applique.
+      recurrence ? { ...dto, recurrence } : dto,
       toCreate,
     );
 
@@ -131,9 +151,23 @@ export class SlotService implements ISlotService {
     return { createdCount: created.length, slots, conflicts };
   }
 
-  private resolveCandidateDates(dto: CreateSlotsDto): Date[] {
+  /**
+   * Resout les dates a creer et, pour une recurrence, la borne effectivement
+   * appliquee : celle fournie par le pro, ou l'horizon par defaut.
+   */
+  private resolvePlan(dto: CreateSlotsDto): {
+    dates: Date[];
+    recurrence?: RecurrenceDto;
+  } {
     if (dto.recurrence) {
-      return this.expandRrule(dto.recurrence.rrule, dto.recurrence.untilDate);
+      const until = this.resolveUntil(dto.recurrence.untilDate);
+      return {
+        dates: this.expandRrule(dto.recurrence.rrule, until),
+        recurrence: {
+          rrule: dto.recurrence.rrule,
+          untilDate: until.toISOString(),
+        },
+      };
     }
 
     if (dto.singleStartAt) {
@@ -141,10 +175,20 @@ export class SlotService implements ISlotService {
       if (isNaN(date.getTime())) {
         throw new BadRequestException('singleStartAt est une date invalide');
       }
-      return [date];
+      return { dates: [date] };
     }
 
     throw new BadRequestException('Fournir soit recurrence soit singleStartAt');
+  }
+
+  private resolveUntil(untilDate?: string): Date {
+    const until = untilDate
+      ? new Date(untilDate)
+      : SlotService.defaultRecurrenceHorizon();
+    if (isNaN(until.getTime())) {
+      throw new BadRequestException('untilDate est une date invalide');
+    }
+    return until;
   }
 
   /** Horizon applique a une recurrence sans date de fin : 12 mois. */
@@ -154,17 +198,10 @@ export class SlotService implements ISlotService {
     return horizon;
   }
 
-  private expandRrule(rruleStr: string, untilDate?: string): Date[] {
+  // Une RRULE sans borne est infinie : `all()` ne peut pas la developper, d'ou
+  // la borne obligatoire resolue en amont par resolveUntil().
+  private expandRrule(rruleStr: string, until: Date): Date[] {
     try {
-      // Une RRULE sans borne est infinie : `all()` ne peut pas la developper.
-      // Sans date de fin choisie, on genere un an de creneaux.
-      const until = untilDate
-        ? new Date(untilDate)
-        : SlotService.defaultRecurrenceHorizon();
-      if (isNaN(until.getTime())) {
-        throw new BadRequestException('untilDate est une date invalide');
-      }
-
       const rule = RRule.fromString(`RRULE:${rruleStr}`);
       const ruleWithUntil = new RRule({
         ...rule.origOptions,

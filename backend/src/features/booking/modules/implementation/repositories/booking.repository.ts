@@ -138,7 +138,16 @@ export class BookingRepository implements IBookingRepository {
       throw new ConflictException('Plus assez de places disponibles');
     }
 
-    const priceEur = slot.priceEur * participantCount;
+    // Le creneau ne porte plus de tarif : l'activite en est la seule source.
+    const activity = await this.activityModel
+      .findById(slot.activityId)
+      .select('priceEur')
+      .exec();
+    if (!activity) {
+      throw new NotFoundException('Activité introuvable');
+    }
+
+    const priceEur = activity.priceEur * participantCount;
     const vatEur = Math.round(priceEur * VAT_RATE * 100) / 100;
     const totalEur = Math.round((priceEur + vatEur) * 100) / 100;
     const reservationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);

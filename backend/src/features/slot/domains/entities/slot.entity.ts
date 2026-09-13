@@ -11,9 +11,7 @@ export class SlotEntity {
 
   private activityId: mongoose.Types.ObjectId;
   private startAt: Date;
-  private durationMinutes: number;
   private maxParticipants: number;
-  private priceEur: number;
   private instructorIds: string[];
   private recurrence?: { rrule: string; untilDate: string };
 
@@ -39,16 +37,8 @@ export class SlotEntity {
     return this.startAt;
   }
 
-  getDurationMinutes(): number {
-    return this.durationMinutes;
-  }
-
   getMaxParticipants(): number {
     return this.maxParticipants;
-  }
-
-  getPriceEur(): number {
-    return this.priceEur;
   }
 
   getInstructorIds(): string[] {
@@ -69,16 +59,8 @@ export class SlotEntity {
     this.startAt = value;
   }
 
-  setDurationMinutes(value: number): void {
-    this.durationMinutes = value;
-  }
-
   setMaxParticipants(value: number): void {
     this.maxParticipants = value;
-  }
-
-  setPriceEur(value: number): void {
-    this.priceEur = value;
   }
 
   setInstructorIds(value: string[]): void {

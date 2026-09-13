@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   ActivityOwnership,
+  ActivityPricing,
   ISlotRepository,
 } from '../../../interfaces/repositories/slot.irepository';
 import { SlotMapper } from '../mappers/slot.mapper';
@@ -82,6 +83,27 @@ export class SlotRepository implements ISlotRepository {
     return { ownerId: center ? center.ownerId.toString() : null };
   }
 
+  async findActivityPricing(
+    activityId: string,
+  ): Promise<ActivityPricing | null> {
+    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      return null;
+    }
+
+    const activity = await this.activityModel
+      .findById(activityId)
+      .select('durationMinutes priceEur')
+      .exec();
+    if (!activity) {
+      return null;
+    }
+
+    return {
+      durationMinutes: activity.durationMinutes,
+      priceEur: activity.priceEur,
+    };
+  }
+
   async createMany(
     activityId: string,
     dto: CreateSlotsDto,
@@ -92,9 +114,7 @@ export class SlotRepository implements ISlotRepository {
         new this.slotModel({
           activityId: new mongoose.Types.ObjectId(activityId),
           startAt,
-          durationMinutes: dto.durationMinutes,
           maxParticipants: dto.maxParticipants,
-          priceEur: dto.priceEur,
           instructorIds: dto.instructorIds,
           recurrence: dto.recurrence,
         }),

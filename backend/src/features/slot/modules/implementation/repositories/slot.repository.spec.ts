@@ -183,11 +183,35 @@ describe('SlotRepository', () => {
     });
   });
 
+  describe('findActivityPricing()', () => {
+    it('should return null without querying when the activity id is invalid', async () => {
+      const result = await repository.findActivityPricing('not-an-id');
+
+      expect(result).toBeNull();
+      expect(activityModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('should return null when the activity does not exist', async () => {
+      activityModel.findById.mockReturnValue(selectChain(null));
+
+      expect(await repository.findActivityPricing(VALID_ID)).toBeNull();
+    });
+
+    it('should read the duration and the price from the activity', async () => {
+      activityModel.findById.mockReturnValue(
+        selectChain({ durationMinutes: 90, priceEur: 45 }),
+      );
+
+      expect(await repository.findActivityPricing(VALID_ID)).toEqual({
+        durationMinutes: 90,
+        priceEur: 45,
+      });
+    });
+  });
+
   describe('createMany()', () => {
     const dto: CreateSlotsDto = {
-      durationMinutes: 120,
       maxParticipants: 8,
-      priceEur: 90,
       instructorIds: ['instructor-1'],
     } as CreateSlotsDto;
 
@@ -206,17 +230,17 @@ describe('SlotRepository', () => {
       const payload = slotModel.mock.calls[0][0] as {
         activityId: mongoose.Types.ObjectId;
         startAt: Date;
-        durationMinutes: number;
         maxParticipants: number;
-        priceEur: number;
         instructorIds: string[];
       };
       expect(payload.activityId.toString()).toBe(VALID_ID);
       expect(payload.startAt).toEqual(dates[0]);
-      expect(payload.durationMinutes).toBe(120);
       expect(payload.maxParticipants).toBe(8);
-      expect(payload.priceEur).toBe(90);
       expect(payload.instructorIds).toEqual(['instructor-1']);
+
+      // La duree et le prix ne sont plus portes par le creneau.
+      expect(payload).not.toHaveProperty('durationMinutes');
+      expect(payload).not.toHaveProperty('priceEur');
     });
 
     it('should carry the recurrence rule over to every document', async () => {

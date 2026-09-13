@@ -4,7 +4,6 @@ import {
   IsInt,
   IsISO8601,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   Min,
@@ -55,28 +54,12 @@ export class CreateSlotsDto {
   singleStartAt?: string;
 
   @ApiProperty({
-    description: 'Duration of the slot in minutes',
-    example: 60,
-  })
-  @IsInt()
-  @Min(1)
-  durationMinutes: number;
-
-  @ApiProperty({
     description: 'Maximum number of participants per slot',
     example: 10,
   })
   @IsInt()
   @Min(1)
   maxParticipants: number;
-
-  @ApiProperty({
-    description: 'Price per participant in euros',
-    example: 150,
-  })
-  @IsNumber()
-  @Min(0)
-  priceEur: number;
 
   @ApiProperty({
     description: 'List of instructor user IDs',

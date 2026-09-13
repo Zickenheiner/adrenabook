@@ -29,9 +29,7 @@ describe('SlotController', () => {
 
   const dto: CreateSlotsDto = {
     singleStartAt: '2026-06-15T09:00:00.000Z',
-    durationMinutes: 60,
     maxParticipants: 10,
-    priceEur: 150,
     instructorIds: ['68b4d59919d9b7a94b4fde11'],
   };
 

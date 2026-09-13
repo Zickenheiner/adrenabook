@@ -202,7 +202,11 @@ describe('BookingRepository', () => {
 
     it('should throw ConflictException when there are not enough spots left', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 3, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 3 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(2));
 
@@ -213,7 +217,11 @@ describe('BookingRepository', () => {
 
     it('should exclude cancelled bookings from the availability count', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -228,7 +236,11 @@ describe('BookingRepository', () => {
 
     it('should compute the VAT and the total for every participant', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -252,7 +264,11 @@ describe('BookingRepository', () => {
 
     it('should give the reservation a 15 minute lifetime', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -269,7 +285,11 @@ describe('BookingRepository', () => {
 
     it('should round the amounts to two decimals', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 99.99 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 99.99 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -286,7 +306,11 @@ describe('BookingRepository', () => {
 
     it('should map the saved document to an entity', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -298,7 +322,11 @@ describe('BookingRepository', () => {
 
     it('should return null when the save returns nothing', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue(null);
