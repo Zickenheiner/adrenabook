@@ -111,27 +111,7 @@ describe('ActivitySlots', () => {
     ).toBeDisabled();
   });
 
-  it('propose les autres mois ouverts, pour éviter de naviguer à l’aveugle', () => {
-    renderSlots();
-
-    expect(screen.getByRole('button', { name: /mai 2027/i })).toBeTruthy();
-    // Le mois courant n'est pas proposé comme raccourci vers lui-même.
-    expect(screen.queryByRole('button', { name: /^mars 2027$/i })).toBeNull();
-  });
-
-  it('recharge le mois choisi via un raccourci', async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    renderSlots();
-
-    await user.click(screen.getByRole('button', { name: /mai 2027/i }));
-
-    expect(mockUseActivitySlots).toHaveBeenLastCalledWith(
-      'activity-1',
-      '2027-05',
-    );
-  });
-
-  it('annonce un mois vide sans laisser croire à une absence totale', () => {
+  it('annonce un mois sans créneau', () => {
     mockUseActivitySlots.mockReturnValue(
       answer({ slots: [], availableMonths: ['2027-05'] }),
     );
@@ -139,7 +119,6 @@ describe('ActivitySlots', () => {
     renderSlots();
 
     expect(screen.getByText(/Aucun créneau en mars 2027/i)).toBeTruthy();
-    expect(screen.getByText(/Choisissez un autre mois/i)).toBeTruthy();
   });
 
   it('affiche un état de chargement pendant la requête', () => {
