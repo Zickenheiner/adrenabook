@@ -112,10 +112,7 @@ export default function ActivitySlots({ activityId }: Props) {
   const [selectedDay, setSelectedDay] = useState<Date | undefined>();
 
   const monthKey = toMonthKey(month);
-  const { slots, availableMonths, slotsAreLoading } = useActivitySlots(
-    activityId,
-    monthKey,
-  );
+  const { slots, slotsAreLoading } = useActivitySlots(activityId, monthKey);
 
   // Les creneaux d'un meme jour sont regroupes : le calendrier raisonne par
   // jour, la liste par horaire.
@@ -149,9 +146,6 @@ export default function ActivitySlots({ activityId }: Props) {
     ? (slotsByDay.get(toDayKey(selectedDay)) ?? [])
     : [];
 
-  // Les mois sans creneau sont signales pour ne pas naviguer a l'aveugle.
-  const otherMonths = availableMonths.filter((m) => m !== monthKey);
-
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -173,28 +167,6 @@ export default function ActivitySlots({ activityId }: Props) {
             }}
             className="rounded-lg border p-2"
           />
-
-          {otherMonths.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              <p className="text-xs text-muted-foreground">Autres mois :</p>
-              <div className="flex flex-wrap gap-1.5">
-                {otherMonths.map((key) => {
-                  const [year, m] = key.split('-').map(Number);
-                  return (
-                    <Button
-                      key={key}
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs capitalize"
-                      onClick={() => setMonth(new Date(year, m - 1, 1))}
-                    >
-                      {formatMonthLabel(key)}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -208,7 +180,6 @@ export default function ActivitySlots({ activityId }: Props) {
               <CalendarIcon className="h-8 w-8" />
               <p className="text-sm">
                 Aucun créneau en {formatMonthLabel(monthKey)}.
-                {otherMonths.length > 0 && ' Choisissez un autre mois.'}
               </p>
             </div>
           ) : (

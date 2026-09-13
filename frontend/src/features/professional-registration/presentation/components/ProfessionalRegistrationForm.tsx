@@ -25,18 +25,6 @@ import DocumentUploadField from './DocumentUploadField';
 import AddressAutocomplete from '@/core/components/AddressAutocomplete';
 import ProfessionalRegistrationStep from './ProfessionalRegistrationStep';
 
-/**
- * Un depot de document ne signale son absence qu'une fois l'utilisateur passe
- * dessus, ou apres une tentative d'envoi : afficher l'erreur des l'arrivee sur
- * l'etape reprocherait une faute qu'il n'a pas encore eu l'occasion de
- * commettre.
- */
-const showError = (
-  fieldState: { error?: { message?: string }; isTouched: boolean },
-  submitted: boolean,
-): string | undefined =>
-  fieldState.isTouched || submitted ? fieldState.error?.message : undefined;
-
 const STEPS = [
   { label: 'Société', description: 'Informations générales' },
   { label: 'Adresse', description: 'Localisation du centre' },
@@ -73,6 +61,23 @@ export default function ProfessionalRegistrationForm({
       documents: { kbisFileId: '', rcProFileId: '', instructorDiplomas: [] },
     },
   });
+
+  // Lus ici, dans le rendu du composant : `formState` est un Proxy qui n'abonne
+  // que ce qu'il voit passer pendant le rendu de CE composant. Lus depuis le
+  // render prop d'un Controller, leurs changements ne provoqueraient aucun
+  // rendu de ce formulaire.
+  const { errors, submitCount, touchedFields } = form.formState;
+
+  /**
+   * Un depot de document ne signale son absence qu'une fois l'utilisateur passe
+   * dessus, ou apres une tentative d'envoi : afficher l'erreur des l'arrivee
+   * sur l'etape reprocherait une faute qu'il n'a pas encore eu l'occasion de
+   * commettre.
+   */
+  const documentError = (field: 'kbisFileId' | 'rcProFileId') =>
+    submitCount > 0 || touchedFields.documents?.[field]
+      ? errors.documents?.[field]?.message
+      : undefined;
 
   const handleNext = async () => {
     const valid = await form.trigger(STEP_FIELDS[step] as never);
@@ -281,7 +286,7 @@ export default function ProfessionalRegistrationForm({
             <FormField
               control={form.control}
               name="documents.kbisFileId"
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <DocumentUploadField
@@ -289,7 +294,7 @@ export default function ProfessionalRegistrationForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isSubmitting}
-                      error={showError(fieldState, form.formState.isSubmitted)}
+                      error={documentError('kbisFileId')}
                     />
                   </FormControl>
                 </FormItem>
@@ -298,7 +303,7 @@ export default function ProfessionalRegistrationForm({
             <FormField
               control={form.control}
               name="documents.rcProFileId"
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <DocumentUploadField
@@ -306,7 +311,7 @@ export default function ProfessionalRegistrationForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isSubmitting}
-                      error={showError(fieldState, form.formState.isSubmitted)}
+                      error={documentError('rcProFileId')}
                     />
                   </FormControl>
                 </FormItem>
