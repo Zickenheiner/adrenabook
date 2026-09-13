@@ -1,4 +1,6 @@
-import { Download, Mail, CheckCircle, Clock } from 'lucide-react';
+import { useState } from 'react';
+import UploadApi from '@/features/uploads/data/datasources/upload.api';
+import { CheckCircle, Clock, Download, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { AccountingExportEntity } from '../../domain/entities/accounting-export.entity';
 import { Badge } from '@/core/components/ui/badge';
@@ -16,6 +18,30 @@ interface Props {
 }
 
 export default function ExportResultCard({ result, onReset }: Props) {
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDownload = async () => {
+    const fileId = result.downloadUrl?.split('/').pop();
+    if (!fileId) return;
+
+    setDownloading(true);
+    setError(null);
+    try {
+      const blob = await new UploadApi().download(fileId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'export-comptable.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError('Le téléchargement a échoué. Réessayez.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const isReady = result.status === 'ready';
 
   return (
@@ -50,24 +76,24 @@ export default function ExportResultCard({ result, onReset }: Props) {
           </p>
 
           {isReady && result.downloadUrl && (
-            <a href={result.downloadUrl} download className="block">
-              <Button className="w-full gap-2">
+            <Button
+              className="w-full gap-2"
+              disabled={downloading}
+              onClick={() => void handleDownload()}
+            >
+              {downloading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
                 <Download className="h-4 w-4" />
-                Télécharger l&apos;export
-              </Button>
-            </a>
+              )}
+              Télécharger l&apos;export
+            </Button>
           )}
 
-          {result.status === 'queued' && result.emailDeliveredTo && (
-            <div className="flex items-center gap-2 rounded-md bg-muted p-3 text-sm text-muted-foreground">
-              <Mail className="h-4 w-4 shrink-0" />
-              <span>
-                L&apos;export sera envoyé à{' '}
-                <span className="font-medium text-foreground">
-                  {result.emailDeliveredTo}
-                </span>
-              </span>
-            </div>
+          {error && (
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
           )}
 
           <Button variant="outline" className="w-full" onClick={onReset}>

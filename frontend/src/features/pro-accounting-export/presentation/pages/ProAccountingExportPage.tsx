@@ -1,3 +1,4 @@
+import { useCenterStore } from '@/core/stores/center.store';
 import { AlertCircle, FileSpreadsheet } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useCreateAccountingExport } from '../../domain/hooks/accounting-export.hook';
@@ -38,6 +39,8 @@ function ProAccountingExportSkeleton() {
 }
 
 export default function ProAccountingExportPage() {
+  const centerId =
+    useCenterStore((state) => state.currentCenterId) ?? undefined;
   const {
     createAccountingExport,
     createAccountingExportIsPending,
@@ -53,6 +56,7 @@ export default function ProAccountingExportPage() {
       to: data.to,
       includeRefunds: data.includeRefunds,
       deliveryMode: data.deliveryMode,
+      centerId,
     });
   };
 

@@ -24,7 +24,7 @@ describe('AccountingExportRepository', () => {
   let saveMock: jest.Mock;
 
   const dto: CreateAccountingExportDto = {
-    format: AccountingExportFormat.SAGE50,
+    format: AccountingExportFormat.CSV_GENERIC,
     from: '2026-01-01',
     to: '2026-03-31',
     includeRefunds: true,
@@ -105,7 +105,7 @@ describe('AccountingExportRepository', () => {
         status: string;
         recordsCount: number;
       };
-      expect(payload.format).toBe(AccountingExportFormat.SAGE50);
+      expect(payload.format).toBe(AccountingExportFormat.CSV_GENERIC);
       expect(payload.includeRefunds).toBe(true);
       expect(payload.deliveryMode).toBe(AccountingExportDeliveryMode.DOWNLOAD);
       expect(payload.status).toBe('queued');

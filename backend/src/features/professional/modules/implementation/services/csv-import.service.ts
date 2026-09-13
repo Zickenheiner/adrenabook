@@ -251,7 +251,10 @@ export class CsvImportService implements ICsvImportService {
     }
     if (!startAt) throw new FieldError('startAt', 'Date de début invalide');
     if (capacity === null || capacity < 1) {
-      throw new FieldError('maxParticipants', 'Nombre de participants invalide');
+      throw new FieldError(
+        'maxParticipants',
+        'Nombre de participants invalide',
+      );
     }
 
     // Le creneau se rattache a une activite du centre, designee par son titre :
