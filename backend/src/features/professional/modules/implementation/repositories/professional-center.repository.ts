@@ -12,13 +12,17 @@ import {
 } from '@features/professional/domains/dtos/professional-center.dto';
 import { ProfessionalCenterEntity } from '@features/professional/domains/entities/professional-center.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import { GeocodingService } from '../services/geocoding.service';
 
 @Injectable()
-export class ProfessionalCenterRepository implements IProfessionalCenterRepository {
+export class ProfessionalCenterRepository
+  implements IProfessionalCenterRepository
+{
   constructor(
     @InjectModel(ProfessionalCenter.name)
     private readonly professionalCenterModel: Model<ProfessionalCenterDocument>,
     private readonly professionalCenterMapper: ProfessionalCenterMapper,
+    private readonly geocodingService: GeocodingService,
   ) {}
 
   async findAll(): Promise<ProfessionalCenterEntity[] | null> {
@@ -49,9 +53,18 @@ export class ProfessionalCenterRepository implements IProfessionalCenterReposito
     dto: CreateProfessionalCenterDto,
     ownerId: string,
   ): Promise<boolean> {
+    // Localise le centre des l'inscription : la carte n'affiche que les centres
+    // geocodes. En echec, geocode() renvoie null et l'inscription se poursuit.
+    const location = await this.geocodingService.geocode({
+      street: dto.address.street,
+      postalCode: dto.address.postalCode,
+      city: dto.address.city,
+    });
+
     const document = new this.professionalCenterModel({
       ...dto,
       ownerId: new Types.ObjectId(ownerId),
+      ...(location ? { location } : {}),
     });
 
     try {
