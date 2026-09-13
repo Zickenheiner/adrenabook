@@ -11,6 +11,7 @@ class SlotDetailMapper {
       maxParticipants: dto.maxParticipants,
       remainingSeats: dto.remainingSeats,
       priceEur: dto.priceEur,
+      prerequisites: dto.prerequisites,
     };
   }
 }

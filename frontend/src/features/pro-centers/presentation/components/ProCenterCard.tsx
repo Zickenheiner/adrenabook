@@ -48,7 +48,7 @@ export default function ProCenterCard({ center, onDelete }: Props) {
         !manageable && 'opacity-80',
       )}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <Building2 className="h-5 w-5 text-primary" aria-hidden="true" />
