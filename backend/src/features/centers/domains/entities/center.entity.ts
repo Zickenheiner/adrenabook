@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Center } from '../schemas/center.schema';
+import { Types } from 'mongoose';
 
 export class CenterEntity {
   @ApiProperty({
     example: '68b4d59919d9b7a94b4fde21',
     description: 'The unique identifier of the center',
   })
-  private readonly id: Center;
+  private readonly id: Types.ObjectId;
 
   private name: string;
   private lat: number;
@@ -15,7 +15,7 @@ export class CenterEntity {
   private activityTypes: string[];
   private activitiesCount: number;
 
-  constructor(_id: Center) {
+  constructor(_id: Types.ObjectId) {
     this.id = _id;
   }
 
@@ -25,7 +25,7 @@ export class CenterEntity {
     return this.id.toString();
   }
 
-  getObjectId(): Center {
+  getObjectId(): Types.ObjectId {
     return this.id;
   }
 

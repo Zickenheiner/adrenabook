@@ -6,10 +6,7 @@ import {
   CentersMapQueryDto,
   CentersMapResponseDto,
   CentersQueryDto,
-  CreateCenterDto,
-  UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
-import { CenterEntity } from '@features/centers/domains/entities/center.entity';
 
 @Injectable()
 export class CenterService implements ICenterService {
@@ -17,26 +14,6 @@ export class CenterService implements ICenterService {
     @Inject('ICenterRepository')
     private readonly centerRepository: ICenterRepository,
   ) {}
-
-  async findAll(): Promise<CenterEntity[] | null> {
-    return this.centerRepository.findAll();
-  }
-
-  async findById(id: string): Promise<CenterEntity | null> {
-    return this.centerRepository.findById(id);
-  }
-
-  async create(dto: CreateCenterDto): Promise<CenterEntity | null> {
-    return this.centerRepository.create(dto);
-  }
-
-  async update(id: string, dto: UpdateCenterDto): Promise<boolean> {
-    return this.centerRepository.update(id, dto);
-  }
-
-  async delete(id: string): Promise<boolean> {
-    return this.centerRepository.delete(id);
-  }
 
   async getMap(query: CentersMapQueryDto): Promise<CentersMapResponseDto> {
     const parts = query.bbox.split(',').map(Number);

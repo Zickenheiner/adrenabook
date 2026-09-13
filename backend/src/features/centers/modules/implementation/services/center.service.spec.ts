@@ -5,8 +5,6 @@ import { CenterEntity } from '@features/centers/domains/entities/center.entity';
 import {
   CentersMapQueryDto,
   CentersQueryDto,
-  CreateCenterDto,
-  UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
 
 // Construit une entite centre entierement renseignee via ses setters
@@ -62,90 +60,6 @@ describe('CenterService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('findAll()', () => {
-    it('should delegate to the repository', async () => {
-      const centers = [buildCenter('a', 'Alpha', 45, 5)];
-      repository.findAll.mockResolvedValue(centers);
-
-      await expect(service.findAll()).resolves.toBe(centers);
-      expect(repository.findAll).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return null when the repository returns null', async () => {
-      repository.findAll.mockResolvedValue(null);
-
-      await expect(service.findAll()).resolves.toBeNull();
-    });
-  });
-
-  describe('findById()', () => {
-    it('should delegate to the repository', async () => {
-      const center = buildCenter('a', 'Alpha', 45, 5);
-      repository.findById.mockResolvedValue(center);
-
-      await expect(service.findById('a')).resolves.toBe(center);
-      expect(repository.findById).toHaveBeenCalledWith('a');
-    });
-
-    it('should return null when nothing is found', async () => {
-      repository.findById.mockResolvedValue(null);
-
-      await expect(service.findById('unknown')).resolves.toBeNull();
-    });
-  });
-
-  describe('create()', () => {
-    it('should delegate to the repository', async () => {
-      const dto = { name: 'Alpha', lat: 45, lng: 5 } as CreateCenterDto;
-      const center = buildCenter('a', 'Alpha', 45, 5);
-      repository.create.mockResolvedValue(center);
-
-      await expect(service.create(dto)).resolves.toBe(center);
-      expect(repository.create).toHaveBeenCalledWith(dto);
-    });
-
-    it('should propagate a repository failure', async () => {
-      repository.create.mockRejectedValue(new Error('duplicate'));
-
-      await expect(service.create({} as CreateCenterDto)).rejects.toThrow(
-        'duplicate',
-      );
-    });
-  });
-
-  describe('update()', () => {
-    it('should delegate to the repository', async () => {
-      const dto = { name: 'Beta' } as UpdateCenterDto;
-      repository.update.mockResolvedValue(true);
-
-      await expect(service.update('a', dto)).resolves.toBe(true);
-      expect(repository.update).toHaveBeenCalledWith('a', dto);
-    });
-
-    it('should return false when the repository found nothing', async () => {
-      repository.update.mockResolvedValue(false);
-
-      await expect(
-        service.update('unknown', {} as UpdateCenterDto),
-      ).resolves.toBe(false);
-    });
-  });
-
-  describe('delete()', () => {
-    it('should delegate to the repository', async () => {
-      repository.delete.mockResolvedValue(true);
-
-      await expect(service.delete('a')).resolves.toBe(true);
-      expect(repository.delete).toHaveBeenCalledWith('a');
-    });
-
-    it('should return false when the repository found nothing', async () => {
-      repository.delete.mockResolvedValue(false);
-
-      await expect(service.delete('unknown')).resolves.toBe(false);
-    });
   });
 
   describe('getMap()', () => {
