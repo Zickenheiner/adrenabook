@@ -176,15 +176,18 @@ describe('CsvImportService', () => {
         columnMapping: {
           activityTitle: 'Activite',
           startAt: 'Debut',
-          durationMinutes: 'Duree',
           maxParticipants: 'Places',
-          priceEur: 'Prix',
         },
       });
 
     it('attaches the slot to the activity named in the row', async () => {
       activityService.findByCenterId.mockResolvedValue([
-        { getId: () => 'activity-1', getTitle: () => 'Parapente' },
+        {
+          getId: () => 'activity-1',
+          getTitle: () => 'Parapente',
+          getDurationMinutes: () => 90,
+          getPriceEur: () => 120,
+        },
       ]);
       csv(
         'Activite;Debut;Duree;Places;Prix\nParapente;15/07/2026 09:00;90;8;120',
@@ -193,16 +196,26 @@ describe('CsvImportService', () => {
       const result = await service.importCsv(slotDto(), USER_ID);
 
       expect(result.rowsSuccess).toBe(1);
+      // Duree et prix viennent de l'activite : le fichier ne les porte pas.
       expect(slotService.createSlots).toHaveBeenCalledWith(
         'activity-1',
         USER_ID,
-        expect.objectContaining({ maxParticipants: 8 }),
+        expect.objectContaining({
+          maxParticipants: 8,
+          durationMinutes: 90,
+          priceEur: 120,
+        }),
       );
     });
 
     it('matches the activity title regardless of case', async () => {
       activityService.findByCenterId.mockResolvedValue([
-        { getId: () => 'activity-1', getTitle: () => 'Parapente' },
+        {
+          getId: () => 'activity-1',
+          getTitle: () => 'Parapente',
+          getDurationMinutes: () => 90,
+          getPriceEur: () => 120,
+        },
       ]);
       csv(
         'Activite;Debut;Duree;Places;Prix\nPARAPENTE;15/07/2026 09:00;90;8;120',
@@ -227,9 +240,14 @@ describe('CsvImportService', () => {
 
     it('rejects an unreadable date', async () => {
       activityService.findByCenterId.mockResolvedValue([
-        { getId: () => 'activity-1', getTitle: () => 'Parapente' },
+        {
+          getId: () => 'activity-1',
+          getTitle: () => 'Parapente',
+          getDurationMinutes: () => 90,
+          getPriceEur: () => 120,
+        },
       ]);
-      csv('Activite;Debut;Duree;Places;Prix\nParapente;pas une date;90;8;120');
+      csv('Activite;Debut;Places\nParapente;pas une date;8');
 
       const result = await service.importCsv(slotDto(), USER_ID);
 

@@ -24,12 +24,12 @@ const TARGET_FIELDS: Record<
   EntityType,
   { key: string; label: string; required: boolean }[]
 > = {
+  // La duree et le prix sont ceux de l'activite : un creneau ne peut pas les
+  // contredire, le fichier n'a donc pas a les porter.
   slots: [
     { key: 'activityTitle', label: "Titre de l'activité", required: true },
     { key: 'startAt', label: 'Date et heure de début', required: true },
-    { key: 'durationMinutes', label: 'Durée (min)', required: true },
     { key: 'maxParticipants', label: 'Participants max', required: true },
-    { key: 'priceEur', label: 'Prix (€)', required: true },
   ],
   activities: [
     { key: 'title', label: 'Titre', required: true },

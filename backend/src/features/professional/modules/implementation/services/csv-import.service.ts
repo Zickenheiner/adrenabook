@@ -244,23 +244,15 @@ export class CsvImportService implements ICsvImportService {
     const map = dto.columnMapping;
     const activityTitle = this.cell(row, map.activityTitle);
     const startAt = toDate(this.cell(row, map.startAt));
-    const duration = toNumber(this.cell(row, map.durationMinutes));
     const capacity = toNumber(this.cell(row, map.maxParticipants));
-    const price = toNumber(this.cell(row, map.priceEur));
 
-    if (!activityTitle)
+    if (!activityTitle) {
       throw new FieldError('activityTitle', "Titre d'activité manquant");
-    if (!startAt) throw new FieldError('startAt', 'Date de début invalide');
-    if (duration === null || duration <= 0)
-      throw new FieldError('durationMinutes', 'Durée invalide');
-    if (capacity === null || capacity < 1) {
-      throw new FieldError(
-        'maxParticipants',
-        'Nombre de participants invalide',
-      );
     }
-    if (price === null || price < 0)
-      throw new FieldError('priceEur', 'Prix invalide');
+    if (!startAt) throw new FieldError('startAt', 'Date de début invalide');
+    if (capacity === null || capacity < 1) {
+      throw new FieldError('maxParticipants', 'Nombre de participants invalide');
+    }
 
     // Le creneau se rattache a une activite du centre, designee par son titre :
     // un CSV ne contient pas d'identifiant technique.
@@ -279,14 +271,16 @@ export class CsvImportService implements ICsvImportService {
 
     if (dto.dryRun) return;
 
+    // La duree et le prix appartiennent a l'activite, pas au creneau : les
+    // redemander dans le fichier permettrait de les contredire.
     const created = await this.slotService.createSlots(
       activity.getId(),
       userId,
       {
         singleStartAt: startAt.toISOString(),
-        durationMinutes: duration,
+        durationMinutes: activity.getDurationMinutes(),
         maxParticipants: capacity,
-        priceEur: price,
+        priceEur: activity.getPriceEur(),
         instructorIds: [],
       } as unknown as CreateSlotsDto,
     );
