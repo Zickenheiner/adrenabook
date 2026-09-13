@@ -172,10 +172,20 @@ test.describe('Accessibilité — mécanismes transverses', () => {
     await simulerApi(page);
     await connecter(page, 'aventurier');
 
-    await page.keyboard.press('Tab');
+    // Repartir d'un chargement propre : après la connexion, le focus hérite
+    // du bouton disparu avec la redirection, et l'ordre de tabulation n'est
+    // alors plus celui d'une arrivée sur la page.
+    await page.goto('/');
+
     const lienEvitement = page.getByRole('link', {
       name: /aller au contenu principal/i,
     });
+    // `waitForURL` rend la main sur le changement d'URL, pas sur le rendu :
+    // sans cette attente, une machine lente tabule avant que la mise en page
+    // ne soit montée, et la tabulation ne rencontre encore aucun lien.
+    await expect(lienEvitement).toBeAttached();
+
+    await page.keyboard.press('Tab');
 
     await expect(lienEvitement).toBeFocused();
     // Masqué au repos, il doit devenir visible une fois le focus reçu.
