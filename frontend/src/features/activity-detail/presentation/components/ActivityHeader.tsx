@@ -1,3 +1,4 @@
+import { Button } from '@/core/components/ui/button';
 import routes from '@/core/constants/routes';
 import { Link } from 'react-router-dom';
 import { Building2, Clock, MapPin, Star } from 'lucide-react';
@@ -72,15 +73,6 @@ export default function ActivityHeader({ activity }: Props) {
           <MapPin className="h-4 w-4" />
           <span>{activity.center.location.address}</span>
         </div>
-        {activity.center.id && (
-          <Link
-            to={routes.centerDetail.replace(':id', activity.center.id)}
-            className="flex items-center gap-1 font-medium text-link underline-offset-4 hover:underline"
-          >
-            <Building2 className="h-4 w-4" aria-hidden="true" />
-            {activity.center.name || 'Voir le centre'}
-          </Link>
-        )}
       </div>
 
       <div className="flex items-baseline gap-2 pt-2">
@@ -92,6 +84,17 @@ export default function ActivityHeader({ activity }: Props) {
         </span>
         <span className="text-sm text-muted-foreground">par personne</span>
       </div>
+
+      {activity.center.id && (
+        <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
+          <Link to={routes.centerDetail.replace(':id', activity.center.id)}>
+            <Building2 className="mr-2 h-4 w-4" aria-hidden="true" />
+            {activity.center.name
+              ? `Voir le centre · ${activity.center.name}`
+              : 'Voir le centre'}
+          </Link>
+        </Button>
+      )}
     </div>
   );
 }
