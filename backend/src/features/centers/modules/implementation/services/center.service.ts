@@ -1,7 +1,13 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ICenterService } from '../../../interfaces/services/center.iservice';
 import { ICenterRepository } from '@features/centers/interfaces/repositories/center.irepository';
 import {
+  CenterDetailResponseDto,
   CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
@@ -58,6 +64,14 @@ export class CenterService implements ICenterService {
         activitiesCount: c.getActivitiesCount(),
       })),
     };
+  }
+
+  async getCenterDetail(id: string): Promise<CenterDetailResponseDto> {
+    const center = await this.centerRepository.findDetailById(id);
+    if (!center) {
+      throw new NotFoundException('Centre introuvable');
+    }
+    return center;
   }
 
   async getCenters(query: CentersQueryDto): Promise<CentersListResponseDto> {

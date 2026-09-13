@@ -1,4 +1,5 @@
 import {
+  CenterDetailResponseDto,
   CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
@@ -8,4 +9,5 @@ import {
 export interface ICenterService {
   getMap(query: CentersMapQueryDto): Promise<CentersMapResponseDto>;
   getCenters(query: CentersQueryDto): Promise<CentersListResponseDto>;
+  getCenterDetail(id: string): Promise<CenterDetailResponseDto>;
 }

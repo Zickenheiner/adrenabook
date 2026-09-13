@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ICenterRepository } from '../../../interfaces/repositories/center.irepository';
 import { Model, PipelineStage, Types } from 'mongoose';
 import {
+  CenterDetailResponseDto,
   CentersMapQueryDto,
   CentersQueryDto,
 } from '@features/centers/domains/dtos/center.dto';
@@ -89,6 +90,86 @@ export class CenterRepository implements ICenterRepository {
       entity.setActivitiesCount(doc.activitiesCount ?? 0);
       return entity;
     });
+  }
+
+  /**
+   * Fiche publique : memes garde-fous que la carte — seul un centre approuve
+   * est visible, et seules ses activites publiees sont listees.
+   */
+  async findDetailById(id: string): Promise<CenterDetailResponseDto | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+
+    const docs = await this.professionalCenterModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        name: string;
+        city: string;
+        address?: {
+          street: string;
+          postalCode: string;
+          city: string;
+          country: string;
+        };
+        lat?: number;
+        lng?: number;
+        activities: {
+          _id: Types.ObjectId;
+          title: string;
+          type: string;
+          difficulty: string;
+          durationMinutes: number;
+          priceEur: number;
+          photoFileIds?: string[];
+        }[];
+      }>([
+        { $match: { _id: new Types.ObjectId(id), status: 'approved' } },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: '_id',
+            foreignField: 'centerId',
+            pipeline: [{ $match: { status: 'published' } }],
+            as: 'activities',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: '$companyName',
+            city: '$address.city',
+            address: 1,
+            lat: '$location.lat',
+            lng: '$location.lng',
+            activities: 1,
+          },
+        },
+      ])
+      .exec();
+
+    const doc = docs[0];
+    if (!doc) return null;
+
+    const addr = doc.address;
+
+    return {
+      id: doc._id.toString(),
+      name: doc.name,
+      city: doc.city ?? '',
+      address: addr
+        ? `${addr.street}, ${addr.postalCode} ${addr.city}, ${addr.country}`
+        : '',
+      lat: doc.lat ?? 0,
+      lng: doc.lng ?? 0,
+      activities: (doc.activities ?? []).map((a) => ({
+        id: a._id.toString(),
+        title: a.title,
+        type: a.type,
+        difficulty: a.difficulty,
+        durationMinutes: a.durationMinutes,
+        priceEur: a.priceEur,
+        coverPhotoUrl: a.photoFileIds?.[0] ?? '',
+      })),
+    };
   }
 
   async findByBbox(query: CentersMapQueryDto): Promise<CenterEntity[] | null> {

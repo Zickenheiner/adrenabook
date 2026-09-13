@@ -1,4 +1,5 @@
 import {
+  CenterDetailResponseDto,
   CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
@@ -6,8 +7,8 @@ import {
 } from '@features/centers/domains/dtos/center.dto';
 import { ICenterService } from '@features/centers/interfaces/services/center.iservice';
 import { Public } from '@core/decorators/public.decorator';
-import { Controller, Get, Inject, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @Controller('centers')
 export class CenterController {
@@ -96,5 +97,25 @@ export class CenterController {
     @Query() query: CentersQueryDto,
   ): Promise<CentersListResponseDto> {
     return this.centerService.getCenters(query);
+  }
+
+  @Public()
+  @ApiOperation({
+    summary: "Fiche publique d'un centre",
+    description:
+      "Retourne l'identite d'un centre approuve et les activites publiees qu'il propose. Les donnees du dossier (SIRET, representant legal, justificatifs) ne sont pas exposees.",
+  })
+  @ApiParam({ name: 'id', description: 'Identifiant du centre', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Fiche du centre',
+    type: CenterDetailResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Centre introuvable' })
+  @Get(':id')
+  async getCenterDetail(
+    @Param('id') id: string,
+  ): Promise<CenterDetailResponseDto> {
+    return this.centerService.getCenterDetail(id);
   }
 }

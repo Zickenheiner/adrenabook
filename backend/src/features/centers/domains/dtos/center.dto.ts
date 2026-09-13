@@ -123,3 +123,58 @@ export class CentersListResponseDto {
   @ApiProperty({ type: [CenterListItemDto] })
   centers: CenterListItemDto[];
 }
+
+export class CenterActivityItemDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde30' })
+  id: string;
+
+  @ApiProperty({ example: 'Via ferrata du Vercors' })
+  title: string;
+
+  @ApiProperty({ example: 'climbing' })
+  type: string;
+
+  @ApiProperty({ example: 'beginner' })
+  difficulty: string;
+
+  @ApiProperty({ example: 120 })
+  durationMinutes: number;
+
+  @ApiProperty({ example: 45 })
+  priceEur: number;
+
+  @ApiProperty({
+    example: '68b4d59919d9b7a94b4fde99',
+    description:
+      "Identifiant de l'image de couverture, a resoudre via GET /activities/photos/:fileId. Vide si l'activite n'en a pas.",
+  })
+  coverPhotoUrl: string;
+}
+
+/**
+ * Fiche publique d'un centre : son identite et les activites publiees qu'il
+ * propose. Les donnees sensibles du dossier (SIRET, representant legal,
+ * justificatifs) n'y figurent pas.
+ */
+export class CenterDetailResponseDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  id: string;
+
+  @ApiProperty({ example: 'Centre Outdoor Lyon' })
+  name: string;
+
+  @ApiProperty({ example: 'Lyon' })
+  city: string;
+
+  @ApiProperty({ example: '12 rue des Alpes, 69000 Lyon, France' })
+  address: string;
+
+  @ApiProperty({ example: 45.764 })
+  lat: number;
+
+  @ApiProperty({ example: 4.8357 })
+  lng: number;
+
+  @ApiProperty({ type: [CenterActivityItemDto] })
+  activities: CenterActivityItemDto[];
+}

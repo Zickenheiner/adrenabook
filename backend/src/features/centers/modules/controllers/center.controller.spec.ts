@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CenterController } from './center.controller';
 import { ICenterService } from '@features/centers/interfaces/services/center.iservice';
 import {
@@ -19,6 +19,7 @@ describe('CenterController', () => {
     const centerServiceMock: jest.Mocked<ICenterService> = {
       getMap: jest.fn(),
       getCenters: jest.fn(),
+      getCenterDetail: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -159,6 +160,36 @@ describe('CenterController', () => {
 
       await expect(controller.getCenters({ radius: -1 })).rejects.toThrow(
         BadRequestException,
+      );
+    });
+  });
+
+  describe('getCenterDetail()', () => {
+    it('delegates to the service', async () => {
+      const detail = {
+        id: '68b4d59919d9b7a94b4fde21',
+        name: 'Centre Outdoor Lyon',
+        city: 'Lyon',
+        address: '12 rue des Alpes, 69000 Lyon, France',
+        lat: 45.764,
+        lng: 4.8357,
+        activities: [],
+      };
+      centerService.getCenterDetail.mockResolvedValue(detail);
+
+      await expect(controller.getCenterDetail(detail.id)).resolves.toEqual(
+        detail,
+      );
+      expect(centerService.getCenterDetail).toHaveBeenCalledWith(detail.id);
+    });
+
+    it('propagates a NotFoundException raised by the service', async () => {
+      centerService.getCenterDetail.mockRejectedValue(
+        new NotFoundException('Centre introuvable'),
+      );
+
+      await expect(controller.getCenterDetail('unknown')).rejects.toThrow(
+        NotFoundException,
       );
     });
   });
