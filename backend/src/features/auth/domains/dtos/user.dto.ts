@@ -837,6 +837,19 @@ export class BookingSummaryDto {
   slotStartAt: string;
 
   @ApiProperty({
+    description: 'Nom du centre qui propose l’activité',
+    example: 'Chamonix Vertical',
+  })
+  centerName: string;
+
+  @ApiProperty({
+    description:
+      'Identifiant de l’image de couverture, à résoudre via GET /activities/photos/:fileId',
+    example: '68b4d59919d9b7a94b4fde99',
+  })
+  coverPhotoUrl: string;
+
+  @ApiProperty({
     description: 'Statut de la réservation',
     example: 'confirmed',
     enum: [

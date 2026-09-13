@@ -1,3 +1,4 @@
+import { resolvePhotoUrl } from '@/core/utils/photo-url';
 import { Card, CardContent } from '@/core/components/ui/card';
 import { Badge } from '@/core/components/ui/badge';
 import { CalendarDays, MapPin } from 'lucide-react';
@@ -23,6 +24,8 @@ const statusVariant: Record<
 };
 
 export default function UpcomingBookingCard({ booking }: Props) {
+  const coverUrl = resolvePhotoUrl(booking.coverPhotoUrl);
+
   const formattedDate = booking.date.toLocaleDateString('fr-FR', {
     weekday: 'long',
     day: 'numeric',
@@ -33,10 +36,10 @@ export default function UpcomingBookingCard({ booking }: Props) {
   return (
     <Card className="overflow-hidden">
       <div className="flex flex-col sm:flex-row">
-        {booking.coverPhotoUrl && (
+        {coverUrl && (
           <div className="relative h-40 sm:h-auto sm:w-36 flex-shrink-0">
             <img
-              src={booking.coverPhotoUrl}
+              src={coverUrl}
               alt={booking.activityTitle}
               className="h-full w-full object-cover"
             />

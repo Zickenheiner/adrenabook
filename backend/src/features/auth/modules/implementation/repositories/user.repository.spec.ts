@@ -789,6 +789,8 @@ describe('UserRepository', () => {
             status: 'confirmed',
             slotStartAt: new Date('2026-09-05T09:00:00.000Z'),
             activityTitle: 'Escalade Fontainebleau',
+            centerName: 'Bleau Aventure',
+            coverPhotoUrl: 'file-1',
           },
         ],
         random: [],
@@ -802,6 +804,10 @@ describe('UserRepository', () => {
           activityTitle: 'Escalade Fontainebleau',
           slotStartAt: '2026-09-05T09:00:00.000Z',
           status: 'confirmed',
+          // Le centre et la photo viennent des jointures : sans eux la carte
+          // du tableau de bord reste muette.
+          centerName: 'Bleau Aventure',
+          coverPhotoUrl: 'file-1',
         },
       ]);
     });

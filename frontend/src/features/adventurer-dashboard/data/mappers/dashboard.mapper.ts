@@ -15,7 +15,7 @@ class DashboardMapper {
       bookingId: dto.bookingId,
       activityTitle: dto.activityTitle,
       centerName: dto.centerName,
-      date: new Date(dto.date),
+      date: new Date(dto.slotStartAt),
       status: dto.status,
       coverPhotoUrl: dto.coverPhotoUrl,
     };

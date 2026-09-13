@@ -41,8 +41,12 @@ export default function PaymentPage() {
     confirmPayment(
       { paymentIntentId },
       {
-        onSuccess: () => {
-          navigate(routes.paymentSuccess.replace(':id', bookingId));
+        onSuccess: (confirmation) => {
+          // La page de succes lit la confirmation dans l'etat de navigation :
+          // sans elle, elle ne peut qu'afficher une erreur.
+          navigate(routes.paymentSuccess.replace(':id', bookingId), {
+            state: confirmation,
+          });
         },
       },
     );

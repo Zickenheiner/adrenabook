@@ -429,12 +429,28 @@ export class UserRepository implements IUserRepository {
           activity: { $arrayElemAt: ['$activityArray', 0] },
         },
       },
+      // Le centre n'est pas porte par la reservation : il se retrouve par
+      // l'activite.
+      {
+        $lookup: {
+          from: 'professionalcenters',
+          localField: 'activity.centerId',
+          foreignField: '_id',
+          as: 'centerArray',
+        },
+      },
       {
         $project: {
           _id: 1,
           status: 1,
           slotStartAt: '$slotArray.startAt',
           activityTitle: '$activity.title',
+          centerName: {
+            $ifNull: [{ $arrayElemAt: ['$centerArray.companyName', 0] }, ''],
+          },
+          coverPhotoUrl: {
+            $ifNull: [{ $arrayElemAt: ['$activity.photoFileIds', 0] }, ''],
+          },
         },
       },
     ];
@@ -444,6 +460,8 @@ export class UserRepository implements IUserRepository {
       status: string;
       slotStartAt: Date;
       activityTitle: string;
+      centerName: string;
+      coverPhotoUrl: string;
     }
 
     const bookingDocs =
@@ -457,6 +475,8 @@ export class UserRepository implements IUserRepository {
           ? doc.slotStartAt.toISOString()
           : String(doc.slotStartAt),
       status: doc.status,
+      centerName: doc.centerName ?? '',
+      coverPhotoUrl: doc.coverPhotoUrl ?? '',
     }));
 
     // Récupère les types d'activités déjà réservées pour la personnalisation

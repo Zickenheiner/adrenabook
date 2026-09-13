@@ -2,7 +2,8 @@ export interface BookingSummaryDto {
   bookingId: string;
   activityTitle: string;
   centerName: string;
-  date: string; // ISO 8601
+  /** Debut du creneau, tel que l'API le nomme. */
+  slotStartAt: string; // ISO 8601
   status: 'confirmed' | 'pending_payment' | 'cancelled';
   coverPhotoUrl: string;
 }
