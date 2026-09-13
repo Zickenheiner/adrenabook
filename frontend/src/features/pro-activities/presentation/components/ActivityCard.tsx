@@ -83,7 +83,9 @@ export default function ActivityCard({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    // Toujours visible : masquer le menu hors survol le rend
+                    // inatteignable sur tactile, faute de survol.
+                    className="h-8 w-8 shrink-0"
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
