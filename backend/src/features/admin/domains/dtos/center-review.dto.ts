@@ -28,7 +28,10 @@ export class ReviewCenterDto {
   @IsOptional()
   @IsEnum(['incomplete_kbis', 'invalid_diploma', 'expired_insurance', 'other'])
   rejectionReason?:
-    'incomplete_kbis' | 'invalid_diploma' | 'expired_insurance' | 'other';
+    | 'incomplete_kbis'
+    | 'invalid_diploma'
+    | 'expired_insurance'
+    | 'other';
 
   @ApiProperty({
     description: 'Public comment sent to the applicant',

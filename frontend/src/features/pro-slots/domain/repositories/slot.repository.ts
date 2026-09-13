@@ -1,5 +1,8 @@
 import type { UpdateSlotRequestDto } from '../../data/dtos/slot.dto';
-import type { CreateSlotsResultEntity } from '../entities/slot.entity';
+import type {
+  CreateSlotsResultEntity,
+  ProSlotMonthEntity,
+} from '../entities/slot.entity';
 import type { CreateSlotRequestDto } from '../../data/dtos/slot.dto';
 
 export interface SlotRepository {

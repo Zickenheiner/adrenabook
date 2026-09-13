@@ -4,6 +4,7 @@ import Public from './Public';
 import routes from '@/core/constants/routes';
 import CguPage from '@/features/legal/CguPage';
 import RgpdLegalPage from '@/features/legal/RgpdLegalPage';
+import AccessibilityPage from '@/features/accessibility/presentation/pages/AccessibilityPage';
 import SystemHealthPage from '@/features/system/presentation/pages/SystemHealthPage';
 import RegisterPage from '@/features/auth/presentation/pages/RegisterPage';
 import LoginPage from '@/features/auth/presentation/pages/LoginPage';
@@ -33,6 +34,7 @@ import InvoiceDownloadPage from '@/features/invoice/presentation/pages/InvoiceDo
 import NotificationPreferencesPage from '@/features/notification-preferences/presentation/pages/NotificationPreferencesPage';
 import BookingCancellationPage from '@/features/booking-cancellation/presentation/pages/BookingCancellationPage';
 import ProDashboardPage from '@/features/pro-dashboard/presentation/pages/ProDashboardPage';
+import ProBookingsPage from '@/features/pro-bookings/presentation/pages/ProBookingsPage';
 import CsvImportPage from '@/features/pro-csv-import/presentation/pages/CsvImportPage';
 import ProAccountingExportPage from '@/features/pro-accounting-export/presentation/pages/ProAccountingExportPage';
 import AdminUserListPage from '@/features/admin-user-management/presentation/pages/AdminUserListPage';
@@ -122,6 +124,7 @@ export default function Router() {
           element={<BookingCancellationPage />}
         />
         <Route path={routes.proDashboard} element={<ProDashboardPage />} />
+        <Route path={routes.proBookings} element={<ProBookingsPage />} />
         <Route path={routes.proCsvImport} element={<CsvImportPage />} />
         <Route
           path={routes.proAccountingExport}
@@ -144,6 +147,7 @@ export default function Router() {
         <Route>
           <Route path={routes.cgu} element={<CguPage />} />
           <Route path={routes.rgpdLegal} element={<RgpdLegalPage />} />
+          <Route path={routes.accessibility} element={<AccessibilityPage />} />
           {PublicRoutes()}
           {PrivateRoutes()}
           <Route path={routes.notFound} element={<NotFoundPage />} />

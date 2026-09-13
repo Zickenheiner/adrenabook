@@ -29,6 +29,7 @@ const routes = {
   notificationPreferences: '/profile/notifications',
   bookingCancellation: '/bookings/:id/cancel',
   proDashboard: '/pro/dashboard',
+  proBookings: '/pro/bookings',
   proCsvImport: '/pro/import/csv',
   proAccountingExport: '/pro/exports/accounting',
   adminUserList: '/admin/users',
@@ -37,6 +38,7 @@ const routes = {
   rgpdProfile: '/profile/rgpd',
   cgu: '/cgu',
   rgpdLegal: '/rgpd',
+  accessibility: '/accessibilite',
   notFound: '*',
 };
 

@@ -13,12 +13,18 @@ import { ProDashboardController } from './controllers/pro-dashboard.controller';
 import { ProDashboardService } from './implementation/services/pro-dashboard.service';
 import { ProDashboardRepository } from './implementation/repositories/pro-dashboard.repository';
 
+import {
+  ProfessionalCenter,
+  ProfessionalCenterSchema,
+} from '@features/professional/domains/schemas/professional-center.schema';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Activity.name, schema: ActivitySchema },
       { name: Slot.name, schema: SlotSchema },
       { name: Booking.name, schema: BookingSchema },
+      { name: ProfessionalCenter.name, schema: ProfessionalCenterSchema },
     ]),
   ],
   controllers: [ProDashboardController],

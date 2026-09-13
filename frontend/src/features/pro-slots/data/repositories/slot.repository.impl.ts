@@ -1,5 +1,8 @@
 import type { SlotRepository } from '../../domain/repositories/slot.repository';
-import type { CreateSlotsResultEntity } from '../../domain/entities/slot.entity';
+import type {
+  CreateSlotsResultEntity,
+  ProSlotMonthEntity,
+} from '../../domain/entities/slot.entity';
 import type {
   UpdateSlotRequestDto,
   CreateSlotRequestDto,

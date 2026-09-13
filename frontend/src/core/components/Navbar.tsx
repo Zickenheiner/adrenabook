@@ -61,6 +61,7 @@ const proLinks = [
     to: routes.proActivityList,
     icon: CalendarClock,
   },
+  { label: 'Réservations', to: routes.proBookings, icon: CalendarCheck },
   { label: 'Import CSV', to: routes.proCsvImport, icon: Upload },
   {
     label: 'Export comptable',

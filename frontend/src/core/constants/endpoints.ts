@@ -25,6 +25,10 @@ const endpoints = {
   users: {
     byId: (id: string) => `/users/${id}`,
   },
+  proBookings: {
+    byCenter: (centerId: string) =>
+      `/pro/dashboard/bookings?centerId=${encodeURIComponent(centerId)}`,
+  },
   proActivities: {
     base: '/pro/activities',
     mine: (centerId: string) =>

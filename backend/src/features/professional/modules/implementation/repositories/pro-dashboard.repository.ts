@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { IProDashboardRepository } from '@features/professional/interfaces/repositories/pro-dashboard.irepository';
 import {
+  CenterBookingDto,
   DashboardQueryDto,
   DashboardRange,
   DashboardResponseDto,
@@ -24,6 +25,11 @@ interface DateRange {
   to: Date;
 }
 
+import {
+  ProfessionalCenter,
+  ProfessionalCenterDocument,
+} from '@features/professional/domains/schemas/professional-center.schema';
+
 @Injectable()
 export class ProDashboardRepository implements IProDashboardRepository {
   constructor(
@@ -33,7 +39,102 @@ export class ProDashboardRepository implements IProDashboardRepository {
     private readonly slotModel: Model<SlotDocument>,
     @InjectModel(Booking.name)
     private readonly bookingModel: Model<BookingDocument>,
+    @InjectModel(ProfessionalCenter.name)
+    private readonly professionalCenterModel: Model<ProfessionalCenterDocument>,
   ) {}
+
+  /**
+   * Reservations prises sur les activites d'un centre.
+   *
+   * Le centre est resolu depuis le compte appelant : un professionnel ne voit
+   * que les siens, meme en demandant l'identifiant d'un autre.
+   */
+  async findCenterBookings(
+    userId: string,
+    centerId?: string,
+  ): Promise<CenterBookingDto[]> {
+    if (!Types.ObjectId.isValid(userId)) return [];
+
+    const centers = await this.professionalCenterModel
+      .find({ ownerId: new Types.ObjectId(userId) })
+      .select('_id')
+      .exec();
+
+    const owned = centers.map(
+      (center) => center._id as unknown as Types.ObjectId,
+    );
+    if (owned.length === 0) return [];
+
+    const targets =
+      centerId && Types.ObjectId.isValid(centerId)
+        ? owned.filter((id) => id.toString() === centerId)
+        : owned;
+    if (targets.length === 0) return [];
+
+    const docs = await this.bookingModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        status: string;
+        totalEur?: number;
+        paidAmountEur?: number;
+        createdAt?: Date;
+        participants?: { firstName?: string; lastName?: string }[];
+        slot?: { startAt?: Date; durationMinutes?: number };
+        activity?: { title?: string };
+        customer?: { firstName?: string; lastName?: string; email?: string };
+      }>([
+        {
+          $lookup: {
+            from: 'slots',
+            localField: 'slotId',
+            foreignField: '_id',
+            as: 'slot',
+          },
+        },
+        { $unwind: '$slot' },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: 'slot.activityId',
+            foreignField: '_id',
+            as: 'activity',
+          },
+        },
+        { $unwind: '$activity' },
+        { $match: { 'activity.centerId': { $in: targets } } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'customer',
+          },
+        },
+        { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+        { $sort: { 'slot.startAt': -1 } },
+      ])
+      .exec();
+
+    return docs.map((doc) => ({
+      bookingId: doc._id.toString(),
+      activityTitle: doc.activity?.title ?? '',
+      slotStartAt: doc.slot?.startAt?.toISOString() ?? '',
+      durationMinutes: doc.slot?.durationMinutes ?? 0,
+      customerName:
+        [doc.customer?.firstName, doc.customer?.lastName]
+          .filter(Boolean)
+          .join(' ') || '',
+      customerEmail: doc.customer?.email ?? '',
+      participantNames: (doc.participants ?? []).map((participant) =>
+        [participant.firstName, participant.lastName].filter(Boolean).join(' '),
+      ),
+      participants: doc.participants?.length ?? 0,
+      status: doc.status,
+      totalEur: doc.totalEur ?? 0,
+      paidAmountEur: doc.paidAmountEur ?? 0,
+      bookedAt: doc.createdAt?.toISOString() ?? '',
+    }));
+  }
 
   private resolveDateRange(query: DashboardQueryDto): {
     current: DateRange;
