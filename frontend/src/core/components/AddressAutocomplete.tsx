@@ -50,16 +50,16 @@ export default function AddressAutocomplete({
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  // Une suggestion venant d'etre choisie ne doit pas relancer une recherche
-  // sur le texte qu'elle vient d'inscrire.
-  const skipNext = useRef(false);
+  /**
+   * La recherche ne part que sur une frappe de l'utilisateur. Reagir a `value`
+   * seul ouvrirait la liste des l'affichage d'un formulaire pre-rempli, et la
+   * relancerait sur le texte qu'une suggestion vient d'inscrire.
+   */
+  const typing = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (skipNext.current) {
-      skipNext.current = false;
-      return;
-    }
+    if (!typing.current) return;
     if (value.trim().length < MIN_QUERY_LENGTH) {
       setSuggestions([]);
       setOpen(false);
@@ -114,7 +114,7 @@ export default function AddressAutocomplete({
   }, []);
 
   const choose = (item: AddressSuggestion) => {
-    skipNext.current = true;
+    typing.current = false;
     onSelect(item);
     setOpen(false);
     setSuggestions([]);
@@ -125,7 +125,10 @@ export default function AddressAutocomplete({
       <Input
         id={id}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          typing.current = true;
+          onChange(e.target.value);
+        }}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         placeholder={placeholder}
         autoComplete="off"
