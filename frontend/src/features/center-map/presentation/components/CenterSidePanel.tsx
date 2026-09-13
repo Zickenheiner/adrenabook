@@ -22,7 +22,7 @@ export default function CenterSidePanel({
   const navigate = useNavigate();
 
   return (
-    <aside className="flex flex-col h-full bg-card border-l border-border">
+    <aside className="flex flex-col h-full w-full bg-card border-l border-border">
       <div className="p-4 border-b border-border shrink-0">
         <h2 className="font-semibold text-sm text-foreground">
           Centres dans cette zone
