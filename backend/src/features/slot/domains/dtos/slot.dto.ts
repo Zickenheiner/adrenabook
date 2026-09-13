@@ -99,6 +99,31 @@ export class SlotConflictDto {
   reason: string;
 }
 
+export class SlotPrerequisitesDto {
+  @ApiProperty({ description: 'Âge minimum requis', example: 12 })
+  minAge: number;
+
+  @ApiProperty({ description: 'Âge maximum autorisé', required: false })
+  maxAge?: number;
+
+  @ApiProperty({
+    description: 'Poids minimum requis en kilogrammes',
+    required: false,
+    example: 40,
+  })
+  minWeightKg?: number;
+
+  @ApiProperty({
+    description: 'Poids maximum autorisé en kilogrammes',
+    required: false,
+    example: 110,
+  })
+  maxWeightKg?: number;
+
+  @ApiProperty({ description: 'Certificat médical exigé', example: false })
+  medicalCertificateRequired: boolean;
+}
+
 export class SlotDetailResponseDto {
   @ApiProperty({
     description: 'Slot ID',
@@ -141,6 +166,15 @@ export class SlotDetailResponseDto {
     example: 149,
   })
   priceEur: number;
+
+  @ApiProperty({
+    description:
+      "Prerequis de participation herites de l'activite. Le client peut ainsi " +
+      'les annoncer a la saisie, mais leur respect est verifie a la reservation.',
+    type: SlotPrerequisitesDto,
+    required: false,
+  })
+  prerequisites?: SlotPrerequisitesDto;
 }
 
 export class ProSlotListItemDto {

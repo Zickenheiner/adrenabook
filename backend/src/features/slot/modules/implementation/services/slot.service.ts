@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ISlotService } from '../../../interfaces/services/slot.iservice';
 import {
-  ActivityPricing,
+  ActivityConditions,
   ISlotRepository,
 } from '@features/slot/interfaces/repositories/slot.irepository';
 import {
@@ -33,14 +33,14 @@ export class SlotService implements ISlotService {
     const slot = await this.slotRepository.findById(id);
     if (!slot) return null;
 
-    const pricing = await this.slotRepository.findActivityPricing(
+    const conditions = await this.slotRepository.findActivityConditions(
       slot.getActivityId().toString(),
     );
-    if (!pricing) {
+    if (!conditions) {
       throw new NotFoundException('Activité introuvable');
     }
 
-    return this.buildSlotDetail(slot, pricing);
+    return this.buildSlotDetail(slot, conditions);
   }
 
   async findByActivityIdForOwner(
@@ -64,13 +64,14 @@ export class SlotService implements ISlotService {
     );
 
     // Tous ces creneaux partagent la meme activite : un seul chargement suffit.
-    const pricing = await this.slotRepository.findActivityPricing(activityId);
-    if (!pricing) {
+    const conditions =
+      await this.slotRepository.findActivityConditions(activityId);
+    if (!conditions) {
       throw new NotFoundException('Activité introuvable');
     }
 
     const details = await Promise.all(
-      sorted.map((slot) => this.buildSlotDetail(slot, pricing)),
+      sorted.map((slot) => this.buildSlotDetail(slot, conditions)),
     );
 
     // activityId est volontairement omis : il est deja porte par l'URL
@@ -87,7 +88,7 @@ export class SlotService implements ISlotService {
   /** Source unique du calcul de remainingSeats, partagee par GET /slots/:id */
   private async buildSlotDetail(
     slot: SlotEntity,
-    pricing: ActivityPricing,
+    conditions: ActivityConditions,
   ): Promise<SlotDetailResponseDto> {
     const activeBookings = await this.slotRepository.countActiveBookings(
       slot.getId(),
@@ -98,10 +99,11 @@ export class SlotService implements ISlotService {
       id: slot.getId(),
       activityId: slot.getActivityId().toString(),
       startAt: slot.getStartAt().toISOString(),
-      durationMinutes: pricing.durationMinutes,
+      durationMinutes: conditions.durationMinutes,
       maxParticipants,
       remainingSeats: Math.max(0, maxParticipants - activeBookings),
-      priceEur: pricing.priceEur,
+      priceEur: conditions.priceEur,
+      prerequisites: conditions.prerequisites,
     };
   }
 

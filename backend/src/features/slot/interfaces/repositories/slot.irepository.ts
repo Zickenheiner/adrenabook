@@ -1,4 +1,5 @@
 import { CreateSlotsDto } from '@features/slot/domains/dtos/slot.dto';
+import { Prerequisites } from '@features/activity/domains/schemas/activity.schema';
 import { SlotEntity } from '@features/slot/domains/entities/slot.entity';
 
 /**
@@ -10,12 +11,14 @@ export interface ActivityOwnership {
 }
 
 /**
- * Duree et prix font autorite au niveau de l'activite : un creneau ne les
- * stocke plus, il les lit ici au moment de construire une reponse.
+ * Conditions portees par l'activite, dont un creneau herite : duree, prix et
+ * prerequis de participation. Le creneau ne les stocke pas, il les lit ici au
+ * moment de construire une reponse.
  */
-export interface ActivityPricing {
+export interface ActivityConditions {
   durationMinutes: number;
   priceEur: number;
+  prerequisites?: Prerequisites;
 }
 
 export interface ISlotRepository {
@@ -25,7 +28,9 @@ export interface ISlotRepository {
   /** null si l'activite n'existe pas */
   findActivityOwnership(activityId: string): Promise<ActivityOwnership | null>;
   /** null si l'activite n'existe pas */
-  findActivityPricing(activityId: string): Promise<ActivityPricing | null>;
+  findActivityConditions(
+    activityId: string,
+  ): Promise<ActivityConditions | null>;
   createMany(
     activityId: string,
     dto: CreateSlotsDto,

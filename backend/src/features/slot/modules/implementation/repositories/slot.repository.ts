@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   ActivityOwnership,
-  ActivityPricing,
+  ActivityConditions,
   ISlotRepository,
 } from '../../../interfaces/repositories/slot.irepository';
 import { SlotMapper } from '../mappers/slot.mapper';
@@ -83,16 +83,16 @@ export class SlotRepository implements ISlotRepository {
     return { ownerId: center ? center.ownerId.toString() : null };
   }
 
-  async findActivityPricing(
+  async findActivityConditions(
     activityId: string,
-  ): Promise<ActivityPricing | null> {
+  ): Promise<ActivityConditions | null> {
     if (!mongoose.Types.ObjectId.isValid(activityId)) {
       return null;
     }
 
     const activity = await this.activityModel
       .findById(activityId)
-      .select('durationMinutes priceEur')
+      .select('durationMinutes priceEur prerequisites')
       .exec();
     if (!activity) {
       return null;
@@ -101,6 +101,7 @@ export class SlotRepository implements ISlotRepository {
     return {
       durationMinutes: activity.durationMinutes,
       priceEur: activity.priceEur,
+      prerequisites: activity.prerequisites,
     };
   }
 

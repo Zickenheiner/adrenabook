@@ -39,8 +39,16 @@ describe('SlotService', () => {
     } as unknown as SlotEntity;
   };
 
-  // Duree et prix font autorite au niveau de l'activite.
-  const activityPricing = { durationMinutes: 60, priceEur: 150 };
+  // Duree, prix et prerequis font autorite au niveau de l'activite.
+  const activityPricing = {
+    durationMinutes: 60,
+    priceEur: 150,
+    prerequisites: {
+      minAge: 12,
+      minWeightKg: 40,
+      medicalCertificateRequired: false,
+    },
+  };
 
   const baseDto: CreateSlotsDto = {
     singleStartAt: '2026-06-15T09:00:00.000Z',
@@ -54,7 +62,7 @@ describe('SlotService', () => {
       countActiveBookings: jest.fn(),
       findByActivityId: jest.fn(),
       findActivityOwnership: jest.fn(),
-      findActivityPricing: jest.fn(),
+      findActivityConditions: jest.fn(),
       createMany: jest.fn(),
     };
 
@@ -70,7 +78,7 @@ describe('SlotService', () => {
 
     service = module.get<SlotService>(SlotService);
     slotRepository = module.get('ISlotRepository');
-    slotRepository.findActivityPricing.mockResolvedValue(activityPricing);
+    slotRepository.findActivityConditions.mockResolvedValue(activityPricing);
   });
 
   it('should be defined', () => {
@@ -92,6 +100,9 @@ describe('SlotService', () => {
         maxParticipants: 10,
         remainingSeats: 7,
         priceEur: 150,
+        // Les prerequis descendent de l'activite pour que le client puisse
+        // les annoncer avant la saisie.
+        prerequisites: activityPricing.prerequisites,
       });
       expect(slotRepository.countActiveBookings).toHaveBeenCalledWith(
         '68b4d59919d9b7a94b4fde21',

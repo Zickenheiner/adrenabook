@@ -183,9 +183,9 @@ describe('SlotRepository', () => {
     });
   });
 
-  describe('findActivityPricing()', () => {
+  describe('findActivityConditions()', () => {
     it('should return null without querying when the activity id is invalid', async () => {
-      const result = await repository.findActivityPricing('not-an-id');
+      const result = await repository.findActivityConditions('not-an-id');
 
       expect(result).toBeNull();
       expect(activityModel.findById).not.toHaveBeenCalled();
@@ -194,7 +194,7 @@ describe('SlotRepository', () => {
     it('should return null when the activity does not exist', async () => {
       activityModel.findById.mockReturnValue(selectChain(null));
 
-      expect(await repository.findActivityPricing(VALID_ID)).toBeNull();
+      expect(await repository.findActivityConditions(VALID_ID)).toBeNull();
     });
 
     it('should read the duration and the price from the activity', async () => {
@@ -202,7 +202,7 @@ describe('SlotRepository', () => {
         selectChain({ durationMinutes: 90, priceEur: 45 }),
       );
 
-      expect(await repository.findActivityPricing(VALID_ID)).toEqual({
+      expect(await repository.findActivityConditions(VALID_ID)).toEqual({
         durationMinutes: 90,
         priceEur: 45,
       });
