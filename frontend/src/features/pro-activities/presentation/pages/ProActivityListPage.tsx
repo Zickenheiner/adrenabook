@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertCircle, Inbox, Plus, Activity } from 'lucide-react';
@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/core/components/ui/alert-dialog';
 import routes from '@/core/constants/routes';
+import { useCenterStore } from '@/core/stores/center.store';
 import {
   useActivityList,
   useDeleteActivity,
@@ -76,10 +77,17 @@ function ProActivityListEmpty({ onAdd }: { onAdd: () => void }) {
 export default function ProActivityListPage() {
   const navigate = useNavigate();
   const { centerId = '' } = useParams<{ centerId: string }>();
+  const setCurrentCenterId = useCenterStore((s) => s.setCurrentCenterId);
   const { activities, activitiesIsLoading, activitiesError } =
     useActivityList(centerId);
   const { deleteActivity, deleteActivityIsPending } = useDeleteActivity();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  // L'URL fait foi : arriver ici par un lien direct doit aligner le centre
+  // courant, sinon les ecrans enfants renverraient vers un autre centre.
+  useEffect(() => {
+    if (centerId) setCurrentCenterId(centerId);
+  }, [centerId, setCurrentCenterId]);
 
   if (activitiesIsLoading) return <ProActivityListSkeleton />;
   if (activitiesError) return <ProActivityListError />;

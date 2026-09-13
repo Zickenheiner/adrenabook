@@ -5,6 +5,7 @@ import { Button } from '@/core/components/ui/button';
 import { Separator } from '@/core/components/ui/separator';
 import { Skeleton } from '@/core/components/ui/skeleton';
 import routes from '@/core/constants/routes';
+import { useCenterStore } from '@/core/stores/center.store';
 import { useCreateSlots, useProSlots } from '../../domain/hooks/slot.hook';
 // La duree et le prix du creneau sont ceux de l'activite : on les lit a la
 // source plutot que de les ressaisir.
@@ -16,6 +17,17 @@ import SlotCard, { SlotConflictCard } from '../components/SlotCard';
 export default function ProSlotManagePage() {
   const navigate = useNavigate();
   const { id: activityId } = useParams<{ id: string }>();
+  const currentCenterId = useCenterStore((state) => state.currentCenterId);
+
+  // Le creneau ne connait que son activite : le centre d'ou vient le
+  // professionnel est celui qu'il a selectionne. A defaut, la liste des
+  // centres reste le seul repli possible.
+  const backToActivities = () =>
+    navigate(
+      currentCenterId
+        ? routes.proActivityList.replace(':centerId', currentCenterId)
+        : routes.proCenterList,
+    );
   const {
     createSlots,
     createSlotsIsPending,
@@ -41,11 +53,8 @@ export default function ProSlotManagePage() {
         <p className="text-muted-foreground text-center">
           Aucune activité sélectionnée.
         </p>
-        <Button
-          variant="outline"
-          onClick={() => navigate(routes.proCenterList)}
-        >
-          Retour au catalogue
+        <Button variant="outline" onClick={backToActivities}>
+          Retour aux activités
         </Button>
       </div>
     );
@@ -65,10 +74,10 @@ export default function ProSlotManagePage() {
             variant="ghost"
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
-            onClick={() => navigate(routes.proCenterList)}
+            onClick={backToActivities}
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour au catalogue
+            Retour aux activités
           </Button>
 
           <div className="flex items-center gap-3">

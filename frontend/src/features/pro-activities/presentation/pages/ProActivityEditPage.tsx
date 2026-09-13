@@ -6,6 +6,7 @@ import { Separator } from '@/core/components/ui/separator';
 import { Skeleton } from '@/core/components/ui/skeleton';
 import { toast } from 'sonner';
 import routes from '@/core/constants/routes';
+import { useCenterStore } from '@/core/stores/center.store';
 import {
   useActivity,
   useUpdateActivity,
@@ -68,6 +69,16 @@ function ProActivityEditError() {
 export default function ProActivityEditPage() {
   const navigate = useNavigate();
   const { id = '' } = useParams<{ id: string }>();
+  const currentCenterId = useCenterStore((state) => state.currentCenterId);
+
+  // L'activite editee appartient au centre selectionne : y revenir evite de
+  // remonter jusqu'a la liste des centres apres chaque modification.
+  const backToActivities = () =>
+    navigate(
+      currentCenterId
+        ? routes.proActivityList.replace(':centerId', currentCenterId)
+        : routes.proCenterList,
+    );
   const { activity, activityIsLoading, activityError } = useActivity(id);
   const { updateActivity, updateActivityIsPending } = useUpdateActivity();
 
@@ -77,7 +88,7 @@ export default function ProActivityEditPage() {
       {
         onSuccess: () => {
           toast.success('Activité mise à jour');
-          navigate(routes.proCenterList);
+          backToActivities();
         },
         onError: () => {
           toast.error('Une erreur est survenue lors de la mise à jour');
@@ -103,10 +114,10 @@ export default function ProActivityEditPage() {
             variant="ghost"
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
-            onClick={() => navigate(routes.proCenterList)}
+            onClick={backToActivities}
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour à mes centres
+            Retour aux activités
           </Button>
 
           <div className="flex items-center gap-3">
