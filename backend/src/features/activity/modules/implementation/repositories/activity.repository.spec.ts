@@ -439,6 +439,78 @@ describe('ActivityRepository', () => {
       data: activityModel.aggregate.mock.calls[1][0] as PipelineStage[],
     });
 
+    it('should restrict the results to the search radius', async () => {
+      stubAggregations([], []);
+
+      await repository.search({
+        lat: 43.6,
+        lng: 1.44,
+        radiusKm: 111,
+      } as SearchActivitiesQueryDto);
+
+      // Le filtre porte sur le centre, donc il ne peut s'appliquer qu'apres la
+      // jointure : un $match place avant ne verrait pas location.
+      const { data } = lastPipelines();
+      const unwindAt = data.findIndex((stage) => '$unwind' in stage);
+      const geoAt = data.findIndex(
+        (stage, index) =>
+          index > unwindAt &&
+          '$match' in stage &&
+          'center.location.lat' in (stage as { $match: object }).$match,
+      );
+      expect(geoAt).toBeGreaterThan(unwindAt);
+
+      const geoMatch = (
+        data[geoAt] as unknown as {
+          $match: Record<string, { $gte: number; $lte: number }>;
+        }
+      ).$match;
+      expect(geoMatch['center.location.lat'].$gte).toBeCloseTo(42.6, 1);
+      expect(geoMatch['center.location.lat'].$lte).toBeCloseTo(44.6, 1);
+      expect(geoMatch['center.location.lng'].$gte).toBeLessThan(1.44);
+      expect(geoMatch['center.location.lng'].$lte).toBeGreaterThan(1.44);
+    });
+
+    it('should not build any geographic filter when the position is missing', async () => {
+      stubAggregations([], []);
+
+      await repository.search({ radiusKm: 50 } as SearchActivitiesQueryDto);
+
+      const { data } = lastPipelines();
+      const hasGeo = data.some(
+        (stage) =>
+          '$match' in stage &&
+          'center.location.lat' in (stage as { $match: object }).$match,
+      );
+      expect(hasGeo).toBe(false);
+    });
+
+    it('should sort by computed distance when sortBy is distance', async () => {
+      stubAggregations([], []);
+
+      await repository.search({
+        lat: 43.6,
+        lng: 1.44,
+        radiusKm: 50,
+        sortBy: 'distance',
+      } as SearchActivitiesQueryDto);
+
+      const { data } = lastPipelines();
+      expect(data.some((stage) => '$addFields' in stage)).toBe(true);
+      expect(data).toContainEqual({ $sort: { distanceKm: 1 } });
+    });
+
+    it('should fall back to the default sort when distance is asked without a position', async () => {
+      stubAggregations([], []);
+
+      await repository.search({
+        sortBy: 'distance',
+      } as SearchActivitiesQueryDto);
+
+      const { data } = lastPipelines();
+      expect(data).toContainEqual({ $sort: { _id: -1 } });
+    });
+
     it('should use the default pagination when none is provided', async () => {
       stubAggregations([], []);
 

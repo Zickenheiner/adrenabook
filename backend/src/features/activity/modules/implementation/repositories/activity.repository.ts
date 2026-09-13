@@ -232,6 +232,59 @@ export class ActivityRepository implements IActivityRepository {
     return !!result;
   }
 
+  /**
+   * Encadrement lat/lng deduit du rayon, comme pour la carte : un degre de
+   * latitude vaut environ 111 km, et un degre de longitude se resserre vers
+   * les poles d'un facteur cos(latitude).
+   */
+  private radiusFilter(
+    lat: number,
+    lng: number,
+    radiusKm: number,
+  ): Record<string, { $gte: number; $lte: number }> {
+    const deltaLat = radiusKm / 111;
+    const deltaLng = radiusKm / (111 * Math.cos((lat * Math.PI) / 180));
+
+    return {
+      'center.location.lat': { $gte: lat - deltaLat, $lte: lat + deltaLat },
+      'center.location.lng': { $gte: lng - deltaLng, $lte: lng + deltaLng },
+    };
+  }
+
+  /**
+   * Distance equirectangulaire en kilometres. L'approximation suffit pour
+   * ordonner des resultats a l'echelle d'une region, sans imposer d'index
+   * geospatial ni de migration du champ location en GeoJSON.
+   */
+  private distanceExpression(
+    lat: number,
+    lng: number,
+  ): Record<string, unknown> {
+    return {
+      $let: {
+        vars: {
+          dLat: { $subtract: ['$center.location.lat', lat] },
+          dLng: {
+            $multiply: [
+              { $subtract: ['$center.location.lng', lng] },
+              { $cos: { $degreesToRadians: lat } },
+            ],
+          },
+        },
+        in: {
+          $multiply: [
+            111.32,
+            {
+              $sqrt: {
+                $add: [{ $pow: ['$$dLat', 2] }, { $pow: ['$$dLng', 2] }],
+              },
+            },
+          ],
+        },
+      },
+    };
+  }
+
   async search(
     query: SearchActivitiesQueryDto,
   ): Promise<SearchActivitiesResponseDto> {
@@ -257,6 +310,13 @@ export class ActivityRepository implements IActivityRepository {
       matchFilter['$text'] = { $search: query.query };
     }
 
+    // Le rayon n'a de sens qu'avec un point d'origine : sans position, le
+    // filtre geographique et le tri par distance sont sans objet.
+    const hasOrigin =
+      query.lat !== undefined &&
+      query.lng !== undefined &&
+      query.radiusKm !== undefined;
+
     let sortField: string;
     let sortOrder: 1 | -1;
     if (query.sortBy === 'price_asc') {
@@ -265,6 +325,9 @@ export class ActivityRepository implements IActivityRepository {
     } else if (query.sortBy === 'price_desc') {
       sortField = 'priceEur';
       sortOrder = -1;
+    } else if (query.sortBy === 'distance' && hasOrigin) {
+      sortField = 'distanceKm';
+      sortOrder = 1;
     } else {
       sortField = '_id';
       sortOrder = -1;
@@ -281,8 +344,22 @@ export class ActivityRepository implements IActivityRepository {
         },
       },
       { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
-      { $sort: { [sortField]: sortOrder } },
     ];
+
+    if (hasOrigin) {
+      // Les coordonnees sont portees par le centre : le filtre ne peut donc
+      // s'appliquer qu'apres la jointure.
+      pipeline.push(
+        { $match: this.radiusFilter(query.lat!, query.lng!, query.radiusKm!) },
+        {
+          $addFields: {
+            distanceKm: this.distanceExpression(query.lat!, query.lng!),
+          },
+        },
+      );
+    }
+
+    pipeline.push({ $sort: { [sortField]: sortOrder } });
 
     const countPipeline: PipelineStage[] = [...pipeline, { $count: 'total' }];
     const dataPipeline: PipelineStage[] = [
