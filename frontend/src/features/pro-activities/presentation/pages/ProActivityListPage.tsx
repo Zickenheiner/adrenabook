@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertCircle, Inbox, Plus, Activity } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
@@ -75,8 +75,9 @@ function ProActivityListEmpty({ onAdd }: { onAdd: () => void }) {
 
 export default function ProActivityListPage() {
   const navigate = useNavigate();
+  const { centerId = '' } = useParams<{ centerId: string }>();
   const { activities, activitiesIsLoading, activitiesError } =
-    useActivityList();
+    useActivityList(centerId);
   const { deleteActivity, deleteActivityIsPending } = useDeleteActivity();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
@@ -109,7 +110,11 @@ export default function ProActivityListPage() {
             </div>
           </div>
 
-          <Button onClick={() => navigate(routes.proActivityCreate)}>
+          <Button
+            onClick={() =>
+              navigate(routes.proActivityCreate.replace(':centerId', centerId))
+            }
+          >
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle activité
           </Button>
@@ -118,7 +123,9 @@ export default function ProActivityListPage() {
         {/* Content */}
         {!activities?.length ? (
           <ProActivityListEmpty
-            onAdd={() => navigate(routes.proActivityCreate)}
+            onAdd={() =>
+              navigate(routes.proActivityCreate.replace(':centerId', centerId))
+            }
           />
         ) : (
           <motion.div

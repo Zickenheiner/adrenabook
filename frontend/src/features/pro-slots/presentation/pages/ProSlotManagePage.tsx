@@ -43,7 +43,7 @@ export default function ProSlotManagePage() {
         </p>
         <Button
           variant="outline"
-          onClick={() => navigate(routes.proActivityList)}
+          onClick={() => navigate(routes.proCenterList)}
         >
           Retour au catalogue
         </Button>
@@ -65,7 +65,7 @@ export default function ProSlotManagePage() {
             variant="ghost"
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
-            onClick={() => navigate(routes.proActivityList)}
+            onClick={() => navigate(routes.proCenterList)}
           >
             <ArrowLeft className="h-4 w-4" />
             Retour au catalogue

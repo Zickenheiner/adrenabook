@@ -77,7 +77,7 @@ export default function ProActivityEditPage() {
       {
         onSuccess: () => {
           toast.success('Activité mise à jour');
-          navigate(routes.proActivityList);
+          navigate(routes.proCenterList);
         },
         onError: () => {
           toast.error('Une erreur est survenue lors de la mise à jour');
@@ -103,10 +103,10 @@ export default function ProActivityEditPage() {
             variant="ghost"
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
-            onClick={() => navigate(routes.proActivityList)}
+            onClick={() => navigate(routes.proCenterList)}
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour au catalogue
+            Retour à mes centres
           </Button>
 
           <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, Activity } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
@@ -24,13 +24,15 @@ const toCreatePayload = ({
 
 export default function ProActivityCreatePage() {
   const navigate = useNavigate();
-  const { createActivity, createActivityIsPending } = useCreateActivity();
+  const { centerId = '' } = useParams<{ centerId: string }>();
+  const { createActivity, createActivityIsPending } =
+    useCreateActivity(centerId);
 
   function handleSubmit(data: CreateActivityFormData) {
     createActivity(toCreatePayload(data), {
       onSuccess: () => {
         toast.success('Activité créée avec succès');
-        navigate(routes.proActivityList);
+        navigate(routes.proActivityList.replace(':centerId', centerId));
       },
       onError: () => {
         toast.error('Une erreur est survenue lors de la création');
@@ -52,7 +54,9 @@ export default function ProActivityCreatePage() {
             variant="ghost"
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
-            onClick={() => navigate(routes.proActivityList)}
+            onClick={() =>
+              navigate(routes.proActivityList.replace(':centerId', centerId))
+            }
           >
             <ArrowLeft className="h-4 w-4" />
             Retour au catalogue

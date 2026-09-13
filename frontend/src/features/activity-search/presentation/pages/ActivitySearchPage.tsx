@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { AlertCircle, Inbox, Search } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
@@ -12,6 +12,9 @@ import {
   ActivityCardSkeleton,
 } from '../components/ActivityCard';
 import ActivitySearchPagination from '../components/ActivitySearchPagination';
+
+export type GeolocationStatus =
+  'pending' | 'granted' | 'denied' | 'unsupported';
 
 const DEFAULT_PARAMS: ActivitySearchParamsEntity = {
   page: 1,
@@ -63,6 +66,26 @@ export default function ActivitySearchPage() {
   const [params, setParams] =
     useState<ActivitySearchParamsEntity>(DEFAULT_PARAMS);
   const [queryInput, setQueryInput] = useState('');
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
+  const [geoStatus, setGeoStatus] = useState<GeolocationStatus>('pending');
+
+  // Le rayon de recherche n'a de sens que rapporte a un point de depart : on
+  // demande la position des l'ouverture, sans quoi le filtre reste inerte.
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGeoStatus('unsupported');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGeoStatus('granted');
+      },
+      () => setGeoStatus('denied'),
+    );
+  }, []);
 
   const { searchResult, searchIsLoading, searchError } =
     useActivitySearch(params);
@@ -70,6 +93,9 @@ export default function ActivitySearchPage() {
   const handleSearch = (data: ActivitySearchFormData) => {
     setParams({
       ...data,
+      // Sans position connue, le rayon est ecarte : le transmettre seul
+      // laisserait croire a un filtrage qui n'a pas lieu.
+      ...(position ? position : { radiusKm: undefined }),
       query: queryInput || data.query,
       page: 1,
       pageSize: 20,
@@ -131,6 +157,7 @@ export default function ActivitySearchPage() {
               <ActivitySearchFilters
                 defaultValues={params}
                 onSearch={handleSearch}
+                geoStatus={geoStatus}
               />
             </div>
           </aside>

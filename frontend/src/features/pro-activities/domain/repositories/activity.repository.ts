@@ -5,9 +5,12 @@ import type {
 } from '../../data/dtos/activity.dto';
 
 export interface ActivityRepository {
-  getAll(): Promise<ActivityEntity[]>;
+  getAll(centerId: string): Promise<ActivityEntity[]>;
   getById(id: string): Promise<ActivityEntity>;
-  create(data: CreateActivityRequestDto): Promise<ActivityEntity>;
+  create(
+    data: CreateActivityRequestDto,
+    centerId: string,
+  ): Promise<ActivityEntity>;
   update(id: string, data: UpdateActivityRequestDto): Promise<ActivityEntity>;
   delete(id: string): Promise<void>;
 }

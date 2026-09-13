@@ -8,6 +8,7 @@ const endpoints = {
   },
   professionalCenter: {
     create: '/professional-center',
+    mine: '/professional-center/mine',
   },
   system: {
     health: '/health',
@@ -22,6 +23,10 @@ const endpoints = {
   },
   proActivities: {
     base: '/pro/activities',
+    mine: (centerId: string) =>
+      `/pro/activities/my?centerId=${encodeURIComponent(centerId)}`,
+    createIn: (centerId: string) =>
+      `/pro/activities?centerId=${encodeURIComponent(centerId)}`,
     byId: (id: string) => `/pro/activities/${id}`,
   },
   proSlots: {

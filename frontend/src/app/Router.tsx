@@ -15,6 +15,7 @@ import AdminCenterListPage from '@/features/admin-kyc/presentation/pages/AdminCe
 import AdminCenterReviewPage from '@/features/admin-kyc/presentation/pages/AdminCenterReviewPage';
 import HealthProfilePage from '@/features/health-profile/presentation/pages/HealthProfilePage';
 import ProActivityListPage from '@/features/pro-activities/presentation/pages/ProActivityListPage';
+import ProCenterListPage from '@/features/pro-centers/presentation/pages/ProCenterListPage';
 import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/ProActivityCreatePage';
 import ProActivityEditPage from '@/features/pro-activities/presentation/pages/ProActivityEditPage';
 import ProSlotManagePage from '@/features/pro-slots/presentation/pages/ProSlotManagePage';
@@ -76,6 +77,7 @@ export default function Router() {
           element={<AdminCenterReviewPage />}
         />
         <Route path={routes.healthProfile} element={<HealthProfilePage />} />
+        <Route path={routes.proCenterList} element={<ProCenterListPage />} />
         <Route
           path={routes.proActivityList}
           element={<ProActivityListPage />}

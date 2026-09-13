@@ -1,6 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SlidersHorizontal, RotateCcw } from 'lucide-react';
+import {
+  SlidersHorizontal,
+  RotateCcw,
+  LocateFixed,
+  Loader2,
+} from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
@@ -16,16 +21,22 @@ import {
   activitySearchSchema,
   type ActivitySearchFormData,
 } from '../../domain/schemas/activity-search.schema';
+import type { GeolocationStatus } from '../pages/ActivitySearchPage';
 
 interface Props {
   defaultValues?: ActivitySearchFormData;
   onSearch: (data: ActivitySearchFormData) => void;
+  geoStatus: GeolocationStatus;
 }
 
 export default function ActivitySearchFilters({
   defaultValues,
   onSearch,
+  geoStatus,
 }: Props) {
+  // Le rayon et le tri par distance se mesurent depuis la position : sans
+  // elle, les proposer donnerait un filtre sans effet.
+  const locationReady = geoStatus === 'granted';
   const { register, handleSubmit, setValue, watch, reset } =
     useForm<ActivitySearchFormData>({
       resolver: zodResolver(activitySearchSchema),
@@ -145,6 +156,7 @@ export default function ActivitySearchFilters({
         </Label>
         <Select
           defaultValue="50"
+          disabled={!locationReady}
           onValueChange={(v) => setValue('radiusKm', Number(v))}
         >
           <SelectTrigger className="w-full">
@@ -158,6 +170,26 @@ export default function ActivitySearchFilters({
             <SelectItem value="200">200 km</SelectItem>
           </SelectContent>
         </Select>
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          {geoStatus === 'pending' && (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+              Localisation en cours…
+            </>
+          )}
+          {geoStatus === 'granted' && (
+            <>
+              <LocateFixed className="h-3 w-3 text-primary shrink-0" />
+              Autour de votre position
+            </>
+          )}
+          {geoStatus === 'denied' && (
+            <>Activez la localisation pour filtrer par distance.</>
+          )}
+          {geoStatus === 'unsupported' && (
+            <>Votre navigateur ne gère pas la localisation.</>
+          )}
+        </p>
       </div>
 
       {/* Tri */}
@@ -178,7 +210,9 @@ export default function ActivitySearchFilters({
             <SelectItem value="relevance">Pertinence</SelectItem>
             <SelectItem value="price_asc">Prix croissant</SelectItem>
             <SelectItem value="price_desc">Prix décroissant</SelectItem>
-            <SelectItem value="distance">Distance</SelectItem>
+            <SelectItem value="distance" disabled={!locationReady}>
+              Distance
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

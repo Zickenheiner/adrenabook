@@ -1,20 +1,20 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
-  LogOut,
-  Heart,
+  BadgeCheck,
   Bell,
-  ShieldCheck,
+  Briefcase,
+  Building2,
+  ClipboardList,
+  FileSpreadsheet,
+  Heart,
+  Home,
+  LogOut,
   Map,
   Search,
-  Home,
-  Briefcase,
-  CalendarClock,
-  FileSpreadsheet,
+  ShieldCheck,
+  Store,
   Upload,
   Users,
-  ClipboardList,
-  BadgeCheck,
-  Store,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -51,7 +51,7 @@ const navLinks = [
  */
 const proLinks = [
   { label: 'Tableau de bord', to: routes.proDashboard, icon: Briefcase },
-  { label: 'Mes activités', to: routes.proActivityList, icon: CalendarClock },
+  { label: 'Mes centres', to: routes.proCenterList, icon: Building2 },
   { label: 'Import CSV', to: routes.proCsvImport, icon: Upload },
   {
     label: 'Export comptable',
@@ -76,8 +76,7 @@ export default function Navbar() {
         ? proLinks
         : [];
   const roleLabel = user?.role === 'admin' ? 'Administration' : 'Espace pro';
-  const canRegisterCenter =
-    user?.role !== 'admin' && user?.role !== 'professionnel';
+  const canRegisterCenter = user?.role !== 'admin';
 
   const handleLogout = () => {
     clearTokens();

@@ -8,14 +8,15 @@ import type {
 const repository = new ActivityRepositoryImpl();
 
 const QUERY_KEYS = {
-  all: ['pro-activities'] as const,
+  all: (centerId: string) => ['pro-activities', centerId] as const,
   detail: (id: string) => ['pro-activities', id] as const,
 };
 
-export function useActivityList() {
+export function useActivityList(centerId: string) {
   const { data, isLoading, error } = useQuery({
-    queryKey: QUERY_KEYS.all,
-    queryFn: () => repository.getAll(),
+    queryKey: QUERY_KEYS.all(centerId),
+    queryFn: () => repository.getAll(centerId),
+    enabled: !!centerId,
   });
 
   return {
@@ -35,13 +36,16 @@ export function useActivity(id: string) {
   return { activity: data, activityIsLoading: isLoading, activityError: error };
 }
 
-export function useCreateActivity() {
+export function useCreateActivity(centerId: string) {
   const queryClient = useQueryClient();
 
   const { mutate, isPending, error } = useMutation({
-    mutationFn: (data: CreateActivityRequestDto) => repository.create(data),
+    mutationFn: (data: CreateActivityRequestDto) =>
+      repository.create(data, centerId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.all(centerId),
+      });
     },
   });
 
@@ -64,7 +68,7 @@ export function useUpdateActivity() {
       data: UpdateActivityRequestDto;
     }) => repository.update(id, data),
     onSuccess: (_, { id }) => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: ['pro-activities'] });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.detail(id) });
     },
   });
@@ -82,7 +86,7 @@ export function useDeleteActivity() {
   const { mutate, isPending, error } = useMutation({
     mutationFn: (id: string) => repository.delete(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: ['pro-activities'] });
     },
   });
 

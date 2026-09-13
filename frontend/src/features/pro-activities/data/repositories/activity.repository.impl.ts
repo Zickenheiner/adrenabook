@@ -13,8 +13,8 @@ class ActivityRepositoryImpl implements ActivityRepository {
     private readonly mapper: ActivityMapper = new ActivityMapper(),
   ) {}
 
-  async getAll(): Promise<ActivityEntity[]> {
-    const dtos = await this.api.getAll();
+  async getAll(centerId: string): Promise<ActivityEntity[]> {
+    const dtos = await this.api.getAll(centerId);
     return this.mapper.toEntityList(dtos);
   }
 
@@ -23,8 +23,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
     return this.mapper.toEntity(dto);
   }
 
-  async create(data: CreateActivityRequestDto): Promise<ActivityEntity> {
-    const dto = await this.api.create(data);
+  async create(
+    data: CreateActivityRequestDto,
+    centerId: string,
+  ): Promise<ActivityEntity> {
+    const dto = await this.api.create(data, centerId);
     return this.mapper.toEntity(dto);
   }
 
