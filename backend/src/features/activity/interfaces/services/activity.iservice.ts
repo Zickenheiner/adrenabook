@@ -1,4 +1,5 @@
 import {
+  ActivityMonthSlotsResponseDto,
   ActivityDetailResponseDto,
   ActivityResponseDto,
   CreateActivityDto,
@@ -14,6 +15,10 @@ export interface IActivityService {
   /** Une photo n'est publiquement lisible que si une activite publiee la porte. */
   isPublicPhoto(fileId: string): Promise<boolean>;
   findDetailById(id: string): Promise<ActivityDetailResponseDto | null>;
+  findSlotsByMonth(
+    id: string,
+    month: string,
+  ): Promise<ActivityMonthSlotsResponseDto | null>;
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
   /** Activites d'un centre, restreintes a ceux du professionnel appelant. */
   findMine(userId: string, centerId: string): Promise<ActivityEntity[] | null>;

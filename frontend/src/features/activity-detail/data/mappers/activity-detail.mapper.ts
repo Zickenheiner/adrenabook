@@ -5,10 +5,6 @@ class ActivityDetailMapper {
   toEntity(dto: ActivityDetailResponseDto): ActivityDetailEntity {
     return {
       ...dto,
-      upcomingSlots: dto.upcomingSlots.map((slot) => ({
-        ...slot,
-        startAt: new Date(slot.startAt),
-      })),
     };
   }
 }

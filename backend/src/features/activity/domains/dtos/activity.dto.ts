@@ -595,6 +595,23 @@ export class ActivityDetailUpcomingSlotDto {
   priceEur: number;
 }
 
+export class ActivityMonthSlotsResponseDto {
+  @ApiProperty({
+    description: 'Creneaux du mois demande, tries par date croissante',
+    type: [ActivityDetailUpcomingSlotDto],
+  })
+  slots: ActivityDetailUpcomingSlotDto[];
+
+  @ApiProperty({
+    description:
+      'Mois a venir comportant au moins un creneau, au format YYYY-MM. ' +
+      "Permet de sauter directement a un mois ouvert plutot que de naviguer a l'aveugle.",
+    example: ['2026-09', '2026-10', '2027-03'],
+    type: [String],
+  })
+  availableMonths: string[];
+}
+
 export class ActivityDetailReviewsSummaryDto {
   @ApiProperty({
     description: 'Total number of verified reviews',
@@ -688,12 +705,6 @@ export class ActivityDetailResponseDto {
     type: ActivityDetailCenterDto,
   })
   center: ActivityDetailCenterDto;
-
-  @ApiProperty({
-    description: 'Upcoming available slots within the next 90 days',
-    type: [ActivityDetailUpcomingSlotDto],
-  })
-  upcomingSlots: ActivityDetailUpcomingSlotDto[];
 
   @ApiProperty({
     description: 'Reviews summary',

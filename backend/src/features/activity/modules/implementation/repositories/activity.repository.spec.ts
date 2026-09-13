@@ -29,6 +29,7 @@ interface ActivityModelMock extends jest.Mock {
   findByIdAndUpdate: jest.Mock;
   findByIdAndDelete: jest.Mock;
   aggregate: jest.Mock;
+  findOne: jest.Mock;
 }
 
 describe('ActivityRepository', () => {
@@ -36,6 +37,7 @@ describe('ActivityRepository', () => {
   let activityModel: ActivityModelMock;
   let activityMapper: { toEntity: jest.Mock };
   let saveMock: jest.Mock;
+  let slotModel: { find: jest.Mock; aggregate: jest.Mock };
 
   const activityId = new Types.ObjectId();
   const centerId = new Types.ObjectId();
@@ -53,6 +55,9 @@ describe('ActivityRepository', () => {
     activityModel.findByIdAndUpdate = jest.fn();
     activityModel.findByIdAndDelete = jest.fn();
     activityModel.aggregate = jest.fn();
+    activityModel.findOne = jest.fn();
+
+    slotModel = { find: jest.fn(), aggregate: jest.fn() };
 
     activityMapper = {
       toEntity: jest.fn((doc: { _id: unknown }) => ({
@@ -64,6 +69,7 @@ describe('ActivityRepository', () => {
       providers: [
         ActivityRepository,
         { provide: getModelToken(Activity.name), useValue: activityModel },
+        { provide: getModelToken('Slot'), useValue: slotModel },
         { provide: ActivityMapper, useValue: activityMapper },
       ],
     }).compile();
@@ -250,14 +256,6 @@ describe('ActivityRepository', () => {
           country: 'France',
         },
       },
-      upcomingSlots: [
-        {
-          _id: new Types.ObjectId(),
-          startAt: new Date('2026-09-01T08:00:00.000Z'),
-          maxParticipants: 8,
-          priceEur: 95,
-        },
-      ],
       ...overrides,
     });
 
@@ -367,51 +365,12 @@ describe('ActivityRepository', () => {
       });
     });
 
-    it('should map the upcoming slots and expose maxParticipants as remainingSeats', async () => {
-      const doc = buildAggregationResult();
-      activityModel.aggregate.mockReturnValue(mockAggregate([doc]));
-
-      const result = await repository.findDetailById(activityId.toString());
-
-      expect(result!.upcomingSlots).toEqual([
-        {
-          id: doc.upcomingSlots[0]._id.toString(),
-          startAt: '2026-09-01T08:00:00.000Z',
-          remainingSeats: 8,
-          priceEur: 95,
-        },
-      ]);
-    });
-
-    it('should stringify a slot startAt that is not a Date', async () => {
-      const slotId = new Types.ObjectId();
-      activityModel.aggregate.mockReturnValue(
-        mockAggregate([
-          buildAggregationResult({
-            upcomingSlots: [
-              {
-                _id: slotId,
-                startAt: '2026-09-02T08:00:00.000Z',
-                maxParticipants: 4,
-                priceEur: 80,
-              },
-            ],
-          }),
-        ]),
-      );
-
-      const result = await repository.findDetailById(activityId.toString());
-
-      expect(result!.upcomingSlots[0].startAt).toBe('2026-09-02T08:00:00.000Z');
-    });
-
     it('should default the optional arrays when they are missing', async () => {
       activityModel.aggregate.mockReturnValue(
         mockAggregate([
           buildAggregationResult({
             includedEquipment: undefined,
             photoFileIds: undefined,
-            upcomingSlots: undefined,
           }),
         ]),
       );
@@ -420,7 +379,126 @@ describe('ActivityRepository', () => {
 
       expect(result!.includedEquipment).toEqual([]);
       expect(result!.photos).toEqual([]);
-      expect(result!.upcomingSlots).toEqual([]);
+    });
+  });
+
+  describe('findSlotsByMonth()', () => {
+    const chainFind = (docs: unknown[]) => ({
+      sort: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(docs),
+      }),
+    });
+
+    const publishedActivity = () =>
+      activityModel.findOne.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({ priceEur: 85 }),
+        }),
+      });
+
+    it('should return null for an invalid ObjectId without querying', async () => {
+      expect(
+        await repository.findSlotsByMonth('not-an-id', '2026-09'),
+      ).toBeNull();
+      expect(activityModel.findOne).not.toHaveBeenCalled();
+    });
+
+    it('should return null when the activity is not published', async () => {
+      activityModel.findOne.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(null),
+        }),
+      });
+
+      expect(
+        await repository.findSlotsByMonth(activityId.toString(), '2026-09'),
+      ).toBeNull();
+    });
+
+    it('should bound the query to the requested month', async () => {
+      publishedActivity();
+      slotModel.find.mockReturnValue(chainFind([]));
+      slotModel.aggregate.mockResolvedValue([]);
+
+      await repository.findSlotsByMonth(activityId.toString(), '2027-03');
+
+      const filter = slotModel.find.mock.calls[0][0] as {
+        startAt: { $gte: Date; $lt: Date };
+      };
+      expect(filter.startAt.$gte.toISOString()).toBe(
+        '2027-03-01T00:00:00.000Z',
+      );
+      expect(filter.startAt.$lt.toISOString()).toBe('2027-04-01T00:00:00.000Z');
+    });
+
+    it('should not offer past dates of an already started month', async () => {
+      publishedActivity();
+      slotModel.find.mockReturnValue(chainFind([]));
+      slotModel.aggregate.mockResolvedValue([]);
+
+      const now = new Date();
+      const currentMonth = now.toISOString().slice(0, 7);
+      await repository.findSlotsByMonth(activityId.toString(), currentMonth);
+
+      // Le mois courant demarre a maintenant, pas au premier du mois.
+      const filter = slotModel.find.mock.calls[0][0] as {
+        startAt: { $gte: Date };
+      };
+      expect(filter.startAt.$gte.getTime()).toBeGreaterThanOrEqual(
+        now.getTime() - 5000,
+      );
+    });
+
+    it('should map the slots and take the price from the activity', async () => {
+      publishedActivity();
+      const slotId = new Types.ObjectId();
+      slotModel.find.mockReturnValue(
+        chainFind([
+          {
+            _id: slotId,
+            startAt: new Date('2026-09-18T11:00:00.000Z'),
+            maxParticipants: 8,
+          },
+        ]),
+      );
+      slotModel.aggregate.mockResolvedValue([]);
+
+      const result = await repository.findSlotsByMonth(
+        activityId.toString(),
+        '2026-09',
+      );
+
+      expect(result!.slots).toEqual([
+        {
+          id: slotId.toString(),
+          startAt: '2026-09-18T11:00:00.000Z',
+          remainingSeats: 8,
+          priceEur: 85,
+        },
+      ]);
+    });
+
+    it('should list every upcoming month holding a slot', async () => {
+      publishedActivity();
+      slotModel.find.mockReturnValue(chainFind([]));
+      slotModel.aggregate.mockResolvedValue([
+        { _id: '2026-09' },
+        { _id: '2026-10' },
+        { _id: '2027-03' },
+      ]);
+
+      const result = await repository.findSlotsByMonth(
+        activityId.toString(),
+        '2026-09',
+      );
+
+      // Sans cette liste, l'utilisateur naviguerait de mois en mois a
+      // l'aveugle pour trouver une date lointaine.
+      expect(result!.availableMonths).toEqual([
+        '2026-09',
+        '2026-10',
+        '2027-03',
+      ]);
     });
   });
 

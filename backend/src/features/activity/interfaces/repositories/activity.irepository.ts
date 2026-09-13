@@ -1,4 +1,5 @@
 import {
+  ActivityMonthSlotsResponseDto,
   ActivityDetailResponseDto,
   CreateActivityDto,
   SearchActivitiesQueryDto,
@@ -13,6 +14,11 @@ export interface IActivityRepository {
   /** Une photo n'est publiquement lisible que si une activite publiee la porte. */
   existsPublishedWithPhoto(fileId: string): Promise<boolean>;
   findDetailById(id: string): Promise<ActivityDetailResponseDto | null>;
+  /** null si l'activite n'existe pas ou n'est pas publiee */
+  findSlotsByMonth(
+    id: string,
+    month: string,
+  ): Promise<ActivityMonthSlotsResponseDto | null>;
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
   create(
     dto: CreateActivityDto,

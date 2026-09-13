@@ -47,6 +47,10 @@ export interface ActivityDetailEntity {
   photos: ActivityDetailPhoto[];
   videos: ActivityDetailVideo[];
   center: ActivityDetailCenter;
-  upcomingSlots: ActivityDetailSlot[];
   reviewsSummary: ActivityDetailReviewsSummary;
+}
+
+export interface ActivityMonthSlotsEntity {
+  slots: ActivityDetailSlot[];
+  availableMonths: string[];
 }

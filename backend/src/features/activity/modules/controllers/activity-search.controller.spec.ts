@@ -23,6 +23,7 @@ describe('ActivitySearchController', () => {
       findAll: jest.fn(),
       findById: jest.fn(),
       findDetailById: jest.fn(),
+      findSlotsByMonth: jest.fn(),
       findByCenterId: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
@@ -139,6 +140,51 @@ describe('ActivitySearchController', () => {
     });
   });
 
+  describe('findSlotsByMonth()', () => {
+    const payload = { slots: [], availableMonths: ['2026-09'] };
+
+    it('should default to the current month when none is given', async () => {
+      activityService.findSlotsByMonth.mockResolvedValue(payload);
+
+      await controller.findSlotsByMonth(activityId, undefined);
+
+      expect(activityService.findSlotsByMonth).toHaveBeenCalledWith(
+        activityId,
+        new Date().toISOString().slice(0, 7),
+      );
+    });
+
+    it('should pass the requested month through', async () => {
+      activityService.findSlotsByMonth.mockResolvedValue(payload);
+
+      const result = await controller.findSlotsByMonth(activityId, '2027-03');
+
+      expect(activityService.findSlotsByMonth).toHaveBeenCalledWith(
+        activityId,
+        '2027-03',
+      );
+      expect(result).toBe(payload);
+    });
+
+    it.each(['septembre', '2026-13', '2026-9', '2026'])(
+      'should reject the malformed month %s',
+      async (month) => {
+        await expect(
+          controller.findSlotsByMonth(activityId, month),
+        ).rejects.toThrow(BadRequestException);
+        expect(activityService.findSlotsByMonth).not.toHaveBeenCalled();
+      },
+    );
+
+    it('should throw NotFoundException when the activity does not exist', async () => {
+      activityService.findSlotsByMonth.mockResolvedValue(null);
+
+      await expect(
+        controller.findSlotsByMonth(activityId, '2026-09'),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('findDetail()', () => {
     const detail: ActivityDetailResponseDto = {
       id: activityId,
@@ -174,14 +220,6 @@ describe('ActivitySearchController', () => {
           address: '12 Rue de la Montagne, 69001 Lyon, France',
         },
       },
-      upcomingSlots: [
-        {
-          id: '68b4d59919d9b7a94b4fde23',
-          startAt: '2026-06-15T09:00:00.000Z',
-          remainingSeats: 5,
-          priceEur: 150,
-        },
-      ],
       reviewsSummary: { count: 42, averageRating: 4.7 },
     };
 

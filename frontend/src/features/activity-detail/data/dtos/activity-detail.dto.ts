@@ -21,11 +21,16 @@ export interface ActivityDetailResponseDto {
     name: string;
     location: { lat: number; lng: number; address: string };
   };
-  upcomingSlots: {
+  reviewsSummary: { count: number; averageRating: number };
+}
+
+export interface ActivityMonthSlotsResponseDto {
+  slots: {
     id: string;
     startAt: string;
     remainingSeats: number;
     priceEur: number;
   }[];
-  reviewsSummary: { count: number; averageRating: number };
+  /** Mois à venir comportant au moins un créneau, au format YYYY-MM. */
+  availableMonths: string[];
 }

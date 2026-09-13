@@ -8,6 +8,7 @@ import { IActivityService } from '../../../interfaces/services/activity.iservice
 import { IActivityRepository } from '@features/activity/interfaces/repositories/activity.irepository';
 import {
   ActivityDetailResponseDto,
+  ActivityMonthSlotsResponseDto,
   ActivityResponseDto,
   CreateActivityDto,
   SearchActivitiesQueryDto,
@@ -40,6 +41,13 @@ export class ActivityService implements IActivityService {
 
   async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
     return this.activityRepository.findDetailById(id);
+  }
+
+  async findSlotsByMonth(
+    id: string,
+    month: string,
+  ): Promise<ActivityMonthSlotsResponseDto | null> {
+    return this.activityRepository.findSlotsByMonth(id, month);
   }
 
   async findByCenterId(centerId: string): Promise<ActivityEntity[] | null> {

@@ -97,11 +97,11 @@ export default function ActivityDetailPage() {
       <Separator className="my-8" />
 
       {/* Tabs: description, prérequis & équipement, créneaux, avis */}
-      <Tabs defaultValue="description" className="space-y-6">
+      <Tabs defaultValue="slots" className="space-y-6">
         <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="slots">Créneaux</TabsTrigger>
           <TabsTrigger value="description">Description</TabsTrigger>
           <TabsTrigger value="prerequisites">Prérequis</TabsTrigger>
-          <TabsTrigger value="slots">Créneaux</TabsTrigger>
           <TabsTrigger value="reviews">Avis</TabsTrigger>
         </TabsList>
 
@@ -135,7 +135,7 @@ export default function ActivityDetailPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <ActivitySlots slots={activity.upcomingSlots} />
+            <ActivitySlots activityId={activity.id} />
           </motion.div>
         </TabsContent>
 

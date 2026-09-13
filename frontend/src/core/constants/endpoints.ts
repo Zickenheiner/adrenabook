@@ -50,6 +50,8 @@ const endpoints = {
   },
   activityDetail: {
     byId: (id: string) => `/activities/${id}`,
+    slotsByMonth: (id: string, month: string) =>
+      `/activities/${id}/slots?month=${month}`,
   },
   centerMap: {
     list: '/centers',

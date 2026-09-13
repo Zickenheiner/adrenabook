@@ -1,11 +1,13 @@
 import {
   ActivityDetailResponseDto,
+  ActivityMonthSlotsResponseDto,
   SearchActivitiesQueryDto,
   SearchActivitiesResponseDto,
 } from '@features/activity/domains/dtos/activity.dto';
 import { IActivityService } from '@features/activity/interfaces/services/activity.iservice';
 import { Public } from '@core/decorators/public.decorator';
 import {
+  BadRequestException,
   Controller,
   Get,
   Inject,
@@ -137,6 +139,50 @@ export class ActivitySearchController {
     status: 404,
     description: 'Activité introuvable ou désactivée',
   })
+  @Public()
+  @ApiOperation({
+    summary: "Creneaux d'une activite pour un mois donne (US-07)",
+    description:
+      'Retourne les creneaux du mois demande et la liste des mois a venir qui ' +
+      'en comportent. Charger un mois a la fois evite de transmettre une annee ' +
+      'entiere de creneaux pour une recurrence longue.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: "L'identifiant de l'activite",
+    required: true,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'month',
+    description: 'Mois vise au format YYYY-MM. Par defaut : le mois courant.',
+    required: false,
+    example: '2026-09',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Creneaux du mois et mois disponibles',
+    type: ActivityMonthSlotsResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Mois malforme' })
+  @ApiResponse({ status: 404, description: 'Activite introuvable' })
+  @Get(':id/slots')
+  async findSlotsByMonth(
+    @Param('id') id: string,
+    @Query('month') month?: string,
+  ): Promise<ActivityMonthSlotsResponseDto> {
+    const target = month ?? new Date().toISOString().slice(0, 7);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(target)) {
+      throw new BadRequestException('Mois attendu au format YYYY-MM');
+    }
+
+    const slots = await this.activityService.findSlotsByMonth(id, target);
+    if (!slots) {
+      throw new NotFoundException('Activite introuvable ou desactivee');
+    }
+    return slots;
+  }
+
   @Get(':id')
   async findDetail(
     @Param('id') id: string,

@@ -5,9 +5,11 @@ import {
   Activity,
   ActivityDocument,
 } from '@features/activity/domains/schemas/activity.schema';
+import { Slot, SlotDocument } from '@features/slot/domains/schemas/slot.schema';
 import { Model, PipelineStage, Types } from 'mongoose';
 import {
   ActivityDetailResponseDto,
+  ActivityMonthSlotsResponseDto,
   CreateActivityDto,
   SearchActivitiesItemDto,
   SearchActivitiesQueryDto,
@@ -45,12 +47,6 @@ interface ActivityDetailAggregationResult {
       country: string;
     };
   };
-  upcomingSlots: Array<{
-    _id: Types.ObjectId;
-    startAt: Date;
-    maxParticipants: number;
-    priceEur: number;
-  }>;
 }
 
 @Injectable()
@@ -58,6 +54,8 @@ export class ActivityRepository implements IActivityRepository {
   constructor(
     @InjectModel(Activity.name)
     private readonly activityModel: Model<ActivityDocument>,
+    @InjectModel(Slot.name)
+    private readonly slotModel: Model<SlotDocument>,
     private readonly activityMapper: ActivityMapper,
   ) {}
 
@@ -86,9 +84,6 @@ export class ActivityRepository implements IActivityRepository {
   }
 
   async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
-    const now = new Date();
-    const ninetyDaysLater = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-
     let objectId: Types.ObjectId;
     try {
       objectId = new Types.ObjectId(id);
@@ -109,23 +104,6 @@ export class ActivityRepository implements IActivityRepository {
       {
         $addFields: {
           center: { $arrayElemAt: ['$centerArray', 0] },
-        },
-      },
-      {
-        $lookup: {
-          from: 'slots',
-          let: { actId: '$_id' },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$activityId', '$$actId'] },
-                startAt: { $gte: now, $lte: ninetyDaysLater },
-              },
-            },
-            { $sort: { startAt: 1 } },
-            { $limit: 50 },
-          ],
-          as: 'upcomingSlots',
         },
       },
       {
@@ -185,16 +163,6 @@ export class ActivityRepository implements IActivityRepository {
         location: { lat: 0, lng: 0, address: '' },
       };
     }
-
-    dto.upcomingSlots = (doc.upcomingSlots ?? []).map((slot) => ({
-      id: slot._id.toString(),
-      startAt:
-        slot.startAt instanceof Date
-          ? slot.startAt.toISOString()
-          : String(slot.startAt),
-      remainingSeats: slot.maxParticipants,
-      priceEur: doc.priceEur,
-    }));
 
     dto.reviewsSummary = {
       count: 0,
@@ -283,6 +251,69 @@ export class ActivityRepository implements IActivityRepository {
         },
       },
     };
+  }
+
+  /**
+   * Creneaux d'un mois donne, et mois a venir qui en comportent.
+   *
+   * Charger un mois a la fois evite d'envoyer une annee de creneaux pour une
+   * recurrence longue ; `availableMonths` evite en retour de naviguer a
+   * l'aveugle de mois en mois.
+   *
+   * @param month mois vise au format YYYY-MM
+   */
+  async findSlotsByMonth(
+    id: string,
+    month: string,
+  ): Promise<ActivityMonthSlotsResponseDto | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+
+    const activity = await this.activityModel
+      .findOne({ _id: id, status: 'published' })
+      .select('priceEur')
+      .exec();
+    if (!activity) {
+      return null;
+    }
+
+    const activityId = new Types.ObjectId(id);
+    const now = new Date();
+    const [year, monthIndex] = month.split('-').map(Number);
+    const monthStart = new Date(Date.UTC(year, monthIndex - 1, 1));
+    const monthEnd = new Date(Date.UTC(year, monthIndex, 1));
+
+    // Un mois deja entame ne doit pas proposer ses dates passees.
+    const from = monthStart > now ? monthStart : now;
+
+    const [docs, months] = await Promise.all([
+      this.slotModel
+        .find({ activityId, startAt: { $gte: from, $lt: monthEnd } })
+        .sort({ startAt: 1 })
+        .exec(),
+      this.slotModel.aggregate<{ _id: string }>([
+        { $match: { activityId, startAt: { $gte: now } } },
+        {
+          $group: {
+            _id: {
+              $dateToString: { format: '%Y-%m', date: '$startAt' },
+            },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+    ]);
+
+    const response = new ActivityMonthSlotsResponseDto();
+    response.slots = docs.map((slot) => ({
+      id: String(slot._id),
+      startAt: slot.startAt.toISOString(),
+      remainingSeats: slot.maxParticipants,
+      priceEur: activity.priceEur,
+    }));
+    response.availableMonths = months.map((m) => m._id);
+    return response;
   }
 
   async search(
