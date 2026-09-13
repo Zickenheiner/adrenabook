@@ -1,3 +1,5 @@
+import type { ActivityStatus } from '../../domain/entities/activity.entity';
+
 export interface ActivityPrerequisitesDto {
   minAge: number;
   maxAge?: number;
@@ -16,18 +18,14 @@ export interface CreateActivityRequestDto {
   prerequisites: ActivityPrerequisitesDto;
   includedEquipment: string[];
   photoFileIds: string[];
-  status: 'draft' | 'published';
 }
 
 /**
- * A la difference de la creation, la mise a jour accepte `archived`.
- * `pending_admin_review` reste pose par le systeme et n'est jamais envoye.
+ * Le statut n'existe pas a la creation : l'activite naît non publiee et sa
+ * mise en ligne est un geste distinct, depuis le catalogue ou l'edition.
  */
-export type UpdateActivityRequestDto = Omit<
-  CreateActivityRequestDto,
-  'status'
-> & {
-  status?: 'draft' | 'published' | 'archived';
+export type UpdateActivityRequestDto = CreateActivityRequestDto & {
+  status?: ActivityStatus;
 };
 
 export interface ActivityResponseDto {
@@ -41,7 +39,7 @@ export interface ActivityResponseDto {
   prerequisites: ActivityPrerequisitesDto;
   includedEquipment: string[];
   photoFileIds: string[];
-  status: 'draft' | 'pending_admin_review' | 'published' | 'archived';
+  status: ActivityStatus;
   createdAt: string;
   updatedAt: string;
 }

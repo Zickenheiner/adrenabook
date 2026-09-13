@@ -1,7 +1,7 @@
 import {
   ActivityMonthSlotsResponseDto,
   ActivityDetailResponseDto,
-  CreateActivityDto,
+  NewActivityData,
   SearchActivitiesQueryDto,
   SearchActivitiesResponseDto,
   UpdateActivityDto,
@@ -21,7 +21,7 @@ export interface IActivityRepository {
   ): Promise<ActivityMonthSlotsResponseDto | null>;
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
   create(
-    dto: CreateActivityDto,
+    data: NewActivityData,
     centerId: string,
   ): Promise<ActivityEntity | null>;
   update(id: string, dto: UpdateActivityDto): Promise<boolean>;

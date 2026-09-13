@@ -5,7 +5,7 @@ import { ActivityRepository } from './activity.repository';
 import { ActivityMapper } from '../mappers/activity.mapper';
 import { Activity } from '@features/activity/domains/schemas/activity.schema';
 import {
-  CreateActivityDto,
+  NewActivityData,
   SearchActivitiesQueryDto,
 } from '@features/activity/domains/dtos/activity.dto';
 
@@ -165,7 +165,7 @@ describe('ActivityRepository', () => {
       includedEquipment: ['harnais'],
       photoFileIds: ['file_1'],
       status: 'published',
-    } as unknown as CreateActivityDto;
+    } as unknown as NewActivityData;
 
     it('should build the document with the centerId and map the result', async () => {
       saveMock.mockResolvedValue({ _id: 'created' });

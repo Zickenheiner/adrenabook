@@ -146,10 +146,7 @@ export class CsvImportService implements ICsvImportService {
     return {
       importJobId: importJob.getId(),
       status: importJob.getStatus() as
-        | 'queued'
-        | 'processing'
-        | 'completed'
-        | 'failed',
+        'queued' | 'processing' | 'completed' | 'failed',
       rowsTotal: importJob.getRowsTotal(),
       rowsSuccess: importJob.getRowsSuccess(),
       rowsErrors: importJob.getRowsErrors(),
@@ -227,7 +224,7 @@ export class CsvImportService implements ICsvImportService {
         photoFileIds: [],
         // Importee en brouillon : publier sans relecture exposerait des fiches
         // incompletes au public.
-        status: 'draft',
+        status: 'unpublished',
       } as unknown as CreateActivityDto,
       userId,
       centerId,

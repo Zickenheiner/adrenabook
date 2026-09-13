@@ -100,7 +100,7 @@ describe('CsvImportService', () => {
       expect(activityService.create).toHaveBeenCalledTimes(2);
     });
 
-    it('imports as draft rather than publishing unreviewed rows', async () => {
+    it('imports as unpublished rather than publishing unreviewed rows', async () => {
       csv(
         'Titre;Description;Type;Niveau;Duree;Prix\nVol;Desc;x;beginner;90;10',
       );
@@ -108,7 +108,7 @@ describe('CsvImportService', () => {
       await service.importCsv(dto(), USER_ID);
 
       expect(activityService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'draft' }),
+        expect.objectContaining({ status: 'unpublished' }),
         USER_ID,
         CENTER_ID,
       );

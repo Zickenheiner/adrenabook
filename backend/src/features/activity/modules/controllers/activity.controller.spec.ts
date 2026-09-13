@@ -61,7 +61,7 @@ describe('ActivityController', () => {
     it('should create the activity for an authenticated professional', async () => {
       const response: ActivityResponseDto = {
         id: 'activity-1',
-        status: 'draft',
+        status: 'unpublished',
         createdAt: '2026-03-01T10:00:00.000Z',
       };
       service.create.mockResolvedValue(response);

@@ -1,5 +1,8 @@
-export type ActivityStatus =
-  'draft' | 'pending_admin_review' | 'published' | 'archived';
+/**
+ * Une activite est publiee ou elle ne l'est pas : rien d'autre. Non publiee,
+ * elle reste invisible du public et non reservable.
+ */
+export type ActivityStatus = 'unpublished' | 'published';
 export type ActivityDifficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export interface ActivityPrerequisitesEntity {

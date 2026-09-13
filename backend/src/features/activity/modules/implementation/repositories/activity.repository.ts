@@ -10,7 +10,7 @@ import { Model, PipelineStage, Types } from 'mongoose';
 import {
   ActivityDetailResponseDto,
   ActivityMonthSlotsResponseDto,
-  CreateActivityDto,
+  NewActivityData,
   SearchActivitiesItemDto,
   SearchActivitiesQueryDto,
   SearchActivitiesResponseDto,
@@ -180,10 +180,10 @@ export class ActivityRepository implements IActivityRepository {
   }
 
   async create(
-    dto: CreateActivityDto,
+    data: NewActivityData,
     centerId: string,
   ): Promise<ActivityEntity | null> {
-    const document = new this.activityModel({ ...dto, centerId });
+    const document = new this.activityModel({ ...data, centerId });
     const created = await document.save();
     return created ? this.activityMapper.toEntity(created) : null;
   }

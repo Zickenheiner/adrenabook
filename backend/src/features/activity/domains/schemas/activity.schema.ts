@@ -60,8 +60,8 @@ export class Activity {
   @Prop({
     required: true,
     type: String,
-    default: 'draft',
-    enum: ['draft', 'pending_admin_review', 'published', 'archived'],
+    default: 'unpublished',
+    enum: ['unpublished', 'published'],
   })
   status: string;
 

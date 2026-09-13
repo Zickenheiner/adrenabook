@@ -11,16 +11,13 @@ import type { CreateActivityFormData } from '../../domain/schemas/activity.schem
 import type { CreateActivityRequestDto } from '../../data/dtos/activity.dto';
 
 /**
- * Le schema du formulaire couvre les quatre etats pour les besoins de
- * l'edition ; a la creation seuls `draft` et `published` sont proposes.
+ * Le statut n'est pas de la partie a la creation : le serveur pose lui-meme
+ * `unpublished`, la mise en ligne se fera depuis le catalogue.
  */
 const toCreatePayload = ({
-  status,
+  status: _status,
   ...rest
-}: CreateActivityFormData): CreateActivityRequestDto => ({
-  ...rest,
-  status: status === 'published' ? 'published' : 'draft',
-});
+}: CreateActivityFormData): CreateActivityRequestDto => rest;
 
 export default function ProActivityCreatePage() {
   const navigate = useNavigate();

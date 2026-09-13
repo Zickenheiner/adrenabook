@@ -15,6 +15,18 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+/**
+ * Une activite est publiee ou elle ne l'est pas : tout ce qui n'est pas
+ * `published` reste invisible du public et non reservable.
+ */
+export type ActivityStatus = 'unpublished' | 'published';
+
+/**
+ * Ce qui est reellement ecrit a la creation. Le statut n'appartient pas au
+ * DTO client : il est impose par le service, jamais choisi a la creation.
+ */
+export type NewActivityData = CreateActivityDto & { status: ActivityStatus };
+
 export class PrerequisitesDto {
   @ApiProperty({
     description: 'Minimum age required',
@@ -138,14 +150,6 @@ export class CreateActivityDto {
   @IsArray()
   @IsString({ each: true })
   photoFileIds: string[];
-
-  @ApiProperty({
-    description: 'Publication status',
-    example: 'draft',
-    enum: ['draft', 'published'],
-  })
-  @IsEnum(['draft', 'published'])
-  status: 'draft' | 'published';
 }
 
 export class UpdateActivityDto {
@@ -240,14 +244,14 @@ export class UpdateActivityDto {
 
   @ApiProperty({
     description:
-      'Publication status. `pending_admin_review` est attribue par le systeme lors de la publication et ne peut pas etre choisi ici.',
-    example: 'draft',
-    enum: ['draft', 'published', 'archived'],
+      "Statut de publication. Une activite non publiee reste invisible du public et n'est pas reservable.",
+    example: 'unpublished',
+    enum: ['unpublished', 'published'],
     required: false,
   })
-  @IsEnum(['draft', 'published', 'archived'])
+  @IsEnum(['unpublished', 'published'])
   @IsOptional()
-  status?: 'draft' | 'published' | 'archived';
+  status?: ActivityStatus;
 }
 
 export class ActivityResponseDto {
@@ -259,8 +263,8 @@ export class ActivityResponseDto {
 
   @ApiProperty({
     description: 'Publication status',
-    example: 'draft',
-    enum: ['draft', 'pending_admin_review', 'published', 'archived'],
+    example: 'unpublished',
+    enum: ['unpublished', 'published'],
   })
   status: string;
 

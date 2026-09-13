@@ -16,15 +16,9 @@ import type { ActivityEntity } from '../../domain/entities/activity.entity';
 import type { CreateActivityFormData } from '../../domain/schemas/activity.schema';
 import type { UpdateActivityRequestDto } from '../../data/dtos/activity.dto';
 
-/**
- * `pending_admin_review` est pose par le systeme et refuse par l'API : on
- * omet alors le champ, ce qui laisse le backend conserver l'etat en cours.
- */
-const toUpdatePayload = ({
-  status,
-  ...rest
-}: CreateActivityFormData): UpdateActivityRequestDto =>
-  status === 'pending_admin_review' ? rest : { ...rest, status };
+const toUpdatePayload = (
+  data: CreateActivityFormData,
+): UpdateActivityRequestDto => data;
 
 const toFormValues = (
   activity: ActivityEntity,
@@ -148,6 +142,7 @@ export default function ProActivityEditPage() {
             onSubmit={handleSubmit}
             isPending={updateActivityIsPending}
             submitLabel="Enregistrer les modifications"
+            showStatus
           />
         </motion.div>
       </div>

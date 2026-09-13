@@ -16,11 +16,17 @@ import {
 } from '@/core/components/ui/alert-dialog';
 import routes from '@/core/constants/routes';
 import { useCenterStore } from '@/core/stores/center.store';
+import { toast } from 'sonner';
 import {
   useActivityList,
   useDeleteActivity,
+  useUpdateActivity,
 } from '../../domain/hooks/activity.hook';
 import ActivityCard from '../components/ActivityCard';
+import type {
+  ActivityEntity,
+  ActivityStatus,
+} from '../../domain/entities/activity.entity';
 
 function ProActivityListSkeleton() {
   return (
@@ -81,7 +87,47 @@ export default function ProActivityListPage() {
   const { activities, activitiesIsLoading, activitiesError } =
     useActivityList(centerId);
   const { deleteActivity, deleteActivityIsPending } = useDeleteActivity();
+  const { updateActivity } = useUpdateActivity();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [statusPendingId, setStatusPendingId] = useState<string | null>(null);
+
+  /**
+   * Le PATCH remplace l'activite entiere : on renvoie ses champs courants avec
+   * le seul statut modifie, sinon la bascule ecraserait le reste du dossier.
+   */
+  function handleStatusChange(
+    activity: ActivityEntity,
+    status: ActivityStatus,
+  ) {
+    setStatusPendingId(activity.id);
+    updateActivity(
+      {
+        id: activity.id,
+        data: {
+          title: activity.title,
+          description: activity.description,
+          type: activity.type,
+          difficulty: activity.difficulty,
+          durationMinutes: activity.durationMinutes,
+          priceEur: activity.priceEur,
+          prerequisites: activity.prerequisites,
+          includedEquipment: activity.includedEquipment,
+          photoFileIds: activity.photoFileIds,
+          status,
+        },
+      },
+      {
+        onSuccess: () =>
+          toast.success(
+            status === 'published'
+              ? 'Activité publiée'
+              : 'Activité retirée de la publication',
+          ),
+        onError: () => toast.error('Le changement de statut a échoué'),
+        onSettled: () => setStatusPendingId(null),
+      },
+    );
+  }
 
   // L'URL fait foi : arriver ici par un lien direct doit aligner le centre
   // courant, sinon les ecrans enfants renverraient vers un autre centre.
@@ -156,6 +202,10 @@ export default function ProActivityListPage() {
                     navigate(routes.proActivityEdit.replace(':id', id))
                   }
                   onDelete={(id) => setDeleteTargetId(id)}
+                  onStatusChange={(_, status) =>
+                    handleStatusChange(activity, status)
+                  }
+                  statusIsPending={statusPendingId === activity.id}
                 />
               ))}
             </AnimatePresence>

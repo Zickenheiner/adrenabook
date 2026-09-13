@@ -34,6 +34,11 @@ interface Props {
   onSubmit: (data: CreateActivityFormData) => void;
   isPending?: boolean;
   submitLabel?: string;
+  /**
+   * Le statut ne se choisit qu'a l'edition : une activite nouvelle naît
+   * toujours non publiee, sans que le formulaire ait a poser la question.
+   */
+  showStatus?: boolean;
 }
 
 export default function ActivityForm({
@@ -41,6 +46,7 @@ export default function ActivityForm({
   onSubmit,
   isPending = false,
   submitLabel = "Créer l'activité",
+  showStatus = false,
 }: Props) {
   const [equipmentInput, setEquipmentInput] = useState('');
 
@@ -59,7 +65,7 @@ export default function ActivityForm({
       },
       includedEquipment: [],
       photoFileIds: [],
-      status: 'draft',
+      status: 'unpublished',
       ...defaultValues,
     },
   });
@@ -435,38 +441,37 @@ export default function ActivityForm({
           )}
         </div>
 
-        <Separator />
+        {showStatus && (
+          <>
+            <Separator />
 
-        {/* Statut */}
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Statut</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="draft">Brouillon</SelectItem>
-                  <SelectItem value="published">Publier</SelectItem>
-                  <SelectItem value="archived">Archiver</SelectItem>
-                  {/* Etat pose par le systeme : visible pour ne pas le perdre
-                      a l'enregistrement, mais non selectionnable. */}
-                  {field.value === 'pending_admin_review' && (
-                    <SelectItem value="pending_admin_review" disabled>
-                      En attente de validation
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            {/* Statut */}
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Statut</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="published">Publiée</SelectItem>
+                      <SelectItem value="unpublished">Non publiée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? 'Enregistrement...' : submitLabel}

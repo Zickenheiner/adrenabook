@@ -15,7 +15,7 @@ const OTHER_CENTER_ID = '68b4d59919d9b7a94b4fde23';
 
 const buildActivity = (
   id: string,
-  status = 'draft',
+  status = 'unpublished',
   createdAt?: Date,
 ): ActivityEntity => {
   const entity = new ActivityEntity(id as never);
@@ -148,7 +148,7 @@ describe('ActivityService', () => {
       repository.create.mockResolvedValue(
         buildActivity(
           'activity-1',
-          'draft',
+          'unpublished',
           new Date('2026-03-01T10:00:00.000Z'),
         ),
       );
@@ -156,12 +156,32 @@ describe('ActivityService', () => {
       const result = await service.create(dto, USER_ID);
 
       expect(centerService.findAllByOwnerId).toHaveBeenCalledWith(USER_ID);
-      expect(repository.create).toHaveBeenCalledWith(dto, CENTER_ID);
+      expect(repository.create).toHaveBeenCalledWith(
+        { ...dto, status: 'unpublished' },
+        CENTER_ID,
+      );
       expect(result).toEqual({
         id: 'activity-1',
-        status: 'draft',
+        status: 'unpublished',
         createdAt: '2026-03-01T10:00:00.000Z',
       });
+    });
+
+    it('should force the unpublished status even when the client asks to publish', async () => {
+      centerService.findAllByOwnerId.mockResolvedValue([buildCenter()]);
+      repository.create.mockResolvedValue(
+        buildActivity('activity-3', 'unpublished'),
+      );
+
+      await service.create(
+        { ...dto, status: 'published' } as CreateActivityDto,
+        USER_ID,
+      );
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'unpublished' }),
+        CENTER_ID,
+      );
     });
 
     it('should return null when the repository could not create the activity', async () => {
@@ -217,7 +237,10 @@ describe('ActivityService', () => {
 
       await service.create({} as CreateActivityDto, USER_ID, SECOND_CENTER_ID);
 
-      expect(repository.create).toHaveBeenCalledWith({}, SECOND_CENTER_ID);
+      expect(repository.create).toHaveBeenCalledWith(
+        { status: 'unpublished' },
+        SECOND_CENTER_ID,
+      );
     });
 
     it('refuses a center the professional does not own', async () => {

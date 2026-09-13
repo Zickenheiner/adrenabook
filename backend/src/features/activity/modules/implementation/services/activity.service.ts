@@ -90,7 +90,12 @@ export class ActivityService implements IActivityService {
     const targetId = centerId ?? (owned.length === 1 ? owned[0] : undefined);
     if (!targetId || !owned.includes(targetId)) return null;
 
-    const entity = await this.activityRepository.create(dto, targetId);
+    // Le statut n'est pas negociable a la creation : une activite naît non
+    // publiee, et sa mise en ligne est un geste explicite depuis le catalogue.
+    const entity = await this.activityRepository.create(
+      { ...dto, status: 'unpublished' },
+      targetId,
+    );
     if (!entity) return null;
     const response = new ActivityResponseDto();
     response.id = entity.getId();

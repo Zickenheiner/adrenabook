@@ -42,7 +42,7 @@ export class ActivityController {
   @ApiOperation({
     summary: 'Créer une activité (US-18)',
     description:
-      "Crée une nouvelle activité pour le centre du professionnel authentifié. Rôle professionnel requis. Si status='published', l'activité passe en révision admin avant publication.",
+      "Crée une nouvelle activité pour le centre du professionnel authentifié. Rôle professionnel requis. L'activité est toujours créée non publiée : sa mise en ligne se fait ensuite via PATCH.",
   })
   @ApiBody({
     type: CreateActivityDto,
@@ -146,7 +146,7 @@ export class ActivityController {
   @ApiOperation({
     summary: 'Mettre à jour une activité',
     description:
-      "Met à jour les champs d'une activité existante. Rôle professionnel requis.",
+      "Met à jour les champs d'une activité existante, statut de publication compris. Rôle professionnel requis.",
   })
   @ApiParam({
     name: 'id',
