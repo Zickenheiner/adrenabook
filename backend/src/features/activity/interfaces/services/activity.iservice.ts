@@ -15,9 +15,12 @@ export interface IActivityService {
   isPublicPhoto(fileId: string): Promise<boolean>;
   findDetailById(id: string): Promise<ActivityDetailResponseDto | null>;
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
+  /** Activites d'un centre, restreintes a ceux du professionnel appelant. */
+  findMine(userId: string, centerId: string): Promise<ActivityEntity[] | null>;
   create(
     dto: CreateActivityDto,
     userId: string,
+    centerId?: string,
   ): Promise<ActivityResponseDto | null>;
   /**
    * `userId` sert au controle de propriete : une activite n'est modifiable que

@@ -8,6 +8,12 @@ export interface IProfessionalCenterRepository {
   findAll(): Promise<ProfessionalCenterEntity[] | null>;
   findById(id: string): Promise<ProfessionalCenterEntity | null>;
   findByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity | null>;
+  /**
+   * Tous les centres d'un proprietaire. `findByOwnerId` n'en renvoie qu'un,
+   * arbitraire, et ne suffit plus des lors qu'un professionnel en porte
+   * plusieurs.
+   */
+  findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]>;
   create(dto: CreateProfessionalCenterDto, ownerId: string): Promise<boolean>;
   update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;

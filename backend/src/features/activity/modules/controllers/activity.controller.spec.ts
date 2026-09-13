@@ -25,6 +25,7 @@ describe('ActivityController', () => {
     delete: jest.Mock;
     search: jest.Mock;
     isPublicPhoto: jest.Mock;
+    findMine: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -38,6 +39,7 @@ describe('ActivityController', () => {
       delete: jest.fn(),
       search: jest.fn(),
       isPublicPhoto: jest.fn(),
+      findMine: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -66,7 +68,9 @@ describe('ActivityController', () => {
 
       const result = await controller.create(dto, proRequest);
 
-      expect(service.create).toHaveBeenCalledWith(dto, USER_ID);
+      // Sans centre explicite, le service retombe sur l'unique centre du
+      // professionnel.
+      expect(service.create).toHaveBeenCalledWith(dto, USER_ID, undefined);
       expect(result).toBe(response);
     });
 
@@ -101,21 +105,28 @@ describe('ActivityController', () => {
   });
 
   describe('findMine()', () => {
-    it('should list the activities of the authenticated center', async () => {
+    const CENTER_ID = '68b4d59919d9b7a94b4fde40';
+
+    it('should list the activities of the requested center', async () => {
       const activities = [buildActivity('a')];
-      service.findByCenterId.mockResolvedValue(activities);
+      service.findMine.mockResolvedValue(activities);
 
-      const result = await controller.findMine({ user: { sub: USER_ID } });
+      const result = await controller.findMine(
+        { user: { sub: USER_ID } },
+        CENTER_ID,
+      );
 
-      expect(service.findByCenterId).toHaveBeenCalledWith(USER_ID);
+      // Le centre vient de la requete : passer l'identifiant utilisateur ne
+      // designe aucun centre et renvoyait une liste vide.
+      expect(service.findMine).toHaveBeenCalledWith(USER_ID, CENTER_ID);
       expect(result).toBe(activities);
     });
 
     it('should return null when the service returns null', async () => {
-      service.findByCenterId.mockResolvedValue(null);
+      service.findMine.mockResolvedValue(null);
 
       await expect(
-        controller.findMine({ user: { sub: USER_ID } }),
+        controller.findMine({ user: { sub: USER_ID } }, CENTER_ID),
       ).resolves.toBeNull();
     });
   });

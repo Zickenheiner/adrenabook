@@ -18,6 +18,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -25,6 +26,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -60,6 +62,7 @@ export class ActivityController {
   async create(
     @Body() dto: CreateActivityDto,
     @Req() req: { user: { sub: string; role: string } },
+    @Query('centerId') centerId?: string,
   ): Promise<ActivityResponseDto> {
     const user = req.user;
     if (!user || user.role !== 'professionnel') {
@@ -67,7 +70,7 @@ export class ActivityController {
         'Accès réservé aux professionnels avec un centre validé',
       );
     }
-    const result = await this.activityService.create(dto, user.sub);
+    const result = await this.activityService.create(dto, user.sub, centerId);
     if (!result) {
       throw new ForbiddenException(
         "Impossible de créer l'activité. Centre non validé.",
@@ -86,11 +89,19 @@ export class ActivityController {
     description: 'Liste des activités',
     type: [ActivityEntity],
   })
+  @ApiQuery({
+    name: 'centerId',
+    description: 'Centre dont on veut les activités',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
   @Get('my')
   async findMine(
     @Req() req: { user: { sub: string } },
+    @Query('centerId') centerId: string,
   ): Promise<ActivityEntity[] | null> {
-    return this.activityService.findByCenterId(req.user.sub);
+    return this.activityService.findMine(req.user.sub, centerId);
   }
 
   @ApiOperation({

@@ -29,6 +29,7 @@ describe('ActivitySearchController', () => {
       delete: jest.fn(),
       search: jest.fn(),
       isPublicPhoto: jest.fn(),
+      findMine: jest.fn(),
     };
 
     const uploadServiceMock = {

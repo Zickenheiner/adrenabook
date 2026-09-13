@@ -37,6 +37,17 @@ export class ProfessionalCenterRepository
     return doc ? this.professionalCenterMapper.toEntity(doc) : null;
   }
 
+  async findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]> {
+    if (!Types.ObjectId.isValid(ownerId)) {
+      return [];
+    }
+    const docs = await this.professionalCenterModel
+      .find({ ownerId: new Types.ObjectId(ownerId) })
+      .sort({ createdAt: 1 })
+      .exec();
+    return docs.map((doc) => this.professionalCenterMapper.toEntity(doc));
+  }
+
   async findByOwnerId(
     ownerId: string,
   ): Promise<ProfessionalCenterEntity | null> {

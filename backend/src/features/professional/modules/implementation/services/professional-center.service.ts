@@ -22,6 +22,10 @@ export class ProfessionalCenterService implements IProfessionalCenterService {
     return this.professionalCenterRepository.findById(id);
   }
 
+  async findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]> {
+    return this.professionalCenterRepository.findAllByOwnerId(ownerId);
+  }
+
   async findByOwnerId(
     ownerId: string,
   ): Promise<ProfessionalCenterEntity | null> {

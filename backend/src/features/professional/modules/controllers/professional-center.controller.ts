@@ -39,6 +39,21 @@ export class ProfessionalCenterController {
   }
 
   @ApiOperation({
+    summary: 'Lister ses propres centres',
+    description:
+      "Retourne les centres dont l'utilisateur authentifie est proprietaire, du plus ancien au plus recent, quel que soit leur statut d'instruction.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Centres de l'utilisateur",
+    type: [ProfessionalCenterEntity],
+  })
+  @Get('mine')
+  async findMine(@Req() req: { user: { sub: string } }) {
+    return this.professionalCenterService.findAllByOwnerId(req.user.sub);
+  }
+
+  @ApiOperation({
     summary: 'Get professional-center by id',
     description: 'Retrieve a professional-center by its id',
   })
