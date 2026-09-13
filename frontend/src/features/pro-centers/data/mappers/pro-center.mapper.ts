@@ -10,6 +10,14 @@ class ProCenterMapper {
       id: dto.id,
       name: dto.companyName,
       city: dto.address?.city ?? '',
+      address: {
+        street: dto.address?.street ?? '',
+        city: dto.address?.city ?? '',
+        postalCode: dto.address?.postalCode ?? '',
+        country: dto.address?.country ?? '',
+      },
+      contactEmail: dto.contactEmail ?? '',
+      contactPhone: dto.contactPhone ?? '',
       status: dto.status as ProCenterStatus,
       activitiesCount: dto.activitiesCount ?? 0,
     };

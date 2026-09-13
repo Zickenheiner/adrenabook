@@ -132,8 +132,22 @@ export class ProfessionalCenterRepository
   }
 
   async update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean> {
+    // Une adresse modifiee sans regeocodage laisserait le centre epingle a son
+    // ancienne position sur la carte.
+    const location = dto.address
+      ? await this.geocodingService.geocode({
+          street: dto.address.street,
+          postalCode: dto.address.postalCode,
+          city: dto.address.city,
+        })
+      : null;
+
     const updated = await this.professionalCenterModel
-      .findByIdAndUpdate(id, dto, { new: true })
+      .findByIdAndUpdate(
+        id,
+        { ...dto, ...(location ? { location } : {}) },
+        { new: true },
+      )
       .exec();
     return !!updated;
   }

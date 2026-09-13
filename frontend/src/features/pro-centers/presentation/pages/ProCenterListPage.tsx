@@ -24,6 +24,7 @@ import {
 } from '../../domain/hooks/pro-center.hook';
 import type { ProCenterEntity } from '../../domain/entities/pro-center.entity';
 import ProCenterCard from '../components/ProCenterCard';
+import CenterEditDialog from '../components/CenterEditDialog';
 
 function ProCenterListSkeleton() {
   return (
@@ -63,6 +64,7 @@ export default function ProCenterListPage() {
   const { deleteCenter, deleteCenterIsPending } = useDeleteCenter();
   const { currentCenterId, setCurrentCenterId } = useCenterStore();
   const [target, setTarget] = useState<ProCenterEntity | null>(null);
+  const [editing, setEditing] = useState<ProCenterEntity | null>(null);
 
   // Le backend refuse la suppression tant que le centre porte des activites :
   // le bouton reste inactif plutot que de provoquer un 409.
@@ -149,12 +151,15 @@ export default function ProCenterListPage() {
               <ProCenterCard
                 key={center.id}
                 center={center}
+                onEdit={setEditing}
                 onDelete={setTarget}
               />
             ))}
           </motion.div>
         )}
       </div>
+
+      <CenterEditDialog center={editing} onClose={() => setEditing(null)} />
 
       <AlertDialog
         open={!!target}

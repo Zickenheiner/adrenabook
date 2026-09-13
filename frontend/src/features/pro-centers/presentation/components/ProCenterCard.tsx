@@ -1,4 +1,4 @@
-import { Building2, MapPin, Trash2 } from 'lucide-react';
+import { Building2, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/core/components/ui/badge';
 import { Button } from '@/core/components/ui/button';
 import { Card } from '@/core/components/ui/card';
@@ -32,10 +32,11 @@ const STATUS_CONFIG: Record<
 
 interface Props {
   center: ProCenterEntity;
+  onEdit: (center: ProCenterEntity) => void;
   onDelete: (center: ProCenterEntity) => void;
 }
 
-export default function ProCenterCard({ center, onDelete }: Props) {
+export default function ProCenterCard({ center, onEdit, onDelete }: Props) {
   const status = STATUS_CONFIG[center.status];
   // Un centre encore en instruction n'a pas d'activites a gerer : l'API
   // refuserait la creation tant qu'il n'est pas approuve.
@@ -67,6 +68,15 @@ export default function ProCenterCard({ center, onDelete }: Props) {
           <Badge variant="outline" className={cn('text-xs', status?.className)}>
             {status?.label ?? center.status}
           </Badge>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            aria-label={`Modifier ${center.name}`}
+            onClick={() => onEdit(center)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

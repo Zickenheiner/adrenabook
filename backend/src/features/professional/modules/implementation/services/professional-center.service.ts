@@ -52,18 +52,30 @@ export class ProfessionalCenterService implements IProfessionalCenterService {
     return this.professionalCenterRepository.create(dto, ownerId);
   }
 
-  async update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean> {
+  async update(
+    id: string,
+    dto: UpdateProfessionalCenterDto,
+    userId: string,
+  ): Promise<boolean> {
+    await this.assertOwnership(id, userId);
     return this.professionalCenterRepository.update(id, dto);
   }
 
-  async delete(id: string, userId: string): Promise<boolean> {
+  /**
+   * Un centre n'est modifiable et supprimable que par celui qui l'a declare.
+   */
+  private async assertOwnership(id: string, userId: string): Promise<void> {
     const center = await this.professionalCenterRepository.findById(id);
     if (!center) {
       throw new NotFoundException('Centre introuvable');
     }
     if (center.getOwnerId().toString() !== userId) {
-      throw new ForbiddenException("Ce centre ne vous appartient pas");
+      throw new ForbiddenException('Ce centre ne vous appartient pas');
     }
+  }
+
+  async delete(id: string, userId: string): Promise<boolean> {
+    await this.assertOwnership(id, userId);
 
     // Supprimer un centre laisserait ses activites sans rattachement, et avec
     // elles les creneaux et reservations qui en dependent.

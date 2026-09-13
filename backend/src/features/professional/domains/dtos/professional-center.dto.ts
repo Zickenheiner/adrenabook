@@ -2,8 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDefined,
+  IsEmail,
   IsNotEmpty,
   IsNotEmptyObject,
+  IsOptional,
   IsString,
   Matches,
   ValidateNested,
@@ -178,6 +180,14 @@ export class RegisterProfessionalResponseDto {
 
 export class CreateProfessionalCenterDto extends RegisterProfessionalDto {}
 
+/**
+ * Champs qu'un professionnel peut corriger sur son centre.
+ *
+ * Le SIRET en est volontairement absent, comme les justificatifs, le
+ * representant legal et le statut : ils fondent la decision d'instruction du
+ * dossier (US-23) et les laisser modifier apres validation reviendrait a
+ * approuver une structure puis a en changer l'identite.
+ */
 export class UpdateProfessionalCenterDto {
   @ApiProperty({
     description: 'Nom de la société',
@@ -186,7 +196,37 @@ export class UpdateProfessionalCenterDto {
   })
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
   companyName?: string;
+
+  @ApiProperty({
+    description: 'Email de contact',
+    example: 'contact@alpes-aventures.fr',
+    required: false,
+  })
+  @IsEmail()
+  @IsOptional()
+  contactEmail?: string;
+
+  @ApiProperty({
+    description: 'Téléphone de contact',
+    example: '+33450123456',
+    required: false,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  contactPhone?: string;
+
+  @ApiProperty({
+    description: 'Adresse du centre. Sa modification déclenche un regéocodage.',
+    type: AddressDto,
+    required: false,
+  })
+  @ValidateNested()
+  @Type(() => AddressDto)
+  @IsOptional()
+  address?: AddressDto;
 }
 
 /**

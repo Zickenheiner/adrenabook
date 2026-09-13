@@ -9,20 +9,40 @@ import {
   FormMessage,
 } from '@/core/components/ui/form';
 import { Input } from '@/core/components/ui/input';
-import type { CreateBookingFormData } from '../../domain/schemas/booking.schema';
+import {
+  constrainsWeight,
+  type CreateBookingFormData,
+} from '../../domain/schemas/booking.schema';
+import type { SlotPrerequisites } from '../../domain/entities/slot-detail.entity';
 
 interface Props {
   index: number;
   onRemove?: () => void;
   canRemove: boolean;
+  prerequisites?: SlotPrerequisites;
 }
 
 export default function BookingParticipantForm({
   index,
   onRemove,
   canRemove,
+  prerequisites,
 }: Props) {
   const form = useFormContext<CreateBookingFormData>();
+
+  // Le poids ne sert qu'aux activites qui le bornent : ailleurs, le demander
+  // reviendrait a collecter une donnee personnelle sans usage.
+  const weightRequired = constrainsWeight(prerequisites);
+  const weightRange = [
+    prerequisites?.minWeightKg != null
+      ? `min ${prerequisites.minWeightKg}`
+      : '',
+    prerequisites?.maxWeightKg != null
+      ? `max ${prerequisites.maxWeightKg}`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
@@ -87,38 +107,40 @@ export default function BookingParticipantForm({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name={`participants.${index}.weightKg`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs">
-                Poids (kg){' '}
-                <span className="text-muted-foreground font-normal">
-                  — optionnel
-                </span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={1}
-                  max={300}
-                  placeholder="70"
-                  {...field}
-                  value={field.value ?? ''}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value === ''
-                        ? undefined
-                        : e.target.valueAsNumber,
-                    )
-                  }
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
+        {weightRequired && (
+          <FormField
+            control={form.control}
+            name={`participants.${index}.weightKg`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">
+                  Poids (kg){' '}
+                  <span className="text-muted-foreground font-normal">
+                    — {weightRange} kg
+                  </span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={300}
+                    placeholder="70"
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === ''
+                          ? undefined
+                          : e.target.valueAsNumber,
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
     </div>
   );

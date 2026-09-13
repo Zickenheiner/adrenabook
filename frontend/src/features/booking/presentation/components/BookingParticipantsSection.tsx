@@ -4,10 +4,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/core/components/ui/button';
 import type { CreateBookingFormData } from '../../domain/schemas/booking.schema';
 import BookingParticipantForm from './BookingParticipantForm';
+import type { SlotPrerequisites } from '../../domain/entities/slot-detail.entity';
 
 const MAX_PARTICIPANTS = 8;
 
-export default function BookingParticipantsSection() {
+interface Props {
+  prerequisites?: SlotPrerequisites;
+}
+
+export default function BookingParticipantsSection({ prerequisites }: Props) {
   const form = useFormContext<CreateBookingFormData>();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -65,6 +70,7 @@ export default function BookingParticipantsSection() {
               transition={{ duration: 0.2 }}
             >
               <BookingParticipantForm
+                prerequisites={prerequisites}
                 index={index}
                 canRemove={fields.length > 1}
                 onRemove={() => remove(index)}

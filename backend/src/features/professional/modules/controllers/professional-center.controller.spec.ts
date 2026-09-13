@@ -192,19 +192,24 @@ describe('ProfessionalCenterController', () => {
     it('should update the center and return true', async () => {
       professionalCenterService.update.mockResolvedValue(true);
 
-      const result = await controller.update(centerId, dto);
+      const result = await controller.update(centerId, dto, {
+        user: { sub: OWNER_ID },
+      });
 
       expect(result).toBe(true);
       expect(professionalCenterService.update).toHaveBeenCalledWith(
         centerId,
         dto,
+        OWNER_ID,
       );
     });
 
     it('should return false when no center was updated', async () => {
       professionalCenterService.update.mockResolvedValue(false);
 
-      await expect(controller.update('unknown', dto)).resolves.toBe(false);
+      await expect(
+        controller.update('unknown', dto, { user: { sub: OWNER_ID } }),
+      ).resolves.toBe(false);
     });
 
     it('should propagate a ForbiddenException when the center belongs to someone else', async () => {
@@ -212,9 +217,9 @@ describe('ProfessionalCenterController', () => {
         new ForbiddenException('Centre appartenant à un autre professionnel'),
       );
 
-      await expect(controller.update(centerId, dto)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        controller.update(centerId, dto, { user: { sub: OWNER_ID } }),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -222,7 +227,9 @@ describe('ProfessionalCenterController', () => {
     it('should delete the center and return true', async () => {
       professionalCenterService.delete.mockResolvedValue(true);
 
-      const result = await controller.delete(centerId, { user: { sub: OWNER_ID } });
+      const result = await controller.delete(centerId, {
+        user: { sub: OWNER_ID },
+      });
 
       expect(result).toBe(true);
       expect(professionalCenterService.delete).toHaveBeenCalledWith(
@@ -234,7 +241,9 @@ describe('ProfessionalCenterController', () => {
     it('should return false when no center was deleted', async () => {
       professionalCenterService.delete.mockResolvedValue(false);
 
-      await expect(controller.delete('unknown', { user: { sub: OWNER_ID } })).resolves.toBe(false);
+      await expect(
+        controller.delete('unknown', { user: { sub: OWNER_ID } }),
+      ).resolves.toBe(false);
     });
 
     it('should propagate a NotFoundException raised by the service', async () => {
@@ -242,9 +251,9 @@ describe('ProfessionalCenterController', () => {
         new NotFoundException('Centre introuvable'),
       );
 
-      await expect(controller.delete('unknown', { user: { sub: OWNER_ID } })).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        controller.delete('unknown', { user: { sub: OWNER_ID } }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

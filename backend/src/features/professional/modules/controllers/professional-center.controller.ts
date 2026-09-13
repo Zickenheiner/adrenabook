@@ -118,12 +118,15 @@ export class ProfessionalCenterController {
     description: 'The updated professional-center',
     type: Boolean,
   })
+  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
+  @ApiResponse({ status: 404, description: 'Centre introuvable' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProfessionalCenterDto,
+    @Req() req: { user: { sub: string } },
   ) {
-    return this.professionalCenterService.update(id, dto);
+    return this.professionalCenterService.update(id, dto, req.user.sub);
   }
 
   @ApiOperation({
@@ -145,10 +148,7 @@ export class ProfessionalCenterController {
   @ApiResponse({ status: 404, description: 'Centre introuvable' })
   @ApiResponse({ status: 409, description: 'Le centre porte des activités' })
   @Delete(':id')
-  async delete(
-    @Param('id') id: string,
-    @Req() req: { user: { sub: string } },
-  ) {
+  async delete(@Param('id') id: string, @Req() req: { user: { sub: string } }) {
     return this.professionalCenterService.delete(id, req.user.sub);
   }
 }
