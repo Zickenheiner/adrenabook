@@ -20,6 +20,7 @@ import {
 } from '@/core/components/ui/form';
 import { Input } from '@/core/components/ui/input';
 import { Button } from '@/core/components/ui/button';
+import AddressAutocomplete from '@/core/components/AddressAutocomplete';
 import { useUpdateCenter } from '../../domain/hooks/pro-center.hook';
 import {
   centerEditSchema,
@@ -128,7 +129,16 @@ export default function CenterEditDialog({ center, onClose }: Props) {
                 <FormItem>
                   <FormLabel>Rue</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <AddressAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      onSelect={(address) => {
+                        field.onChange(address.street);
+                        form.setValue('address.postalCode', address.postalCode);
+                        form.setValue('address.city', address.city);
+                      }}
+                      placeholder="12 rue des Alpes"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

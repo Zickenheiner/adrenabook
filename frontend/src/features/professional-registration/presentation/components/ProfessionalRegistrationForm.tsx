@@ -22,6 +22,7 @@ import {
   type ProfessionalRegistrationFormData,
 } from '../../domain/schemas/professional-registration.schema';
 import DocumentUploadField from './DocumentUploadField';
+import AddressAutocomplete from '@/core/components/AddressAutocomplete';
 import ProfessionalRegistrationStep from './ProfessionalRegistrationStep';
 
 const STEPS = [
@@ -192,7 +193,19 @@ export default function ProfessionalRegistrationForm({
                 <FormItem>
                   <FormLabel>Rue</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="12 rue des Alpes" />
+                    <AddressAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      onSelect={(address) => {
+                        // Le code postal et la ville accompagnent la rue
+                        // choisie : les ressaisir serait redondant et source
+                        // d'incoherence avec le geocodage.
+                        field.onChange(address.street);
+                        form.setValue('address.postalCode', address.postalCode);
+                        form.setValue('address.city', address.city);
+                      }}
+                      placeholder="12 rue des Alpes"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
