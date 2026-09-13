@@ -18,7 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/core/components/ui/form';
-import { Checkbox } from '@/core/components/ui/checkbox';
 import {
   Popover,
   PopoverContent,
@@ -42,7 +41,6 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
       format: 'csv_generic',
       from: '',
       to: '',
-      includeRefunds: false,
       deliveryMode: 'download',
     },
   });
@@ -155,25 +153,6 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
               )}
             />
           </div>
-
-          {/* Inclure les remboursements */}
-          <FormField
-            control={form.control}
-            name="includeRefunds"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Inclure les remboursements</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
 
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? 'Export en cours...' : "Générer l'export"}

@@ -18,7 +18,6 @@ export interface IAccountingExportRepository {
     centerId: string,
     from: Date,
     to: Date,
-    includeRefunds: boolean,
   ): Promise<AccountingRow[]>;
 
   /** Rattache le fichier genere au job et le marque termine. */

@@ -8,7 +8,6 @@ export const accountingExportSchema = z
     // Pas de .default() ici : la valeur initiale est fournie par defaultValues
     // du formulaire. Un .default() ferait diverger les types d'entree et de
     // sortie du schema, ce que le resolver React Hook Form ne sait pas concilier.
-    includeRefunds: z.boolean(),
     deliveryMode: z.literal('download'),
   })
   .refine(

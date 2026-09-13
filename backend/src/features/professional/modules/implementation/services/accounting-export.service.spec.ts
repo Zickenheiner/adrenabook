@@ -119,14 +119,13 @@ describe('AccountingExportService', () => {
     );
   });
 
-  it('passes the refund option through to the query', async () => {
-    await service.createExport(dto({ includeRefunds: true }), USER_ID);
+  it('queries the requested period', async () => {
+    await service.createExport(dto(), USER_ID);
 
     expect(repository.findAccountingRows).toHaveBeenCalledWith(
       CENTER_ID,
       new Date('2026-09-01'),
       new Date('2026-09-30'),
-      true,
     );
   });
 
@@ -173,7 +172,6 @@ describe('AccountingExportService', () => {
       CENTER_ID,
       expect.any(Date),
       expect.any(Date),
-      false,
     );
   });
 

@@ -44,15 +44,16 @@ export class AccountingExportRepository implements IAccountingExportRepository {
     centerId: string,
     from: Date,
     to: Date,
-    includeRefunds: boolean,
   ): Promise<AccountingRow[]> {
     if (!mongoose.Types.ObjectId.isValid(centerId)) return [];
 
     // Une reservation ne connait que son creneau : le centre se retrouve en
     // remontant le creneau puis l'activite.
-    const statuses = includeRefunds
-      ? ['confirmed', 'partial_paid', 'cancelled']
-      : ['confirmed', 'partial_paid'];
+    //
+    // Les annulations sont toujours retenues : un remboursement est une
+    // ecriture comme une autre, et l'omettre donnerait un export qui ne
+    // correspond pas aux mouvements du compte.
+    const statuses = ['confirmed', 'partial_paid', 'cancelled'];
 
     const docs = await this.accountingExportModel.db
       .collection('bookings')

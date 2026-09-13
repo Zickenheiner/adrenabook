@@ -55,7 +55,6 @@ export class AccountingExportService implements IAccountingExportService {
       centerId,
       from,
       to,
-      dto.includeRefunds,
     );
 
     // Le fichier passe par le depot commun : GET /uploads/:id ne le sert qu'a

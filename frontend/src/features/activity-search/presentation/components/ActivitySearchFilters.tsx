@@ -20,7 +20,7 @@ import {
   activitySearchSchema,
   type ActivitySearchFormData,
 } from '../../domain/schemas/activity-search.schema';
-import type { GeolocationStatus } from '../pages/ActivitySearchPage';
+import type { GeolocationStatus } from '@/core/utils/geolocation.hook';
 
 /** Radix refuse une valeur vide : sentinelle pour « aucun rayon ». */
 const NO_RADIUS = 'all';
@@ -29,12 +29,14 @@ interface Props {
   defaultValues?: ActivitySearchFormData;
   onSearch: (data: ActivitySearchFormData) => void;
   geoStatus: GeolocationStatus;
+  onRetryGeolocation?: () => void;
 }
 
 export default function ActivitySearchFilters({
   defaultValues,
   onSearch,
   geoStatus,
+  onRetryGeolocation,
 }: Props) {
   // Le rayon et le tri par distance se mesurent depuis la position : sans
   // elle, les proposer donnerait un filtre sans effet.
@@ -160,7 +162,7 @@ export default function ActivitySearchFilters({
             <SelectItem value="200">200 km</SelectItem>
           </SelectContent>
         </Select>
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           {geoStatus === 'pending' && (
             <>
               <Loader2 className="h-3 w-3 animate-spin shrink-0" />
@@ -174,7 +176,18 @@ export default function ActivitySearchFilters({
             </>
           )}
           {geoStatus === 'denied' && (
-            <>Activez la localisation pour filtrer par distance.</>
+            <>
+              <span>Activez la localisation pour filtrer par distance.</span>
+              {onRetryGeolocation && (
+                <button
+                  type="button"
+                  onClick={onRetryGeolocation}
+                  className="shrink-0 underline underline-offset-2 hover:text-foreground"
+                >
+                  Réessayer
+                </button>
+              )}
+            </>
           )}
           {geoStatus === 'unsupported' && (
             <>Votre navigateur ne gère pas la localisation.</>

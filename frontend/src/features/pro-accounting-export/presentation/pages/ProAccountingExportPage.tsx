@@ -54,7 +54,7 @@ export default function ProAccountingExportPage() {
       format: data.format,
       from: data.from,
       to: data.to,
-      includeRefunds: data.includeRefunds,
+      includeRefunds: true,
       deliveryMode: data.deliveryMode,
       centerId,
     });
@@ -82,7 +82,7 @@ export default function ProAccountingExportPage() {
               Export comptable
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Exportez vos données de ventes au format Sage ou CSV pour votre
+              Exportez vos données de ventes au format CSV pour votre
               expert-comptable.
             </p>
           </div>
