@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/core/components/ui/card';
-import { Mountain } from 'lucide-react';
 import routes from '@/core/constants/routes';
 import ProfessionalRegistrationSuccess from '../components/ProfessionalRegistrationSuccess';
+import Logo from '@/core/components/Logo';
 
 export default function ProfessionalRegistrationSuccessPage() {
   const navigate = useNavigate();
@@ -11,9 +11,7 @@ export default function ProfessionalRegistrationSuccessPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/40 p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <Mountain className="h-6 w-6 text-primary" />
-          </div>
+          <Logo className="h-12 w-12" />
           <span className="text-xl font-bold tracking-tight">AdrenaBook</span>
         </div>
 

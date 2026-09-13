@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { AlertCircle, Mountain } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import { ApiError } from '@/core/errors/api.error';
 import { useProfessionalRegistration } from '../../domain/hooks/professional-registration.hook';
 import ProfessionalRegistrationForm from '../components/ProfessionalRegistrationForm';
 import type { ProfessionalRegistrationFormData } from '../../domain/schemas/professional-registration.schema';
+import Logo from '@/core/components/Logo';
 
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof ApiError) {
@@ -64,9 +65,7 @@ export default function ProfessionalRegistrationPage() {
         className="w-full max-w-lg"
       >
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <Mountain className="h-6 w-6 text-primary" />
-          </div>
+          <Logo className="h-12 w-12" />
           <span className="text-xl font-bold tracking-tight">AdrenaBook</span>
         </div>
 

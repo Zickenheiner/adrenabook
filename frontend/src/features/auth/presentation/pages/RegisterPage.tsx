@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { AlertCircle, Mountain } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -21,6 +21,7 @@ import RegisterSuccess from '../components/RegisterSuccess';
 import { useRegister } from '../../domain/hooks/register.hook';
 import type { RegisterFormData } from '../../domain/schemas/register.schema';
 import type { RegisterEntity } from '../../domain/entities/register.entity';
+import Logo from '@/core/components/Logo';
 
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof ApiError) {
@@ -81,9 +82,7 @@ export default function RegisterPage() {
       >
         <Card className="shadow-lg">
           <CardHeader className="space-y-3 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <Mountain className="h-6 w-6 text-primary" aria-hidden="true" />
-            </div>
+            <Logo className="mx-auto h-12 w-12" />
             <div>
               <CardTitle as="h1" className="text-2xl sm:text-3xl">
                 Créer un compte aventurier

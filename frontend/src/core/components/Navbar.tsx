@@ -22,6 +22,7 @@ import { cn } from '@/core/utils/cn';
 import { clearTokens } from '@/core/local/storage';
 import { getSessionUser, getUserInitial } from '@/core/utils/session';
 import routes from '@/core/constants/routes';
+import Logo from '@/core/components/Logo';
 
 import { Button } from '@/core/components/ui/button';
 import {
@@ -96,7 +97,7 @@ export default function Navbar() {
           to={routes.home}
           className="flex items-center gap-2 font-display text-xl font-bold text-primary select-none"
         >
-          <span className="text-2xl">⚡</span>
+          <Logo className="h-8 w-8" />
           AdrenaBook
         </Link>
 

@@ -4,6 +4,7 @@ import { Menu, Heart, Bell, ShieldCheck, LogOut } from 'lucide-react';
 
 import { cn } from '@/core/utils/cn';
 import routes from '@/core/constants/routes';
+import Logo from '@/core/components/Logo';
 import { Button } from '@/core/components/ui/button';
 import {
   Sheet,
@@ -60,7 +61,7 @@ export default function NavbarMobileDrawer({
               onClick={handleClose}
               className="flex items-center gap-2 font-display text-xl font-bold text-primary"
             >
-              <span className="text-2xl">⚡</span>
+              <Logo className="h-8 w-8" />
               AdrenaBook
             </Link>
           </SheetTitle>
