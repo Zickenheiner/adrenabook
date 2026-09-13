@@ -79,7 +79,7 @@ export default function DocumentUploadField({
     if (inputRef.current) inputRef.current.value = '';
   };
 
-  const messageErreur = localError ?? error;
+  const errorMessage = localError ?? error;
   const estDepose = value !== '';
 
   return (
@@ -98,7 +98,7 @@ export default function DocumentUploadField({
       <div
         className={cn(
           'flex items-center gap-3 rounded-md border border-dashed px-3 py-2.5',
-          messageErreur ? 'border-destructive' : 'border-input',
+          errorMessage ? 'border-destructive' : 'border-input',
           estDepose && 'bg-muted/40 border-solid',
         )}
       >
@@ -158,8 +158,8 @@ export default function DocumentUploadField({
         PDF, JPEG ou PNG — 5 Mo maximum
       </p>
 
-      {messageErreur && (
-        <p className="text-destructive text-xs">{messageErreur}</p>
+      {errorMessage && (
+        <p className="text-destructive text-xs">{errorMessage}</p>
       )}
     </div>
   );

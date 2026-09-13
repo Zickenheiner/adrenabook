@@ -36,7 +36,7 @@ function buildToken(role: Role): string {
  * navigateur : impossible de les injecter directement dans le stockage. On
  * passe donc par le vrai formulaire, dont on intercepte la réponse.
  */
-export async function connecter(page: Page, role: Role): Promise<void> {
+export async function signIn(page: Page, role: Role): Promise<void> {
   const token = buildToken(role);
 
   await page.route('**/auth/login', async (route) => {
@@ -72,7 +72,7 @@ export async function connecter(page: Page, role: Role): Promise<void> {
   });
 }
 
-const ACTIVITE = {
+const ACTIVITY = {
   id: '68b4d59919d9b7a94b4fde30',
   title: 'Initiation escalade en falaise',
   type: 'escalade',
@@ -90,7 +90,7 @@ const ACTIVITE = {
  * ferait passer des pages sans contenu, donc chaque route renvoie de quoi
  * peupler l'écran.
  */
-export async function simulerApi(page: Page): Promise<void> {
+export async function stubApi(page: Page): Promise<void> {
   /**
    * Sert une réponse JSON, mais seulement à un appel de données.
    *
@@ -99,7 +99,7 @@ export async function simulerApi(page: Page): Promise<void> {
    * recevrait alors du JSON au lieu de l'application. Tout ce qui n'est pas
    * une requête de données est donc laissé passer.
    */
-  const simuler = (motif: string, body: unknown) =>
+  const stub = (motif: string, body: unknown) =>
     page.route(motif, (route) => {
       const type = route.request().resourceType();
       if (type !== 'fetch' && type !== 'xhr') {
@@ -112,36 +112,36 @@ export async function simulerApi(page: Page): Promise<void> {
       });
     });
 
-  await simuler('**/users/me/dashboard', {
+  await stub('**/users/me/dashboard', {
     firstName: 'Lou',
     upcomingBookings: [],
     suggestedActivities: [
       {
-        activityId: ACTIVITE.id,
-        title: ACTIVITE.title,
-        type: ACTIVITE.type,
-        priceEur: ACTIVITE.priceEur,
-        durationMinutes: ACTIVITE.durationMinutes,
-        difficulty: ACTIVITE.difficulty,
-        centerName: ACTIVITE.centerName,
+        activityId: ACTIVITY.id,
+        title: ACTIVITY.title,
+        type: ACTIVITY.type,
+        priceEur: ACTIVITY.priceEur,
+        durationMinutes: ACTIVITY.durationMinutes,
+        difficulty: ACTIVITY.difficulty,
+        centerName: ACTIVITY.centerName,
         coverPhotoUrl: '',
       },
     ],
   });
 
-  await simuler('**/activities/search**', {
-    items: [ACTIVITE],
+  await stub('**/activities/search**', {
+    items: [ACTIVITY],
     total: 1,
     page: 1,
     pageSize: 20,
   });
 
-  await simuler('**/activities/*/slots**', {
+  await stub('**/activities/*/slots**', {
     slots: [],
     availableMonths: [],
   });
 
-  await simuler('**/centers**', {
+  await stub('**/centers**', {
     centers: [
       {
         id: '68b4d59919d9b7a94b4fde40',
@@ -154,7 +154,7 @@ export async function simulerApi(page: Page): Promise<void> {
     ],
   });
 
-  await simuler('**/professional-center/mine', [
+  await stub('**/professional-center/mine', [
     {
       id: '68b4d59919d9b7a94b4fde40',
       companyName: 'Vertical Chamonix',
@@ -168,7 +168,7 @@ export async function simulerApi(page: Page): Promise<void> {
     },
   ]);
 
-  await simuler('**/admin/users**', {
+  await stub('**/admin/users**', {
     data: [
       {
         id: '68b4d59919d9b7a94b4fde21',

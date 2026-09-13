@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { connecter, simulerApi, type Role } from './helpers/session';
+import { signIn, stubApi, type Role } from './helpers/session';
 
 /**
  * Audit accessibilité (WCAG AA / RGAA) sur les pages atteignables sans session.
@@ -16,48 +16,48 @@ import { connecter, simulerApi, type Role } from './helpers/session';
  * appels d'API sont simulés, donc l'audit ne dépend ni du backend ni d'un
  * compte réel.
  */
-const PAGES_PUBLIQUES = [
-  { chemin: '/login', titre: 'Connexion à AdrenaBook' },
-  { chemin: '/register', titre: 'Créer un compte aventurier' },
-  { chemin: '/password-reset/request', titre: 'Mot de passe oublié ?' },
-  { chemin: '/cgu', titre: /conditions générales/i },
-  { chemin: '/rgpd', titre: /données personnelles|confidentialité|RGPD/i },
-  { chemin: '/accessibilite', titre: /déclaration d'accessibilité/i },
+const PUBLIC_PAGES = [
+  { path: '/login', title: 'Connexion à AdrenaBook' },
+  { path: '/register', title: 'Créer un compte aventurier' },
+  { path: '/password-reset/request', title: 'Mot de passe oublié ?' },
+  { path: '/cgu', title: /conditions générales/i },
+  { path: '/rgpd', title: /données personnelles|confidentialité|RGPD/i },
+  { path: '/accessibilite', title: /déclaration d'accessibilité/i },
 ];
 
 /** Écrans authentifiés, avec le rôle qui y donne accès. */
-const PAGES_AUTHENTIFIEES: {
-  chemin: string;
-  titre: RegExp;
+const AUTHENTICATED_PAGES: {
+  path: string;
+  title: RegExp;
   role: Role;
 }[] = [
   {
-    chemin: '/',
-    titre: /activités suggérées|bonjour|réservations/i,
+    path: '/',
+    title: /activités suggérées|bonjour|réservations/i,
     role: 'aventurier',
   },
   {
-    chemin: '/activities/search',
-    titre: /trouvez votre prochaine aventure/i,
+    path: '/activities/search',
+    title: /trouvez votre prochaine aventure/i,
     role: 'aventurier',
   },
-  { chemin: '/centers/map', titre: /carte des centres/i, role: 'aventurier' },
+  { path: '/centers/map', title: /carte des centres/i, role: 'aventurier' },
   {
-    chemin: '/pro/centers',
-    titre: /centres|mes centres/i,
+    path: '/pro/centers',
+    title: /centres|mes centres/i,
     role: 'professionnel',
   },
-  { chemin: '/admin/users', titre: /utilisateurs/i, role: 'admin' },
+  { path: '/admin/users', title: /utilisateurs/i, role: 'admin' },
 ];
 
 /** Audite la page courante et n'admet aucune violation bloquante. */
-async function auditerPage(page: Page, chemin: string, titre: RegExp | string) {
+async function auditPage(page: Page, path: string, title: RegExp | string) {
   // On s'assure que la page a bien rendu son contenu avant d'auditer :
   // auditer un écran vide renverrait 0 violation sans rien prouver.
-  // Le titre est cible par son texte et non par le role "heading" : sur
+  // Le title est cible par son texte et non par le role "heading" : sur
   // les pages de compte il est porte par un CardTitle shadcn, qui rend un
   // <div>. C'est un defaut d'accessibilite en soi, tracé hors de ce test.
-  await expect(page.getByText(titre).first()).toBeVisible();
+  await expect(page.getByText(title).first()).toBeVisible();
 
   // Les pages apparaissent en fondu (motion, 0,4 s). Auditer pendant le fondu
   // ferait échouer des règles sur des éléments encore semi-transparents.
@@ -88,7 +88,7 @@ async function auditerPage(page: Page, chemin: string, titre: RegExp | string) {
 
   if (blocking.length > 0) {
     console.error(
-      `Violations a11y bloquantes sur ${chemin} :`,
+      `Violations a11y bloquantes sur ${path} :`,
       JSON.stringify(
         blocking.map((v) => ({
           id: v.id,
@@ -106,47 +106,47 @@ async function auditerPage(page: Page, chemin: string, titre: RegExp | string) {
 }
 
 test.describe('Accessibilité — pages publiques', () => {
-  for (const { chemin, titre } of PAGES_PUBLIQUES) {
-    test(`${chemin} : 0 violation WCAG AA bloquante`, async ({ page }) => {
-      await simulerApi(page);
-      await page.goto(chemin);
-      await auditerPage(page, chemin, titre);
+  for (const { path, title } of PUBLIC_PAGES) {
+    test(`${path} : 0 violation WCAG AA bloquante`, async ({ page }) => {
+      await stubApi(page);
+      await page.goto(path);
+      await auditPage(page, path, title);
     });
   }
 });
 
 test.describe('Accessibilité — écrans authentifiés', () => {
-  for (const { chemin, titre, role } of PAGES_AUTHENTIFIEES) {
-    test(`${chemin} (${role}) : 0 violation WCAG AA bloquante`, async ({
+  for (const { path, title, role } of AUTHENTICATED_PAGES) {
+    test(`${path} (${role}) : 0 violation WCAG AA bloquante`, async ({
       page,
     }) => {
-      await simulerApi(page);
-      await connecter(page, role);
-      await page.goto(chemin);
-      await auditerPage(page, chemin, titre);
+      await stubApi(page);
+      await signIn(page, role);
+      await page.goto(path);
+      await auditPage(page, path, title);
     });
   }
 });
 
 test.describe('Accessibilité — mécanismes transverses', () => {
   test('le lien d’évitement cible le contenu principal', async ({ page }) => {
-    await simulerApi(page);
-    await connecter(page, 'aventurier');
+    await stubApi(page);
+    await signIn(page, 'aventurier');
 
-    const lienEvitement = page.getByRole('link', {
+    const skipLink = page.getByRole('link', {
       name: /aller au contenu principal/i,
     });
 
     // Il doit désigner une cible réellement présente, sinon il ne mène nulle
     // part.
-    await expect(lienEvitement).toHaveAttribute('href', '#contenu-principal');
+    await expect(skipLink).toHaveAttribute('href', '#contenu-principal');
     await expect(page.locator('#contenu-principal')).toHaveCount(1);
 
     // Le lien vit hors de l'écran tant qu'il n'a pas le focus : on reproduit
     // le parcours réel — prise de focus, puis validation au clavier — plutôt
     // qu'un clic, impossible sur un élément hors cadre.
-    await lienEvitement.focus();
-    await expect(lienEvitement).toBeVisible();
+    await skipLink.focus();
+    await expect(skipLink).toBeVisible();
     await page.keyboard.press('Enter');
 
     await expect(page.locator('#contenu-principal')).toBeFocused();
@@ -169,27 +169,27 @@ test.describe('Accessibilité — mécanismes transverses', () => {
       'Pas de navigation clavier sur mobile',
     );
 
-    await simulerApi(page);
-    await connecter(page, 'aventurier');
+    await stubApi(page);
+    await signIn(page, 'aventurier');
 
     // Repartir d'un chargement propre : après la connexion, le focus hérite
     // du bouton disparu avec la redirection, et l'ordre de tabulation n'est
     // alors plus celui d'une arrivée sur la page.
     await page.goto('/');
 
-    const lienEvitement = page.getByRole('link', {
+    const skipLink = page.getByRole('link', {
       name: /aller au contenu principal/i,
     });
     // `waitForURL` rend la main sur le changement d'URL, pas sur le rendu :
     // sans cette attente, une machine lente tabule avant que la mise en page
     // ne soit montée, et la tabulation ne rencontre encore aucun lien.
-    await expect(lienEvitement).toBeAttached();
+    await expect(skipLink).toBeAttached();
 
     await page.keyboard.press('Tab');
 
-    await expect(lienEvitement).toBeFocused();
+    await expect(skipLink).toBeFocused();
     // Masqué au repos, il doit devenir visible une fois le focus reçu.
-    await expect(lienEvitement).toBeVisible();
+    await expect(skipLink).toBeVisible();
   });
 
   test('le document déclare la langue française', async ({ page }) => {
