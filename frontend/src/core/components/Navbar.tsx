@@ -4,6 +4,7 @@ import {
   Bell,
   Briefcase,
   Building2,
+  CalendarCheck,
   CalendarClock,
   ClipboardList,
   FileSpreadsheet,
@@ -159,6 +160,15 @@ export default function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link
+                  to={routes.myBookings}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <CalendarCheck className="h-4 w-4" />
+                  Mes réservations
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
                   to={routes.healthProfile}

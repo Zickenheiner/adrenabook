@@ -30,6 +30,7 @@ import {
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
+  MyBookingDto,
   PaymentIntentResponseDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { BookingEntity } from '@features/booking/domains/entities/booking.entity';
@@ -321,6 +322,105 @@ export class BookingRepository implements IBookingRepository {
     return bookings
       ? bookings.map((doc) => this.bookingMapper.toEntity(doc))
       : null;
+  }
+
+  async findMine(userId: string): Promise<MyBookingDto[]> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) return [];
+
+    const docs = await this.bookingModel
+      .aggregate<{
+        _id: mongoose.Types.ObjectId;
+        status: string;
+        totalEur?: number;
+        paidAmountEur?: number;
+        remainingAmountEur?: number;
+        reservationExpiresAt?: Date;
+        participants?: unknown[];
+        slot?: { startAt?: Date; durationMinutes?: number };
+        activity?: {
+          _id: mongoose.Types.ObjectId;
+          title?: string;
+          photoFileIds?: string[];
+        };
+        center?: {
+          companyName?: string;
+          address?: {
+            street: string;
+            postalCode: string;
+            city: string;
+            country: string;
+          };
+        };
+        waiverCount?: number;
+      }>([
+        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+        {
+          $lookup: {
+            from: 'slots',
+            localField: 'slotId',
+            foreignField: '_id',
+            as: 'slot',
+          },
+        },
+        { $unwind: { path: '$slot', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: 'slot.activityId',
+            foreignField: '_id',
+            as: 'activity',
+          },
+        },
+        { $unwind: { path: '$activity', preserveNullAndEmptyArrays: true } },
+        // Le centre n'est pas porte par la reservation : il se retrouve par
+        // l'activite.
+        {
+          $lookup: {
+            from: 'professionalcenters',
+            localField: 'activity.centerId',
+            foreignField: '_id',
+            as: 'center',
+          },
+        },
+        { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
+        // La decharge vit dans sa propre collection : on ne remonte que son
+        // existence, la liste n'a pas besoin de son contenu.
+        {
+          $lookup: {
+            from: 'waivers',
+            localField: '_id',
+            foreignField: 'bookingId',
+            as: 'waivers',
+          },
+        },
+        { $addFields: { waiverCount: { $size: '$waivers' } } },
+        { $sort: { 'slot.startAt': -1 } },
+      ])
+      .exec();
+
+    return docs.map((doc) => {
+      const address = doc.center?.address;
+
+      return {
+        bookingId: doc._id.toString(),
+        activityTitle: doc.activity?.title ?? '',
+        activityId: doc.activity?._id?.toString() ?? '',
+        centerName: doc.center?.companyName ?? '',
+        centerAddress: address
+          ? `${address.street}, ${address.postalCode} ${address.city}, ${address.country}`
+          : '',
+        slotStartAt: doc.slot?.startAt?.toISOString() ?? '',
+        durationMinutes: doc.slot?.durationMinutes ?? 0,
+        participants: doc.participants?.length ?? 0,
+        status: doc.status,
+        totalEur: doc.totalEur ?? 0,
+        paidAmountEur: doc.paidAmountEur ?? 0,
+        remainingAmountEur: doc.remainingAmountEur ?? 0,
+        waiverSigned: (doc.waiverCount ?? 0) > 0,
+        coverPhotoUrl: doc.activity?.photoFileIds?.[0] ?? '',
+        reservationExpiresAt: doc.reservationExpiresAt?.toISOString(),
+      };
+    });
   }
 
   async createPaymentIntent(

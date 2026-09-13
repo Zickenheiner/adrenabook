@@ -24,6 +24,7 @@ import ActivityDetailPage from '@/features/activity-detail/presentation/pages/Ac
 import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPage';
 import CenterDetailPage from '@/features/center-detail/presentation/pages/CenterDetailPage';
 import BookingPage from '@/features/booking/presentation/pages/BookingPage';
+import MyBookingsPage from '@/features/my-bookings/presentation/pages/MyBookingsPage';
 import BookingConfirmationPage from '@/features/booking/presentation/pages/BookingConfirmationPage';
 import WaiverSignPage from '@/features/waiver/presentation/pages/WaiverSignPage';
 import PaymentPage from '@/features/payment/presentation/pages/PaymentPage';
@@ -99,6 +100,7 @@ export default function Router() {
           path={routes.professionalRegisterSuccess}
           element={<ProfessionalRegistrationSuccessPage />}
         />
+        <Route path={routes.myBookings} element={<MyBookingsPage />} />
         <Route path={routes.bookingNew} element={<BookingPage />} />
         <Route
           path={routes.bookingConfirmation}

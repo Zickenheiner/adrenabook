@@ -1,4 +1,7 @@
-import { PaymentIntentResponseDto } from '@features/booking/domains/dtos/booking.dto';
+import {
+  MyBookingDto,
+  PaymentIntentResponseDto,
+} from '@features/booking/domains/dtos/booking.dto';
 import {
   BookingDetailResponseDto,
   BookingResponseDto,
@@ -18,6 +21,9 @@ export interface IBookingService {
     id: string,
     userId: string,
   ): Promise<BookingDetailResponseDto>;
+  /** Reservations de l'utilisateur, de la plus proche a la plus lointaine. */
+  findMine(userId: string): Promise<MyBookingDto[]>;
+
   /** Prepare le paiement d'une reservation et renvoie sa reference. */
   createPaymentIntent(
     id: string,

@@ -64,6 +64,7 @@ const endpoints = {
   },
   bookings: {
     base: '/bookings',
+    mine: '/bookings/me',
     byId: (id: string) => `/bookings/${id}`,
   },
   waiver: {

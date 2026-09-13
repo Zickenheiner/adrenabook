@@ -1,4 +1,7 @@
-import { PaymentIntentResponseDto } from '@features/booking/domains/dtos/booking.dto';
+import {
+  MyBookingDto,
+  PaymentIntentResponseDto,
+} from '@features/booking/domains/dtos/booking.dto';
 import {
   BookingDetailResponseDto,
   CancelBookingDto,
@@ -14,6 +17,9 @@ export interface IBookingRepository {
   findById(id: string): Promise<BookingEntity | null>;
   findDetailById(id: string, userId: string): Promise<BookingDetailResponseDto>;
   findBySlotId(slotId: string): Promise<BookingEntity[] | null>;
+  /** Reservations de l'utilisateur, de la plus proche a la plus lointaine. */
+  findMine(userId: string): Promise<MyBookingDto[]>;
+
   /** Prepare le paiement d'une reservation et renvoie sa reference. */
   createPaymentIntent(
     id: string,

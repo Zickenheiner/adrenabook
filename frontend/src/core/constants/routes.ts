@@ -19,6 +19,7 @@ const routes = {
   activityDetail: '/activities/:id',
   centerMap: '/centers/map',
   centerDetail: '/centers/:id',
+  myBookings: '/profile/bookings',
   bookingNew: '/bookings/new',
   bookingConfirmation: '/bookings/:id/confirmation',
   waiverSign: '/bookings/:id/waiver',

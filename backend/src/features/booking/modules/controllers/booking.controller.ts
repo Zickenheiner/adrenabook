@@ -6,6 +6,7 @@ import {
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
+  MyBookingDto,
   PaymentIntentResponseDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { IBookingService } from '@features/booking/interfaces/services/booking.iservice';
@@ -94,6 +95,23 @@ export class BookingController {
     description: 'La réservation appartient à un autre utilisateur',
   })
   @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @ApiOperation({
+    summary: 'Lister ses réservations',
+    description:
+      "Retourne les réservations de l'utilisateur authentifié, de la plus proche à la plus ancienne, tous statuts confondus.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Réservations de l'utilisateur",
+    type: [MyBookingDto],
+  })
+  @Get('me')
+  async findMine(
+    @Req() req: { user: { sub: string } },
+  ): Promise<MyBookingDto[]> {
+    return this.bookingService.findMine(req.user.sub);
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async getBooking(
