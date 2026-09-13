@@ -74,3 +74,11 @@ export class Activity {
 }
 
 export const ActivitySchema = SchemaFactory.createForClass(Activity);
+
+// La recherche par mot-cle s'appuie sur $text, qui exige un index dedie :
+// sans lui, MongoDB rejette la requete. Le francais comme langue par defaut
+// active la racinisation et le retrait des mots vides adaptes au catalogue.
+ActivitySchema.index(
+  { title: 'text', description: 'text' },
+  { default_language: 'french', name: 'activity_text_search' },
+);
