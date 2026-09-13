@@ -66,5 +66,5 @@ export function buildAccountingCsv(rows: AccountingRow[]): string {
   }
 
   // BOM : sans lui, Excel lit l'UTF-8 comme du latin-1 et abime les accents.
-  return `﻿${lines.join('\r\n')}\r\n`;
+  return `\uFEFF${lines.join('\r\n')}\r\n`;
 }

@@ -1,10 +1,5 @@
 import { Controller, Get, Inject, Query, Req } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IProDashboardService } from '@features/professional/interfaces/services/pro-dashboard.iservice';
 import {
   CenterBookingDto,
@@ -53,7 +48,7 @@ export class ProDashboardController {
   @ApiOperation({
     summary: 'Lister les réservations prises sur les activités du centre',
     description:
-      "Retourne les réservations des activités du centre, de la plus proche à la plus ancienne. Sans centerId, couvre tous les centres du professionnel. Un centre qui ne lui appartient pas ne renvoie rien.",
+      'Retourne les réservations des activités du centre, de la plus proche à la plus ancienne. Sans centerId, couvre tous les centres du professionnel. Un centre qui ne lui appartient pas ne renvoie rien.',
   })
   @ApiQuery({
     name: 'centerId',

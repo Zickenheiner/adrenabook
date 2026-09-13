@@ -75,7 +75,7 @@ export interface ParsedCsv {
 export function parseCsv(content: string): ParsedCsv {
   // Un fichier exporte par Excel commence souvent par un BOM, qui collerait
   // aux caracteres du premier en-tete et ferait echouer la correspondance.
-  const clean = content.replace(/^﻿/, '');
+  const clean = content.replace(/^\uFEFF/, '');
   if (!clean.trim()) return { columns: [], rows: [] };
 
   const delimiter = detectDelimiter(clean.split('\n')[0] ?? '');

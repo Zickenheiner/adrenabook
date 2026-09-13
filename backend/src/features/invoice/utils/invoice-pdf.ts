@@ -1,4 +1,7 @@
-import PDFDocument = require('pdfkit');
+// Import de namespace et non d'export par défaut : pdfkit est un module
+// CommonJS dont `module.exports` est le constructeur lui-même, et le projet
+// compile sans `esModuleInterop` — un import par défaut vaudrait `undefined`.
+import * as PDFDocument from 'pdfkit';
 
 export interface InvoiceLine {
   label: string;
