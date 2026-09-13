@@ -138,8 +138,14 @@ export class ProfessionalCenterController {
     description: 'The deleted professional-center',
     type: Boolean,
   })
+  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
+  @ApiResponse({ status: 404, description: 'Centre introuvable' })
+  @ApiResponse({ status: 409, description: 'Le centre porte des activités' })
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return this.professionalCenterService.delete(id);
+  async delete(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string } },
+  ) {
+    return this.professionalCenterService.delete(id, req.user.sub);
   }
 }

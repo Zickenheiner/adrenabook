@@ -37,6 +37,13 @@ export class ProfessionalCenterRepository
     return doc ? this.professionalCenterMapper.toEntity(doc) : null;
   }
 
+  async countActivities(id: string): Promise<number> {
+    if (!Types.ObjectId.isValid(id)) return 0;
+    return this.professionalCenterModel.db
+      .collection('activities')
+      .countDocuments({ centerId: new Types.ObjectId(id) });
+  }
+
   async findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]> {
     if (!Types.ObjectId.isValid(ownerId)) {
       return [];

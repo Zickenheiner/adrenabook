@@ -17,4 +17,6 @@ export interface IProfessionalCenterRepository {
   create(dto: CreateProfessionalCenterDto, ownerId: string): Promise<boolean>;
   update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean>;
   delete(id: string): Promise<boolean>;
+  /** Nombre d'activites rattachees au centre, tous statuts confondus. */
+  countActivities(id: string): Promise<number>;
 }

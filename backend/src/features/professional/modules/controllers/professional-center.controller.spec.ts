@@ -14,6 +14,7 @@ import {
 } from '@features/professional/domains/dtos/professional-center.dto';
 
 describe('ProfessionalCenterController', () => {
+  const OWNER_ID = '68b4d59919d9b7a94b4fde22';
   let controller: ProfessionalCenterController;
   let professionalCenterService: jest.Mocked<IProfessionalCenterService>;
 
@@ -220,16 +221,19 @@ describe('ProfessionalCenterController', () => {
     it('should delete the center and return true', async () => {
       professionalCenterService.delete.mockResolvedValue(true);
 
-      const result = await controller.delete(centerId);
+      const result = await controller.delete(centerId, { user: { sub: OWNER_ID } });
 
       expect(result).toBe(true);
-      expect(professionalCenterService.delete).toHaveBeenCalledWith(centerId);
+      expect(professionalCenterService.delete).toHaveBeenCalledWith(
+        centerId,
+        OWNER_ID,
+      );
     });
 
     it('should return false when no center was deleted', async () => {
       professionalCenterService.delete.mockResolvedValue(false);
 
-      await expect(controller.delete('unknown')).resolves.toBe(false);
+      await expect(controller.delete('unknown', { user: { sub: OWNER_ID } })).resolves.toBe(false);
     });
 
     it('should propagate a NotFoundException raised by the service', async () => {
@@ -237,7 +241,7 @@ describe('ProfessionalCenterController', () => {
         new NotFoundException('Centre introuvable'),
       );
 
-      await expect(controller.delete('unknown')).rejects.toThrow(
+      await expect(controller.delete('unknown', { user: { sub: OWNER_ID } })).rejects.toThrow(
         NotFoundException,
       );
     });

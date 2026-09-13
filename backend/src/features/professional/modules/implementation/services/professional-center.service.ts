@@ -1,4 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { IProfessionalCenterService } from '../../../interfaces/services/professional-center.iservice';
 import { IProfessionalCenterRepository } from '@features/professional/interfaces/repositories/professional-center.irepository';
 import {
@@ -43,7 +49,25 @@ export class ProfessionalCenterService implements IProfessionalCenterService {
     return this.professionalCenterRepository.update(id, dto);
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, userId: string): Promise<boolean> {
+    const center = await this.professionalCenterRepository.findById(id);
+    if (!center) {
+      throw new NotFoundException('Centre introuvable');
+    }
+    if (center.getOwnerId().toString() !== userId) {
+      throw new ForbiddenException("Ce centre ne vous appartient pas");
+    }
+
+    // Supprimer un centre laisserait ses activites sans rattachement, et avec
+    // elles les creneaux et reservations qui en dependent.
+    const activities =
+      await this.professionalCenterRepository.countActivities(id);
+    if (activities > 0) {
+      throw new ConflictException(
+        'Supprimez d’abord les activités de ce centre.',
+      );
+    }
+
     return this.professionalCenterRepository.delete(id);
   }
 }

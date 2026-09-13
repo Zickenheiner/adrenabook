@@ -16,5 +16,9 @@ export interface IProfessionalCenterService {
   findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]>;
   create(dto: CreateProfessionalCenterDto, ownerId: string): Promise<boolean>;
   update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean>;
-  delete(id: string): Promise<boolean>;
+  /**
+   * `userId` sert au controle de propriete : un centre n'est supprimable que
+   * par celui qui l'a declare.
+   */
+  delete(id: string, userId: string): Promise<boolean>;
 }
