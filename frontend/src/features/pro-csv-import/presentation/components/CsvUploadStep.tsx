@@ -12,7 +12,7 @@ import {
 import { Label } from '@/core/components/ui/label';
 import { cn } from '@/core/utils/cn';
 
-export type EntityType = 'slots' | 'customers' | 'activities';
+export type EntityType = 'slots' | 'activities';
 
 interface Props {
   onNext: (
@@ -27,7 +27,6 @@ import { useUploadDocument } from '@/features/uploads/domain/hooks/upload.hook';
 
 const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   slots: 'Créneaux',
-  customers: 'Clients',
   activities: 'Activités',
 };
 

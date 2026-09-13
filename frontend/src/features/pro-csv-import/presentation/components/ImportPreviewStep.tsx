@@ -24,7 +24,6 @@ interface Props {
 
 const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   slots: 'Créneaux',
-  customers: 'Clients',
   activities: 'Activités',
 };
 

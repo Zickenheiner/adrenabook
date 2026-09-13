@@ -31,12 +31,6 @@ const TARGET_FIELDS: Record<
     { key: 'maxParticipants', label: 'Participants max', required: true },
     { key: 'priceEur', label: 'Prix (€)', required: true },
   ],
-  customers: [
-    { key: 'firstName', label: 'Prénom', required: true },
-    { key: 'lastName', label: 'Nom', required: true },
-    { key: 'email', label: 'Email', required: true },
-    { key: 'phone', label: 'Téléphone', required: false },
-  ],
   activities: [
     { key: 'title', label: 'Titre', required: true },
     { key: 'description', label: 'Description', required: true },
