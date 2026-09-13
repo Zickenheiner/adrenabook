@@ -3,7 +3,6 @@ import {
   CalendarDays,
   Clock,
   CreditCard,
-  FileSignature,
   Image as ImageIcon,
   MapPin,
   Receipt,
@@ -156,15 +155,6 @@ export default function MyBookingCard({ booking }: Props) {
                 <Link to={to(routes.bookingConfirmation)}>
                   <CreditCard className="mr-1.5 h-3.5 w-3.5" />
                   Payer
-                </Link>
-              </Button>
-            )}
-
-            {isActive && !booking.waiverSigned && (
-              <Button asChild variant="outline" size="sm">
-                <Link to={to(routes.waiverSign)}>
-                  <FileSignature className="mr-1.5 h-3.5 w-3.5" />
-                  Signer la décharge
                 </Link>
               </Button>
             )}

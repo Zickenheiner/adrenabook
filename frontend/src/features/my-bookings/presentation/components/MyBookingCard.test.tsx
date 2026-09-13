@@ -54,18 +54,6 @@ describe('MyBookingCard', () => {
     expect(screen.queryByRole('link', { name: /^Payer/i })).toBeNull();
   });
 
-  it('offers to sign the waiver only while it is missing', () => {
-    renderCard(booking({ waiverSigned: false }));
-
-    expect(screen.getByRole('link', { name: /décharge/i })).toBeTruthy();
-  });
-
-  it('hides the waiver link once it is signed', () => {
-    renderCard(booking());
-
-    expect(screen.queryByRole('link', { name: /décharge/i })).toBeNull();
-  });
-
   it('offers the invoice for a paid booking', () => {
     renderCard(booking());
 
@@ -76,7 +64,6 @@ describe('MyBookingCard', () => {
     renderCard(booking({ startAt: inDays(-3), waiverSigned: false }));
 
     expect(screen.queryByRole('link', { name: /Annuler/i })).toBeNull();
-    expect(screen.queryByRole('link', { name: /décharge/i })).toBeNull();
     expect(screen.getByRole('link', { name: /Facture/i })).toBeTruthy();
   });
 
