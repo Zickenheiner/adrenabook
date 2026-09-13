@@ -8,10 +8,10 @@ export interface BookingSummaryDto {
 }
 
 export interface ActivitySummaryDto {
-  id: string;
+  activityId: string;
   title: string;
   type: string;
-  priceFromEur: number;
+  priceEur: number;
   durationMinutes: number;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   centerName: string;

@@ -499,8 +499,10 @@ export class UserRepository implements IUserRepository {
       _id: Types.ObjectId;
       title: string;
       type: string;
-      priceFromEur: number;
+      priceEur: number;
+      durationMinutes: number;
       difficulty: string;
+      centerName: string;
       coverPhotoUrl: string;
     }
 
@@ -517,12 +519,23 @@ export class UserRepository implements IUserRepository {
         },
         { $sample: { size: 4 } },
         {
+          $lookup: {
+            from: 'professionalcenters',
+            localField: 'centerId',
+            foreignField: '_id',
+            as: 'center',
+          },
+        },
+        { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
+        {
           $project: {
             _id: 1,
             title: 1,
             type: 1,
-            priceFromEur: 1,
+            priceEur: 1,
+            durationMinutes: 1,
             difficulty: 1,
+            centerName: '$center.companyName',
             coverPhotoUrl: { $arrayElemAt: ['$photoFileIds', 0] },
           },
         },
@@ -546,12 +559,23 @@ export class UserRepository implements IUserRepository {
         },
         { $sample: { size: remaining } },
         {
+          $lookup: {
+            from: 'professionalcenters',
+            localField: 'centerId',
+            foreignField: '_id',
+            as: 'center',
+          },
+        },
+        { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
+        {
           $project: {
             _id: 1,
             title: 1,
             type: 1,
-            priceFromEur: 1,
+            priceEur: 1,
+            durationMinutes: 1,
             difficulty: 1,
+            centerName: '$center.companyName',
             coverPhotoUrl: { $arrayElemAt: ['$photoFileIds', 0] },
           },
         },
@@ -566,8 +590,10 @@ export class UserRepository implements IUserRepository {
         activityId: doc._id.toString(),
         title: doc.title,
         type: doc.type,
-        priceFromEur: doc.priceFromEur,
+        priceEur: doc.priceEur,
+        durationMinutes: doc.durationMinutes,
         difficulty: doc.difficulty,
+        centerName: doc.centerName ?? '',
         coverPhotoUrl: doc.coverPhotoUrl ?? '',
       }),
     );

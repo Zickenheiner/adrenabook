@@ -707,8 +707,10 @@ describe('UserRepository', () => {
       _id: new Types.ObjectId(),
       title: `Activite ${suffix}`,
       type: 'climbing',
-      priceFromEur: 90,
+      priceEur: 90,
+      durationMinutes: 120,
       difficulty: 'beginner',
+      centerName: 'Arkose Toulouse',
       coverPhotoUrl: `file_${suffix}`,
     });
 
@@ -911,10 +913,23 @@ describe('UserRepository', () => {
         activityId: activity._id.toString(),
         title: 'Activite 1',
         type: 'climbing',
-        priceFromEur: 90,
+        priceEur: 90,
+        durationMinutes: 120,
         difficulty: 'beginner',
+        centerName: 'Arkose Toulouse',
         coverPhotoUrl: 'file_1',
       });
+    });
+
+    it('should default a missing center name to an empty string', async () => {
+      stubDashboard({
+        bookedTypes: [],
+        random: [{ ...buildActivity('1'), centerName: undefined }],
+      });
+
+      const result = await repository.getDashboard(userId.toString());
+
+      expect(result.suggestedActivities[0].centerName).toBe('');
     });
 
     it('should default a missing cover photo to an empty string', async () => {

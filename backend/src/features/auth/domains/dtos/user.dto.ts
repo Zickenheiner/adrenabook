@@ -873,10 +873,16 @@ export class ActivitySummaryDto {
   type: string;
 
   @ApiProperty({
-    description: 'Prix de départ en euros',
+    description: 'Prix par participant en euros',
     example: 150,
   })
-  priceFromEur: number;
+  priceEur: number;
+
+  @ApiProperty({
+    description: "Durée de l'activité en minutes",
+    example: 120,
+  })
+  durationMinutes: number;
 
   @ApiProperty({
     description: 'Niveau de difficulté',
@@ -886,8 +892,14 @@ export class ActivitySummaryDto {
   difficulty: string;
 
   @ApiProperty({
-    description: 'URL de la photo de couverture',
-    example: 'https://cdn.adrenabook.fr/photos/abc123.jpg',
+    description: "Nom du centre proposant l'activité",
+    example: 'Arkose Toulouse',
+  })
+  centerName: string;
+
+  @ApiProperty({
+    description: 'Identifiant du fichier photo de couverture',
+    example: '68b4d59919d9b7a94b4fde21',
   })
   coverPhotoUrl: string;
 }

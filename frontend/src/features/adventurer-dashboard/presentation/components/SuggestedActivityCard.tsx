@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/core/components/ui/card';
 import { Badge } from '@/core/components/ui/badge';
 import { Clock, Star, MapPin } from 'lucide-react';
+import { resolvePhotoUrl } from '@/core/utils/photo-url';
 import { useNavigate } from 'react-router-dom';
 import routes from '@/core/constants/routes';
 import type { ActivitySummaryEntity } from '../../domain/entities/dashboard.entity';
@@ -18,6 +19,9 @@ const difficultyLabel: Record<ActivitySummaryEntity['difficulty'], string> = {
 export default function SuggestedActivityCard({ activity }: Props) {
   const navigate = useNavigate();
 
+  // L'API renvoie un identifiant de fichier, pas une URL directement affichable.
+  const coverUrl = resolvePhotoUrl(activity.coverPhotoUrl);
+
   const handleClick = () => {
     navigate(routes.activityDetail.replace(':id', activity.id));
   };
@@ -34,10 +38,10 @@ export default function SuggestedActivityCard({ activity }: Props) {
       className="overflow-hidden cursor-pointer transition-shadow hover:shadow-md"
       onClick={handleClick}
     >
-      {activity.coverPhotoUrl && (
+      {coverUrl && (
         <div className="relative h-40 w-full">
           <img
-            src={activity.coverPhotoUrl}
+            src={coverUrl}
             alt={activity.title}
             className="h-full w-full object-cover"
           />
@@ -55,10 +59,12 @@ export default function SuggestedActivityCard({ activity }: Props) {
           <h3 className="font-semibold text-sm leading-tight line-clamp-2">
             {activity.title}
           </h3>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3" />
-            <span className="truncate">{activity.centerName}</span>
-          </div>
+          {activity.centerName && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3 w-3" />
+              <span className="truncate">{activity.centerName}</span>
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -70,7 +76,7 @@ export default function SuggestedActivityCard({ activity }: Props) {
           </Badge>
         </div>
         <p className="text-sm font-semibold text-primary">
-          À partir de {activity.priceFromEur} €
+          {activity.priceEur} € / personne
         </p>
       </CardContent>
     </Card>
