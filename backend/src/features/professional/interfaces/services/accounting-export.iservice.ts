@@ -5,6 +5,5 @@ export interface IAccountingExportService {
   createExport(
     dto: CreateAccountingExportDto,
     professionalId: string,
-    professionalEmail: string,
   ): Promise<AccountingExportResponseDto>;
 }

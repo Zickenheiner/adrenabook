@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
@@ -21,35 +22,38 @@ describe('SlotService', () => {
     id?: string;
     activityId?: string;
     startAt?: string;
-    durationMinutes?: number;
     maxParticipants?: number;
-    priceEur?: number;
   }): SlotEntity => {
     const values = {
       id: '68b4d59919d9b7a94b4fde21',
       activityId,
       startAt: '2026-06-15T09:00:00.000Z',
-      durationMinutes: 60,
       maxParticipants: 10,
-      priceEur: 150,
       ...overrides,
     };
 
     return {
       getId: () => values.id,
-      getActivityId: () => values.activityId,
+      getActivityId: () => ({ toString: () => values.activityId }),
       getStartAt: () => new Date(values.startAt),
-      getDurationMinutes: () => values.durationMinutes,
       getMaxParticipants: () => values.maxParticipants,
-      getPriceEur: () => values.priceEur,
     } as unknown as SlotEntity;
+  };
+
+  // Duree, prix et prerequis font autorite au niveau de l'activite.
+  const activityPricing = {
+    durationMinutes: 60,
+    priceEur: 150,
+    prerequisites: {
+      minAge: 12,
+      minWeightKg: 40,
+      medicalCertificateRequired: false,
+    },
   };
 
   const baseDto: CreateSlotsDto = {
     singleStartAt: '2026-06-15T09:00:00.000Z',
-    durationMinutes: 60,
     maxParticipants: 10,
-    priceEur: 150,
     instructorIds: ['68b4d59919d9b7a94b4fde11'],
   };
 
@@ -59,6 +63,11 @@ describe('SlotService', () => {
       countActiveBookings: jest.fn(),
       findByActivityId: jest.fn(),
       findActivityOwnership: jest.fn(),
+      findActivityConditions: jest.fn(),
+      findByActivityIdAndMonth: jest.fn(),
+      findMonthsWithSlots: jest.fn(),
+      updateSlot: jest.fn(),
+      deleteSlot: jest.fn(),
       createMany: jest.fn(),
     };
 
@@ -74,6 +83,7 @@ describe('SlotService', () => {
 
     service = module.get<SlotService>(SlotService);
     slotRepository = module.get('ISlotRepository');
+    slotRepository.findActivityConditions.mockResolvedValue(activityPricing);
   });
 
   it('should be defined', () => {
@@ -95,6 +105,9 @@ describe('SlotService', () => {
         maxParticipants: 10,
         remainingSeats: 7,
         priceEur: 150,
+        // Les prerequis descendent de l'activite pour que le client puisse
+        // les annoncer avant la saisie.
+        prerequisites: activityPricing.prerequisites,
       });
       expect(slotRepository.countActiveBookings).toHaveBeenCalledWith(
         '68b4d59919d9b7a94b4fde21',
@@ -123,51 +136,88 @@ describe('SlotService', () => {
   });
 
   describe('findByActivityIdForOwner()', () => {
-    it('should return the slots sorted by ascending start date', async () => {
+    const month = '2026-06';
+
+    const ownedActivity = () =>
       slotRepository.findActivityOwnership.mockResolvedValue({
         ownerId: userId,
       });
-      slotRepository.findByActivityId.mockResolvedValue([
-        buildSlot({ id: 'late', startAt: '2026-07-01T09:00:00.000Z' }),
+
+    it('should return the slots of the requested month', async () => {
+      ownedActivity();
+      slotRepository.findByActivityIdAndMonth.mockResolvedValue([
         buildSlot({ id: 'early', startAt: '2026-06-01T09:00:00.000Z' }),
-        buildSlot({ id: 'middle', startAt: '2026-06-15T09:00:00.000Z' }),
       ]);
+      slotRepository.findMonthsWithSlots.mockResolvedValue(['2026-06']);
       slotRepository.countActiveBookings.mockResolvedValue(2);
 
-      const result = await service.findByActivityIdForOwner(activityId, userId);
+      const result = await service.findByActivityIdForOwner(
+        activityId,
+        userId,
+        month,
+      );
 
-      expect(result.map((s) => s.id)).toEqual(['early', 'middle', 'late']);
-      expect(result[0]).toEqual({
-        id: 'early',
-        startAt: '2026-06-01T09:00:00.000Z',
-        durationMinutes: 60,
-        maxParticipants: 10,
-        remainingSeats: 8,
-        priceEur: 150,
-      });
+      expect(slotRepository.findByActivityIdAndMonth).toHaveBeenCalledWith(
+        activityId,
+        month,
+      );
+      expect(result.slots).toEqual([
+        {
+          id: 'early',
+          startAt: '2026-06-01T09:00:00.000Z',
+          durationMinutes: 60,
+          maxParticipants: 10,
+          remainingSeats: 8,
+          priceEur: 150,
+        },
+      ]);
+    });
+
+    it('should list the months holding slots, past ones included', async () => {
+      ownedActivity();
+      slotRepository.findByActivityIdAndMonth.mockResolvedValue([]);
+      slotRepository.findMonthsWithSlots.mockResolvedValue([
+        '2025-12',
+        '2026-06',
+      ]);
+
+      const result = await service.findByActivityIdForOwner(
+        activityId,
+        userId,
+        month,
+      );
+
+      // Le professionnel consulte aussi l'historique de son activite.
+      expect(result.availableMonths).toEqual(['2025-12', '2026-06']);
     });
 
     it('should omit activityId from the returned items', async () => {
-      slotRepository.findActivityOwnership.mockResolvedValue({
-        ownerId: userId,
-      });
-      slotRepository.findByActivityId.mockResolvedValue([buildSlot()]);
+      ownedActivity();
+      slotRepository.findByActivityIdAndMonth.mockResolvedValue([buildSlot()]);
+      slotRepository.findMonthsWithSlots.mockResolvedValue([]);
       slotRepository.countActiveBookings.mockResolvedValue(0);
 
-      const result = await service.findByActivityIdForOwner(activityId, userId);
+      const result = await service.findByActivityIdForOwner(
+        activityId,
+        userId,
+        month,
+      );
 
-      expect(result[0]).not.toHaveProperty('activityId');
+      expect(result.slots[0]).not.toHaveProperty('activityId');
     });
 
-    it('should return an empty list when the repository returns null', async () => {
-      slotRepository.findActivityOwnership.mockResolvedValue({
-        ownerId: userId,
-      });
-      slotRepository.findByActivityId.mockResolvedValue(null);
+    it('should return an empty month without counting bookings', async () => {
+      ownedActivity();
+      slotRepository.findByActivityIdAndMonth.mockResolvedValue([]);
+      slotRepository.findMonthsWithSlots.mockResolvedValue([]);
 
-      const result = await service.findByActivityIdForOwner(activityId, userId);
+      const result = await service.findByActivityIdForOwner(
+        activityId,
+        userId,
+        month,
+      );
 
-      expect(result).toEqual([]);
+      expect(result.slots).toEqual([]);
       expect(slotRepository.countActiveBookings).not.toHaveBeenCalled();
     });
 
@@ -175,9 +225,9 @@ describe('SlotService', () => {
       slotRepository.findActivityOwnership.mockResolvedValue(null);
 
       await expect(
-        service.findByActivityIdForOwner('unknown', userId),
+        service.findByActivityIdForOwner('unknown', userId, month),
       ).rejects.toThrow(NotFoundException);
-      expect(slotRepository.findByActivityId).not.toHaveBeenCalled();
+      expect(slotRepository.findByActivityIdAndMonth).not.toHaveBeenCalled();
     });
 
     it('should throw a ForbiddenException when the activity belongs to another professional', async () => {
@@ -186,17 +236,148 @@ describe('SlotService', () => {
       });
 
       await expect(
-        service.findByActivityIdForOwner(activityId, userId),
+        service.findByActivityIdForOwner(activityId, userId, month),
       ).rejects.toThrow(ForbiddenException);
-      expect(slotRepository.findByActivityId).not.toHaveBeenCalled();
+      expect(slotRepository.findByActivityIdAndMonth).not.toHaveBeenCalled();
     });
 
     it('should throw a ForbiddenException when the activity center has no owner', async () => {
       slotRepository.findActivityOwnership.mockResolvedValue({ ownerId: null });
 
       await expect(
-        service.findByActivityIdForOwner(activityId, userId),
+        service.findByActivityIdForOwner(activityId, userId, month),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('updateSlotForOwner() / deleteSlotForOwner()', () => {
+    const slotId = '68b4d59919d9b7a94b4fde21';
+
+    const ownedSlot = (bookings: number) => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: userId,
+      });
+      slotRepository.findById.mockResolvedValue(buildSlot({ id: slotId }));
+      slotRepository.countActiveBookings.mockResolvedValue(bookings);
+      slotRepository.updateSlot.mockResolvedValue(true);
+      slotRepository.deleteSlot.mockResolvedValue(true);
+    };
+
+    it('should update a free slot', async () => {
+      ownedSlot(0);
+
+      const result = await service.updateSlotForOwner(
+        activityId,
+        slotId,
+        userId,
+        { startAt: '2026-07-01T09:00:00.000Z', maxParticipants: 12 },
+      );
+
+      expect(result).toBe(true);
+      expect(slotRepository.updateSlot).toHaveBeenCalledWith(slotId, {
+        startAt: '2026-07-01T09:00:00.000Z',
+        maxParticipants: 12,
+      });
+    });
+
+    it('should refuse to move a booked slot', async () => {
+      ownedSlot(3);
+
+      // Les clients ont reserve une date precise : la deplacer leur imposerait
+      // un creneau qu'ils n'ont pas choisi.
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          startAt: '2026-07-01T09:00:00.000Z',
+        }),
+      ).rejects.toThrow(ConflictException);
+      expect(slotRepository.updateSlot).not.toHaveBeenCalled();
+    });
+
+    it('should refuse to shrink capacity below the booked seats', async () => {
+      ownedSlot(5);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 4,
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should allow raising the capacity of a booked slot', async () => {
+      ownedSlot(5);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 20,
+        }),
+      ).resolves.toBe(true);
+    });
+
+    it('should allow keeping the capacity equal to the booked seats', async () => {
+      ownedSlot(5);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 5,
+        }),
+      ).resolves.toBe(true);
+    });
+
+    it('should delete a free slot', async () => {
+      ownedSlot(0);
+
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).resolves.toBe(true);
+      expect(slotRepository.deleteSlot).toHaveBeenCalledWith(slotId);
+    });
+
+    it('should refuse to delete a booked slot', async () => {
+      ownedSlot(1);
+
+      // Rien ne previent ni ne rembourse les clients : ils perdraient leur
+      // place sans le savoir.
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).rejects.toThrow(ConflictException);
+      expect(slotRepository.deleteSlot).not.toHaveBeenCalled();
+    });
+
+    it('should throw a ForbiddenException for another professional', async () => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: 'another-owner',
+      });
+
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).rejects.toThrow(ForbiddenException);
+      expect(slotRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it('should throw a NotFoundException for a slot of another activity', async () => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: userId,
+      });
+      slotRepository.findById.mockResolvedValue(
+        buildSlot({ id: slotId, activityId: 'another-activity' }),
+      );
+
+      await expect(
+        service.deleteSlotForOwner(activityId, slotId, userId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw a NotFoundException when the slot does not exist', async () => {
+      slotRepository.findActivityOwnership.mockResolvedValue({
+        ownerId: userId,
+      });
+      slotRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.updateSlotForOwner(activityId, slotId, userId, {
+          maxParticipants: 4,
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -277,6 +458,67 @@ describe('SlotService', () => {
       expect(result.slots[0].startAt).toBe('2026-09-01T09:00:00.000Z');
       expect(result.slots[4].startAt).toBe('2026-09-29T09:00:00.000Z');
       expect(result.conflicts).toEqual([]);
+    });
+
+    it('should fall back to a twelve month horizon without untilDate', async () => {
+      slotRepository.findByActivityId.mockResolvedValue([]);
+      slotRepository.createMany.mockImplementation((_id, _dto, dates) =>
+        Promise.resolve(
+          dates.map((date, index) =>
+            buildSlot({ id: `slot-${index}`, startAt: date.toISOString() }),
+          ),
+        ),
+      );
+
+      const dto: CreateSlotsDto = {
+        ...baseDto,
+        singleStartAt: undefined,
+        recurrence: { rrule: 'FREQ=WEEKLY;BYDAY=TU;BYHOUR=9;BYMINUTE=0' },
+      };
+
+      const result = await service.createSlots(activityId, userId, dto);
+
+      // Une regle hebdomadaire sur un an : 52 ou 53 occurrences selon la date
+      // de depart. L'essentiel est qu'elle soit bornee, et sur ~12 mois.
+      expect(result.createdCount).toBeGreaterThanOrEqual(52);
+      expect(result.createdCount).toBeLessThanOrEqual(53);
+
+      const horizon = new Date();
+      horizon.setFullYear(horizon.getFullYear() + 1);
+      const last = new Date(result.slots[result.slots.length - 1].startAt);
+      expect(last.getTime()).toBeLessThanOrEqual(horizon.getTime());
+    });
+
+    it('should persist the computed horizon when untilDate is omitted', async () => {
+      slotRepository.findByActivityId.mockResolvedValue([]);
+      slotRepository.createMany.mockImplementation((_id, _dto, dates) =>
+        Promise.resolve(
+          dates.map((date, index) =>
+            buildSlot({ id: `slot-${index}`, startAt: date.toISOString() }),
+          ),
+        ),
+      );
+
+      const dto: CreateSlotsDto = {
+        ...baseDto,
+        singleStartAt: undefined,
+        recurrence: { rrule: 'FREQ=WEEKLY;BYDAY=TU;BYHOUR=9;BYMINUTE=0' },
+      };
+
+      await service.createSlots(activityId, userId, dto);
+
+      // Le sous-document Mongoose exige untilDate : le service doit donc
+      // persister l'horizon qu'il a effectivement applique, pas `undefined`.
+      const persistedDto = slotRepository.createMany.mock.calls[0][1];
+      expect(persistedDto.recurrence?.untilDate).toEqual(expect.any(String));
+
+      const horizon = new Date();
+      horizon.setFullYear(horizon.getFullYear() + 1);
+      const persisted = new Date(persistedDto.recurrence!.untilDate!);
+      expect(isNaN(persisted.getTime())).toBe(false);
+      expect(Math.abs(persisted.getTime() - horizon.getTime())).toBeLessThan(
+        60_000,
+      );
     });
 
     it('should split recurrence occurrences between creations and conflicts', async () => {

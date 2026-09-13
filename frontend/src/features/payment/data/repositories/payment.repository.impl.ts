@@ -1,6 +1,9 @@
 import type { PaymentRepository } from '../../domain/repositories/payment.repository';
 import type { PaymentConfirmationEntity } from '../../domain/entities/payment.entity';
-import type { ConfirmPaymentRequestDto } from '../dtos/payment.dto';
+import type {
+  ConfirmPaymentRequestDto,
+  PaymentIntentResponseDto,
+} from '../dtos/payment.dto';
 import PaymentApi from '../datasources/payment.api';
 import PaymentMapper from '../mappers/payment.mapper';
 
@@ -9,6 +12,10 @@ class PaymentRepositoryImpl implements PaymentRepository {
     private readonly paymentApi: PaymentApi = new PaymentApi(),
     private readonly paymentMapper: PaymentMapper = new PaymentMapper(),
   ) {}
+
+  async createIntent(bookingId: string): Promise<PaymentIntentResponseDto> {
+    return this.paymentApi.createIntent(bookingId);
+  }
 
   async confirmPayment(
     bookingId: string,

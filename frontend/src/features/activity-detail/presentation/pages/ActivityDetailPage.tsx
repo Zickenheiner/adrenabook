@@ -17,7 +17,6 @@ import ActivityGallery from '../components/ActivityGallery';
 import ActivityPrerequisites from '../components/ActivityPrerequisites';
 import ActivityEquipment from '../components/ActivityEquipment';
 import ActivitySlots from '../components/ActivitySlots';
-import ActivityReviews from '../components/ActivityReviews';
 
 function ActivityDetailSkeleton() {
   return (
@@ -96,13 +95,12 @@ export default function ActivityDetailPage() {
 
       <Separator className="my-8" />
 
-      {/* Tabs: description, prérequis & équipement, créneaux, avis */}
-      <Tabs defaultValue="description" className="space-y-6">
+      {/* Tabs: créneaux, description, prérequis & équipement */}
+      <Tabs defaultValue="slots" className="space-y-6">
         <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="slots">Créneaux</TabsTrigger>
           <TabsTrigger value="description">Description</TabsTrigger>
           <TabsTrigger value="prerequisites">Prérequis</TabsTrigger>
-          <TabsTrigger value="slots">Créneaux</TabsTrigger>
-          <TabsTrigger value="reviews">Avis</TabsTrigger>
         </TabsList>
 
         <TabsContent value="description" className="space-y-4">
@@ -135,17 +133,7 @@ export default function ActivityDetailPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <ActivitySlots slots={activity.upcomingSlots} />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="reviews">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ActivityReviews reviewsSummary={activity.reviewsSummary} />
+            <ActivitySlots activityId={activity.id} />
           </motion.div>
         </TabsContent>
       </Tabs>

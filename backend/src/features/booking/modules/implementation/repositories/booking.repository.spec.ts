@@ -192,6 +192,75 @@ describe('BookingRepository', () => {
       acceptCenterTerms: true,
     } as unknown as CreateBookingDto;
 
+    /** Reserve un creneau lointain pour un participant de l'age voulu. */
+    const bookingFor = (
+      participant: Record<string, unknown>,
+      prerequisites: Record<string, unknown>,
+    ) => {
+      const startAt = new Date('2027-06-15T09:00:00.000Z');
+      slotModel.findById.mockReturnValue(
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10, startAt }),
+      );
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100, prerequisites }),
+      );
+      bookingModel.countDocuments.mockReturnValue(mockQuery(0));
+      saveMock.mockResolvedValue({ _id: bookingId });
+
+      return repository.create(
+        {
+          slotId: slotId.toString(),
+          participants: [
+            { firstName: 'Lou', lastName: 'Martin', ...participant },
+          ],
+          acceptCenterTerms: true,
+        } as unknown as CreateBookingDto,
+        userId.toString(),
+      );
+    };
+
+    it('should reject a participant below the minimum age', async () => {
+      // 2017 : 10 ans le jour du creneau, pour une activite interdite aux
+      // moins de 12 ans.
+      await expect(
+        bookingFor({ birthDate: '2017-01-01' }, { minAge: 12 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should accept a participant who reaches the minimum age by the slot date', async () => {
+      // Anniversaire des 12 ans atteint avant le creneau de juin 2027.
+      await expect(
+        bookingFor({ birthDate: '2015-03-01' }, { minAge: 12 }),
+      ).resolves.toBeTruthy();
+    });
+
+    it('should reject a participant above the maximum age', async () => {
+      await expect(
+        bookingFor({ birthDate: '1950-01-01' }, { minAge: 8, maxAge: 60 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject a weight outside the allowed range', async () => {
+      await expect(
+        bookingFor(
+          { birthDate: '1990-01-01', weightKg: 120 },
+          { minAge: 8, minWeightKg: 40, maxWeightKg: 110 },
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should require the weight when the activity constrains it', async () => {
+      await expect(
+        bookingFor({ birthDate: '1990-01-01' }, { minAge: 8, minWeightKg: 40 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should ignore the weight when the activity sets no constraint', async () => {
+      await expect(
+        bookingFor({ birthDate: '1990-01-01' }, { minAge: 8 }),
+      ).resolves.toBeTruthy();
+    });
+
     it('should throw NotFoundException when the slot does not exist', async () => {
       slotModel.findById.mockReturnValue(mockQuery(null));
 
@@ -202,7 +271,11 @@ describe('BookingRepository', () => {
 
     it('should throw ConflictException when there are not enough spots left', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 3, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 3 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(2));
 
@@ -213,7 +286,11 @@ describe('BookingRepository', () => {
 
     it('should exclude cancelled bookings from the availability count', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -228,7 +305,11 @@ describe('BookingRepository', () => {
 
     it('should compute the VAT and the total for every participant', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -252,7 +333,11 @@ describe('BookingRepository', () => {
 
     it('should give the reservation a 15 minute lifetime', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -269,7 +354,11 @@ describe('BookingRepository', () => {
 
     it('should round the amounts to two decimals', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 99.99 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 99.99 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -286,7 +375,11 @@ describe('BookingRepository', () => {
 
     it('should map the saved document to an entity', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue({ _id: bookingId });
@@ -298,7 +391,11 @@ describe('BookingRepository', () => {
 
     it('should return null when the save returns nothing', async () => {
       slotModel.findById.mockReturnValue(
-        mockQuery({ _id: slotId, maxParticipants: 10, priceEur: 100 }),
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10 }),
+      );
+      // Le tarif facture est celui de l'activite, plus celui du creneau.
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100 }),
       );
       bookingModel.countDocuments.mockReturnValue(mockQuery(0));
       saveMock.mockResolvedValue(null);
@@ -510,6 +607,74 @@ describe('BookingRepository', () => {
     });
   });
 
+  describe('createPaymentIntent()', () => {
+    const buildBooking = (overrides: Record<string, unknown> = {}) => ({
+      _id: bookingId,
+      userId,
+      slotId,
+      status: 'pending_payment',
+      reservationExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      totalEur: 90,
+      ...overrides,
+    });
+
+    it('returns a simulated reference carrying the amount due', async () => {
+      bookingModel.findById.mockReturnValue(mockQuery(buildBooking()));
+
+      const result = await repository.createPaymentIntent(
+        bookingId.toString(),
+        userId.toString(),
+      );
+
+      expect(result.amountEur).toBe(90);
+      expect(result.simulated).toBe(true);
+      // Le prefixe doit rendre la simulation reconnaissable : aucune trace ne
+      // doit pouvoir passer pour un identifiant Stripe.
+      expect(result.paymentIntentId.startsWith('sim_')).toBe(true);
+    });
+
+    it('refuses a booking belonging to someone else', async () => {
+      bookingModel.findById.mockReturnValue(mockQuery(buildBooking()));
+
+      await expect(
+        repository.createPaymentIntent(
+          bookingId.toString(),
+          '68b4d59919d9b7a94b4fde99',
+        ),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('refuses a booking that is no longer awaiting payment', async () => {
+      bookingModel.findById.mockReturnValue(
+        mockQuery(buildBooking({ status: 'confirmed' })),
+      );
+
+      await expect(
+        repository.createPaymentIntent(bookingId.toString(), userId.toString()),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('refuses a reservation whose hold has expired', async () => {
+      bookingModel.findById.mockReturnValue(
+        mockQuery(
+          buildBooking({ reservationExpiresAt: new Date(Date.now() - 1000) }),
+        ),
+      );
+
+      await expect(
+        repository.createPaymentIntent(bookingId.toString(), userId.toString()),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('reports a missing booking as not found', async () => {
+      bookingModel.findById.mockReturnValue(mockQuery(null));
+
+      await expect(
+        repository.createPaymentIntent(bookingId.toString(), userId.toString()),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
   describe('confirmPayment()', () => {
     const buildBooking = (overrides: Record<string, unknown> = {}) => ({
       _id: bookingId,
@@ -583,43 +748,23 @@ describe('BookingRepository', () => {
       );
     });
 
-    it('should charge a 30 % deposit when no payment intent is provided', async () => {
-      bookingModel.findById
-        .mockReturnValueOnce(mockQuery(buildBooking()))
-        .mockReturnValueOnce(mockQuery({ slotId }));
+    it('settles the whole amount, leaving nothing due', async () => {
+      bookingModel.findById.mockReturnValue(
+        mockQuery(buildBooking({ totalEur: 99.99 })),
+      );
       bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
 
-      const result = await repository.confirmPayment(
-        bookingId.toString(),
-        {} as ConfirmPaymentDto,
-      );
+      const result = await repository.confirmPayment(bookingId.toString(), {
+        paymentIntentId: 'pi_1',
+      } as ConfirmPaymentDto);
 
-      expect(result.status).toBe('partial_paid');
-      expect(result.paidAmountEur).toBe(72);
-      expect(result.remainingAmountEur).toBe(168);
+      // Une reservation se regle en une fois : plus d'acompte ni de solde.
+      expect(result.status).toBe('confirmed');
+      expect(result.paidAmountEur).toBe(99.99);
+      expect(result.remainingAmountEur).toBe(0);
     });
 
-    it('should set a J-7 final payment due date for a partial payment', async () => {
-      bookingModel.findById
-        .mockReturnValueOnce(mockQuery(buildBooking()))
-        .mockReturnValueOnce(mockQuery({ slotId }));
-      bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
-
-      const result = await repository.confirmPayment(
-        bookingId.toString(),
-        {} as ConfirmPaymentDto,
-      );
-
-      expect(result.finalPaymentDueAt).toBe('2026-08-27T12:00:00.000Z');
-      const payload = bookingModel.findByIdAndUpdate.mock.calls[0][1] as {
-        finalPaymentDueAt?: Date;
-      };
-      expect(payload.finalPaymentDueAt).toEqual(
-        new Date('2026-08-27T12:00:00.000Z'),
-      );
-    });
-
-    it('should not expose a final payment due date for a full payment', async () => {
+    it('never sets a final payment due date', async () => {
       bookingModel.findById.mockReturnValue(mockQuery(buildBooking()));
       bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
 
@@ -628,21 +773,10 @@ describe('BookingRepository', () => {
       } as ConfirmPaymentDto);
 
       expect(result).not.toHaveProperty('finalPaymentDueAt');
-    });
-
-    it('should round the deposit to two decimals', async () => {
-      bookingModel.findById
-        .mockReturnValueOnce(mockQuery(buildBooking({ totalEur: 99.99 })))
-        .mockReturnValueOnce(mockQuery({ slotId }));
-      bookingModel.findByIdAndUpdate.mockReturnValue(mockQuery({}));
-
-      const result = await repository.confirmPayment(
-        bookingId.toString(),
-        {} as ConfirmPaymentDto,
-      );
-
-      expect(result.paidAmountEur).toBe(30);
-      expect(result.remainingAmountEur).toBe(69.99);
+      const payload = bookingModel.findByIdAndUpdate.mock.calls[0][1] as {
+        finalPaymentDueAt?: Date;
+      };
+      expect(payload.finalPaymentDueAt).toBeUndefined();
     });
   });
 

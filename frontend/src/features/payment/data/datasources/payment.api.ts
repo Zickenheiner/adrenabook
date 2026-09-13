@@ -4,9 +4,17 @@ import methods from '@/core/constants/methods';
 import type {
   ConfirmPaymentRequestDto,
   ConfirmPaymentResponseDto,
+  PaymentIntentResponseDto,
 } from '../dtos/payment.dto';
 
 class PaymentApi {
+  async createIntent(bookingId: string): Promise<PaymentIntentResponseDto> {
+    return request<PaymentIntentResponseDto>({
+      url: endpoints.payment.intent(bookingId),
+      method: methods.POST,
+    });
+  }
+
   async confirmPayment(
     bookingId: string,
     data: ConfirmPaymentRequestDto,

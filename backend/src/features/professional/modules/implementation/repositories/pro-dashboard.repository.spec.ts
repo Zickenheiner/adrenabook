@@ -36,11 +36,14 @@ const EMPTY_DASHBOARD = {
   topActivities: [],
 };
 
+import { ProfessionalCenter } from '@features/professional/domains/schemas/professional-center.schema';
+
 describe('ProDashboardRepository', () => {
   let repository: ProDashboardRepository;
   let activityModel: { find: jest.Mock };
   let slotModel: { find: jest.Mock };
-  let bookingModel: { find: jest.Mock };
+  let bookingModel: { find: jest.Mock; aggregate: jest.Mock };
+  let professionalCenterModel: { find: jest.Mock };
 
   const centerId = new Types.ObjectId();
   const activityAId = new Types.ObjectId();
@@ -59,7 +62,14 @@ describe('ProDashboardRepository', () => {
 
     activityModel = { find: jest.fn() };
     slotModel = { find: jest.fn() };
-    bookingModel = { find: jest.fn() };
+    bookingModel = { find: jest.fn(), aggregate: jest.fn() };
+    professionalCenterModel = {
+      find: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -67,6 +77,10 @@ describe('ProDashboardRepository', () => {
         { provide: getModelToken(Activity.name), useValue: activityModel },
         { provide: getModelToken(Slot.name), useValue: slotModel },
         { provide: getModelToken(Booking.name), useValue: bookingModel },
+        {
+          provide: getModelToken(ProfessionalCenter.name),
+          useValue: professionalCenterModel,
+        },
       ],
     }).compile();
 
@@ -573,6 +587,88 @@ describe('ProDashboardRepository', () => {
 
       const dates = result.revenue.series.map((item) => item.date);
       expect([...dates].sort()).toEqual(dates);
+    });
+  });
+
+  describe('findCenterBookings()', () => {
+    const USER_ID = '68b4d59919d9b7a94b4fde21';
+    const CENTER_ID = '68b4d59919d9b7a94b4fde22';
+
+    const ownsCenters = (ids: string[]) =>
+      professionalCenterModel.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest
+            .fn()
+            .mockResolvedValue(
+              ids.map((id) => ({ _id: new Types.ObjectId(id) })),
+            ),
+        }),
+      });
+
+    it('lists the bookings taken on the center activities', async () => {
+      ownsCenters([CENTER_ID]);
+      bookingModel.aggregate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([
+          {
+            _id: new Types.ObjectId(),
+            status: 'confirmed',
+            totalEur: 240,
+            paidAmountEur: 240,
+            createdAt: new Date('2026-08-20T12:00:00.000Z'),
+            participants: [
+              { firstName: 'Marie', lastName: 'Dupont' },
+              { firstName: 'Paul', lastName: 'Dupont' },
+            ],
+            slot: {
+              startAt: new Date('2026-09-05T09:00:00.000Z'),
+              durationMinutes: 90,
+            },
+            activity: { title: 'Parapente biplace' },
+            customer: {
+              firstName: 'Marie',
+              lastName: 'Dupont',
+              email: 'marie@example.fr',
+            },
+          },
+        ]),
+      });
+
+      const result = await repository.findCenterBookings(USER_ID);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].activityTitle).toBe('Parapente biplace');
+      expect(result[0].customerName).toBe('Marie Dupont');
+      // Les participants nommes sont ce qui permet l'accueil le jour venu.
+      expect(result[0].participantNames).toEqual([
+        'Marie Dupont',
+        'Paul Dupont',
+      ]);
+      expect(result[0].participants).toBe(2);
+    });
+
+    it('returns nothing when the professional owns no center', async () => {
+      ownsCenters([]);
+
+      await expect(repository.findCenterBookings(USER_ID)).resolves.toEqual([]);
+      expect(bookingModel.aggregate).not.toHaveBeenCalled();
+    });
+
+    it('ignores a center the professional does not own', async () => {
+      ownsCenters([CENTER_ID]);
+
+      const result = await repository.findCenterBookings(
+        USER_ID,
+        '68b4d59919d9b7a94b4fde99',
+      );
+
+      // Demander le centre d'un concurrent ne doit rien reveler.
+      expect(result).toEqual([]);
+      expect(bookingModel.aggregate).not.toHaveBeenCalled();
+    });
+
+    it('rejects a malformed user id without querying', async () => {
+      await expect(repository.findCenterBookings('nope')).resolves.toEqual([]);
+      expect(professionalCenterModel.find).not.toHaveBeenCalled();
     });
   });
 });

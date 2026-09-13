@@ -4,6 +4,7 @@ import Public from './Public';
 import routes from '@/core/constants/routes';
 import CguPage from '@/features/legal/CguPage';
 import RgpdLegalPage from '@/features/legal/RgpdLegalPage';
+import AccessibilityPage from '@/features/accessibility/presentation/pages/AccessibilityPage';
 import SystemHealthPage from '@/features/system/presentation/pages/SystemHealthPage';
 import RegisterPage from '@/features/auth/presentation/pages/RegisterPage';
 import LoginPage from '@/features/auth/presentation/pages/LoginPage';
@@ -15,12 +16,16 @@ import AdminCenterListPage from '@/features/admin-kyc/presentation/pages/AdminCe
 import AdminCenterReviewPage from '@/features/admin-kyc/presentation/pages/AdminCenterReviewPage';
 import HealthProfilePage from '@/features/health-profile/presentation/pages/HealthProfilePage';
 import ProActivityListPage from '@/features/pro-activities/presentation/pages/ProActivityListPage';
+import ProCenterListPage from '@/features/pro-centers/presentation/pages/ProCenterListPage';
 import ProActivityCreatePage from '@/features/pro-activities/presentation/pages/ProActivityCreatePage';
+import ProActivityEditPage from '@/features/pro-activities/presentation/pages/ProActivityEditPage';
 import ProSlotManagePage from '@/features/pro-slots/presentation/pages/ProSlotManagePage';
 import ActivitySearchPage from '@/features/activity-search/presentation/pages/ActivitySearchPage';
 import ActivityDetailPage from '@/features/activity-detail/presentation/pages/ActivityDetailPage';
 import CenterMapPage from '@/features/center-map/presentation/pages/CenterMapPage';
+import CenterDetailPage from '@/features/center-detail/presentation/pages/CenterDetailPage';
 import BookingPage from '@/features/booking/presentation/pages/BookingPage';
+import MyBookingsPage from '@/features/my-bookings/presentation/pages/MyBookingsPage';
 import BookingConfirmationPage from '@/features/booking/presentation/pages/BookingConfirmationPage';
 import WaiverSignPage from '@/features/waiver/presentation/pages/WaiverSignPage';
 import PaymentPage from '@/features/payment/presentation/pages/PaymentPage';
@@ -29,6 +34,7 @@ import InvoiceDownloadPage from '@/features/invoice/presentation/pages/InvoiceDo
 import NotificationPreferencesPage from '@/features/notification-preferences/presentation/pages/NotificationPreferencesPage';
 import BookingCancellationPage from '@/features/booking-cancellation/presentation/pages/BookingCancellationPage';
 import ProDashboardPage from '@/features/pro-dashboard/presentation/pages/ProDashboardPage';
+import ProBookingsPage from '@/features/pro-bookings/presentation/pages/ProBookingsPage';
 import CsvImportPage from '@/features/pro-csv-import/presentation/pages/CsvImportPage';
 import ProAccountingExportPage from '@/features/pro-accounting-export/presentation/pages/ProAccountingExportPage';
 import AdminUserListPage from '@/features/admin-user-management/presentation/pages/AdminUserListPage';
@@ -44,10 +50,6 @@ export default function Router() {
       <Route element={<Public redirect={routes.home} />}>
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.register} element={<RegisterPage />} />
-        <Route
-          path={routes.professionalRegister}
-          element={<ProfessionalRegistrationPage />}
-        />
         <Route
           path={routes.passwordResetRequest}
           element={<PasswordResetRequestPage />}
@@ -67,6 +69,7 @@ export default function Router() {
         <Route path={routes.activitySearch} element={<ActivitySearchPage />} />
         <Route path={routes.activityDetail} element={<ActivityDetailPage />} />
         <Route path={routes.centerMap} element={<CenterMapPage />} />
+        <Route path={routes.centerDetail} element={<CenterDetailPage />} />
         <Route path={routes.systemHealth} element={<SystemHealthPage />} />
         <Route
           path={routes.adminCenterList}
@@ -77,6 +80,7 @@ export default function Router() {
           element={<AdminCenterReviewPage />}
         />
         <Route path={routes.healthProfile} element={<HealthProfilePage />} />
+        <Route path={routes.proCenterList} element={<ProCenterListPage />} />
         <Route
           path={routes.proActivityList}
           element={<ProActivityListPage />}
@@ -85,11 +89,20 @@ export default function Router() {
           path={routes.proActivityCreate}
           element={<ProActivityCreatePage />}
         />
+        <Route
+          path={routes.proActivityEdit}
+          element={<ProActivityEditPage />}
+        />
         <Route path={routes.proSlotManage} element={<ProSlotManagePage />} />
+        <Route
+          path={routes.professionalRegister}
+          element={<ProfessionalRegistrationPage />}
+        />
         <Route
           path={routes.professionalRegisterSuccess}
           element={<ProfessionalRegistrationSuccessPage />}
         />
+        <Route path={routes.myBookings} element={<MyBookingsPage />} />
         <Route path={routes.bookingNew} element={<BookingPage />} />
         <Route
           path={routes.bookingConfirmation}
@@ -111,6 +124,7 @@ export default function Router() {
           element={<BookingCancellationPage />}
         />
         <Route path={routes.proDashboard} element={<ProDashboardPage />} />
+        <Route path={routes.proBookings} element={<ProBookingsPage />} />
         <Route path={routes.proCsvImport} element={<CsvImportPage />} />
         <Route
           path={routes.proAccountingExport}
@@ -133,6 +147,7 @@ export default function Router() {
         <Route>
           <Route path={routes.cgu} element={<CguPage />} />
           <Route path={routes.rgpdLegal} element={<RgpdLegalPage />} />
+          <Route path={routes.accessibility} element={<AccessibilityPage />} />
           {PublicRoutes()}
           {PrivateRoutes()}
           <Route path={routes.notFound} element={<NotFoundPage />} />

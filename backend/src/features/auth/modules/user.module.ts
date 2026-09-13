@@ -63,6 +63,6 @@ import {
       useClass: LoginLogRepository,
     },
   ],
-  exports: ['IUserService'],
+  exports: ['IUserService', 'IUserRepository'],
 })
 export class UserBaseModule {}

@@ -1,6 +1,9 @@
 import type { ActivityRepository } from '../../domain/repositories/activity.repository';
 import type { ActivityEntity } from '../../domain/entities/activity.entity';
-import type { CreateActivityRequestDto } from '../dtos/activity.dto';
+import type {
+  CreateActivityRequestDto,
+  UpdateActivityRequestDto,
+} from '../dtos/activity.dto';
 import ActivityApi from '../datasources/activity.api';
 import ActivityMapper from '../mappers/activity.mapper';
 
@@ -10,8 +13,8 @@ class ActivityRepositoryImpl implements ActivityRepository {
     private readonly mapper: ActivityMapper = new ActivityMapper(),
   ) {}
 
-  async getAll(): Promise<ActivityEntity[]> {
-    const dtos = await this.api.getAll();
+  async getAll(centerId: string): Promise<ActivityEntity[]> {
+    const dtos = await this.api.getAll(centerId);
     return this.mapper.toEntityList(dtos);
   }
 
@@ -20,14 +23,17 @@ class ActivityRepositoryImpl implements ActivityRepository {
     return this.mapper.toEntity(dto);
   }
 
-  async create(data: CreateActivityRequestDto): Promise<ActivityEntity> {
-    const dto = await this.api.create(data);
+  async create(
+    data: CreateActivityRequestDto,
+    centerId: string,
+  ): Promise<ActivityEntity> {
+    const dto = await this.api.create(data, centerId);
     return this.mapper.toEntity(dto);
   }
 
   async update(
     id: string,
-    data: Partial<CreateActivityRequestDto>,
+    data: UpdateActivityRequestDto,
   ): Promise<ActivityEntity> {
     const dto = await this.api.update(id, data);
     return this.mapper.toEntity(dto);

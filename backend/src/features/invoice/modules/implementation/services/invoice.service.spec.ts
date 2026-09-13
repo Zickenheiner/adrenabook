@@ -43,7 +43,8 @@ describe('InvoiceService', () => {
     create: jest.Mock;
     getNextInvoiceNumber: jest.Mock;
   };
-  let bookingRepository: { findById: jest.Mock };
+  let bookingRepository: { findById: jest.Mock; findMine: jest.Mock };
+  let userRepository: { findById: jest.Mock };
 
   beforeEach(async () => {
     invoiceRepository = {
@@ -51,13 +52,15 @@ describe('InvoiceService', () => {
       create: jest.fn(),
       getNextInvoiceNumber: jest.fn(),
     };
-    bookingRepository = { findById: jest.fn() };
+    bookingRepository = { findById: jest.fn(), findMine: jest.fn() };
+    userRepository = { findById: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         InvoiceService,
         { provide: 'IInvoiceRepository', useValue: invoiceRepository },
         { provide: 'IBookingRepository', useValue: bookingRepository },
+        { provide: 'IUserRepository', useValue: userRepository },
       ],
     }).compile();
 

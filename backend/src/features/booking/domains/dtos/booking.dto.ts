@@ -88,6 +88,99 @@ export class ConfirmPaymentDto {
   paymentIntentId: string;
 }
 
+/**
+ * Reference de paiement remise au client avant de confirmer.
+ *
+ * En attendant l'integration Stripe, elle est produite ici plutot que par un
+ * PaymentIntent : elle sert de trace, et le parcours reste inchange le jour ou
+ * Stripe la remplacera.
+ */
+export class PaymentIntentResponseDto {
+  @ApiProperty({
+    description: 'Identifiant de la reservation',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  bookingId: string;
+
+  @ApiProperty({
+    description: 'Reference de paiement a renvoyer a la confirmation',
+    example: 'sim_68b4d59919d9b7a94b4fde21_1757770000000',
+  })
+  paymentIntentId: string;
+
+  @ApiProperty({
+    description: 'Montant a regler, en euros',
+    example: 90,
+  })
+  amountEur: number;
+
+  @ApiProperty({
+    description: "Vrai tant que le paiement n'est pas encaisse par Stripe",
+    example: true,
+  })
+  simulated: boolean;
+}
+
+/**
+ * Reservation telle qu'elle apparait dans « Mes reservations ».
+ *
+ * Porte de quoi decider de la suite sans ouvrir le detail : l'etat du
+ * paiement, celui de la decharge, et la date qui conditionne l'annulation.
+ */
+export class MyBookingDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  bookingId: string;
+
+  @ApiProperty({ example: 'Parapente biplace' })
+  activityTitle: string;
+
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde30' })
+  activityId: string;
+
+  @ApiProperty({ example: 'Chamonix Vertical' })
+  centerName: string;
+
+  @ApiProperty({ example: '12 rue des Alpes, 74400 Chamonix, France' })
+  centerAddress: string;
+
+  @ApiProperty({ example: '2026-09-05T09:00:00.000Z' })
+  slotStartAt: string;
+
+  @ApiProperty({ example: 90 })
+  durationMinutes: number;
+
+  @ApiProperty({ example: 2 })
+  participants: number;
+
+  @ApiProperty({
+    example: 'confirmed',
+    enum: ['pending_payment', 'partial_paid', 'confirmed', 'cancelled'],
+  })
+  status: string;
+
+  @ApiProperty({ example: 240 })
+  totalEur: number;
+
+  @ApiProperty({ example: 240 })
+  paidAmountEur: number;
+
+  @ApiProperty({ example: 0 })
+  remainingAmountEur: number;
+
+  @ApiProperty({ example: true })
+  waiverSigned: boolean;
+
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde99' })
+  coverPhotoUrl: string;
+
+  @ApiProperty({
+    description: 'Date limite de paiement, pour une reservation en attente',
+    example: '2026-08-20T12:15:00.000Z',
+    required: false,
+  })
+  reservationExpiresAt?: string;
+}
+
 export class ConfirmPaymentResponseDto {
   @ApiProperty({
     description: 'Identifiant de la reservation',
@@ -113,13 +206,6 @@ export class ConfirmPaymentResponseDto {
     example: 84.0,
   })
   remainingAmountEur: number;
-
-  @ApiProperty({
-    description: 'Date limite pour le paiement du solde (ISO 8601, J-7)',
-    example: '2026-06-04T10:00:00.000Z',
-    required: false,
-  })
-  finalPaymentDueAt?: string;
 }
 
 export class CancelBookingDto {

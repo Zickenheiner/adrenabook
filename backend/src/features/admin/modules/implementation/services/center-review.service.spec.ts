@@ -8,6 +8,7 @@ import { ISensitiveActionLogService } from '@features/admin/interfaces/services/
 import { ProfessionalCenter } from '@features/professional/domains/schemas/professional-center.schema';
 import { ProfessionalCenterEntity } from '@features/professional/domains/entities/professional-center.entity';
 import { CenterReviewEntity } from '@features/admin/domains/entities/center-review.entity';
+import { Types } from 'mongoose';
 import { SensitiveActionLogEntity } from '@features/admin/domains/entities/sensitive-action-log.entity';
 import {
   PendingCenterDto,
@@ -25,9 +26,12 @@ describe('CenterReviewService', () => {
   let professionalCenterModel: { findByIdAndUpdate: jest.Mock };
   let modelExec: jest.Mock;
 
+  const OWNER_ID = '68b4d59919d9b7a94b4fde23';
+
   const buildCenter = (status: string): ProfessionalCenterEntity =>
     ({
       getStatus: jest.fn().mockReturnValue(status),
+      getOwnerId: jest.fn().mockReturnValue(new Types.ObjectId(OWNER_ID)),
     }) as unknown as ProfessionalCenterEntity;
 
   const buildReviewEntity = (
@@ -76,6 +80,9 @@ describe('CenterReviewService', () => {
       findAuditLogs: jest.fn(),
       createLog: jest.fn().mockResolvedValue({} as SensitiveActionLogEntity),
     };
+    const userServiceMock = {
+      promoteToProfessional: jest.fn().mockResolvedValue(true),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -95,6 +102,10 @@ describe('CenterReviewService', () => {
         {
           provide: getModelToken(ProfessionalCenter.name),
           useValue: professionalCenterModel,
+        },
+        {
+          provide: 'IUserService',
+          useValue: userServiceMock,
         },
       ],
     }).compile();

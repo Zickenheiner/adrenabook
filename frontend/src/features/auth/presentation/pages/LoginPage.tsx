@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { AlertCircle, Lock, Mountain } from 'lucide-react';
+import { AlertCircle, Lock } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import { ApiError } from '@/core/errors/api.error';
 import LoginForm from '../components/LoginForm';
 import { useLogin } from '../../domain/hooks/login.hook';
 import type { LoginFormData } from '../../domain/schemas/login.schema';
+import Logo from '@/core/components/Logo';
 
 interface LocationState {
   from?: { pathname?: string };
@@ -93,9 +94,7 @@ export default function LoginPage() {
       >
         <Card className="shadow-lg">
           <CardHeader className="space-y-3 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <Mountain className="h-6 w-6 text-primary" aria-hidden="true" />
-            </div>
+            <Logo className="mx-auto h-12 w-12" />
             <div>
               <CardTitle as="h1" className="text-2xl sm:text-3xl">
                 Connexion à AdrenaBook

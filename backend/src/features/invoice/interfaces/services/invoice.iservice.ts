@@ -5,4 +5,7 @@ export interface IInvoiceService {
     bookingId: string,
     userId: string,
   ): Promise<InvoiceMetadataResponseDto>;
+
+  /** Facture rendue en PDF, prete a etre servie. */
+  renderInvoicePdf(bookingId: string, userId: string): Promise<Buffer>;
 }

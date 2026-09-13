@@ -31,7 +31,7 @@ interface Props {
 export default function CenterReviewCard({ center, index = 0 }: Props) {
   const documents = center.documents;
   const [ouvertureEnCours, setOuvertureEnCours] = useState<string | null>(null);
-  const [erreurDocument, setErreurDocument] = useState<string | null>(null);
+  const [documentError, setDocumentError] = useState<string | null>(null);
 
   /**
    * Ouvre une piece justificative dans un nouvel onglet.
@@ -39,8 +39,8 @@ export default function CenterReviewCard({ center, index = 0 }: Props) {
    * Le contenu est recupere avec le jeton d'authentification puis expose en
    * blob local : GET /uploads/:id refuserait un acces non authentifie.
    */
-  const ouvrirDocument = async (fileId: string) => {
-    setErreurDocument(null);
+  const openDocument = async (fileId: string) => {
+    setDocumentError(null);
     setOuvertureEnCours(fileId);
     try {
       const blob = await uploadApi.download(fileId);
@@ -49,7 +49,7 @@ export default function CenterReviewCard({ center, index = 0 }: Props) {
       // On libere l'URL une fois l'onglet ouvert.
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
-      setErreurDocument('Ce document n’a pas pu être ouvert.');
+      setDocumentError('Ce document n’a pas pu être ouvert.');
     } finally {
       setOuvertureEnCours(null);
     }
@@ -128,7 +128,7 @@ export default function CenterReviewCard({ center, index = 0 }: Props) {
                       size="sm"
                       className="h-7 gap-1.5 text-xs"
                       disabled={ouvertureEnCours === doc.fileId}
-                      onClick={() => ouvrirDocument(doc.fileId)}
+                      onClick={() => openDocument(doc.fileId)}
                     >
                       <FileText className="h-3 w-3" />
                       {doc.label}
@@ -136,8 +136,8 @@ export default function CenterReviewCard({ center, index = 0 }: Props) {
                     </Button>
                   ))}
                 </div>
-                {erreurDocument && (
-                  <p className="text-destructive text-xs">{erreurDocument}</p>
+                {documentError && (
+                  <p className="text-destructive text-xs">{documentError}</p>
                 )}
               </div>
             </>

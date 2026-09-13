@@ -2,6 +2,7 @@ import { Controller, Get, Inject, Query, Req } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IProDashboardService } from '@features/professional/interfaces/services/pro-dashboard.iservice';
 import {
+  CenterBookingDto,
   DashboardQueryDto,
   DashboardResponseDto,
 } from '@features/professional/domains/dtos/pro-dashboard.dto';
@@ -44,6 +45,29 @@ export class ProDashboardController {
   })
   @ApiResponse({ status: 401, description: 'Not authenticated' })
   @ApiResponse({ status: 403, description: 'Not a professional role' })
+  @ApiOperation({
+    summary: 'Lister les réservations prises sur les activités du centre',
+    description:
+      'Retourne les réservations des activités du centre, de la plus proche à la plus ancienne. Sans centerId, couvre tous les centres du professionnel. Un centre qui ne lui appartient pas ne renvoie rien.',
+  })
+  @ApiQuery({
+    name: 'centerId',
+    required: false,
+    description: 'Restreint la liste à un centre',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Réservations du centre',
+    type: [CenterBookingDto],
+  })
+  @Get('bookings')
+  async getCenterBookings(
+    @Req() req: { user: { sub: string } },
+    @Query('centerId') centerId?: string,
+  ): Promise<CenterBookingDto[]> {
+    return this.proDashboardService.findCenterBookings(req.user.sub, centerId);
+  }
+
   @Get()
   async getDashboard(
     @Query() query: DashboardQueryDto,

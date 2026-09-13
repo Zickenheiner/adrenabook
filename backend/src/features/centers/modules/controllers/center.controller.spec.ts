@@ -2,14 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CenterController } from './center.controller';
 import { ICenterService } from '@features/centers/interfaces/services/center.iservice';
-import { CenterEntity } from '@features/centers/domains/entities/center.entity';
 import {
   CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
   CentersQueryDto,
-  CreateCenterDto,
-  UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
 
 describe('CenterController', () => {
@@ -20,13 +17,9 @@ describe('CenterController', () => {
 
   beforeEach(async () => {
     const centerServiceMock: jest.Mocked<ICenterService> = {
-      findAll: jest.fn(),
-      findById: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
       getMap: jest.fn(),
       getCenters: jest.fn(),
+      getCenterDetail: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -171,120 +164,31 @@ describe('CenterController', () => {
     });
   });
 
-  describe('findById()', () => {
-    it('should return the center with the given id', async () => {
-      const entity = new CenterEntity(centerId as never);
-      centerService.findById.mockResolvedValue(entity);
+  describe('getCenterDetail()', () => {
+    it('delegates to the service', async () => {
+      const detail = {
+        id: '68b4d59919d9b7a94b4fde21',
+        name: 'Centre Outdoor Lyon',
+        city: 'Lyon',
+        address: '12 rue des Alpes, 69000 Lyon, France',
+        lat: 45.764,
+        lng: 4.8357,
+        activities: [],
+      };
+      centerService.getCenterDetail.mockResolvedValue(detail);
 
-      const result = await controller.findById(centerId);
-
-      expect(result).toBe(entity);
-      expect(centerService.findById).toHaveBeenCalledWith(centerId);
+      await expect(controller.getCenterDetail(detail.id)).resolves.toEqual(
+        detail,
+      );
+      expect(centerService.getCenterDetail).toHaveBeenCalledWith(detail.id);
     });
 
-    it('should return null when the service finds nothing', async () => {
-      centerService.findById.mockResolvedValue(null);
-
-      await expect(controller.findById('unknown')).resolves.toBeNull();
-    });
-
-    it('should propagate a NotFoundException raised by the service', async () => {
-      centerService.findById.mockRejectedValue(
+    it('propagates a NotFoundException raised by the service', async () => {
+      centerService.getCenterDetail.mockRejectedValue(
         new NotFoundException('Centre introuvable'),
       );
 
-      await expect(controller.findById('unknown')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
-
-  describe('create()', () => {
-    const dto: CreateCenterDto = {
-      name: 'Centre Outdoor Lyon',
-      lat: 45.764,
-      lng: 4.8357,
-      city: 'Lyon',
-      activityTypes: ['escalade'],
-      activitiesCount: 5,
-    };
-
-    it('should create the center and return it', async () => {
-      const entity = new CenterEntity(centerId as never);
-      centerService.create.mockResolvedValue(entity);
-
-      const result = await controller.create(dto);
-
-      expect(result).toBe(entity);
-      expect(centerService.create).toHaveBeenCalledWith(dto);
-    });
-
-    it('should return null when the creation yields nothing', async () => {
-      centerService.create.mockResolvedValue(null);
-
-      await expect(controller.create(dto)).resolves.toBeNull();
-    });
-
-    it('should propagate a BadRequestException on invalid payload', async () => {
-      centerService.create.mockRejectedValue(
-        new BadRequestException('Données invalides'),
-      );
-
-      await expect(controller.create(dto)).rejects.toThrow(BadRequestException);
-    });
-  });
-
-  describe('update()', () => {
-    const dto: UpdateCenterDto = { name: 'Nouveau nom' };
-
-    it('should update the center and return true', async () => {
-      centerService.update.mockResolvedValue(true);
-
-      const result = await controller.update(centerId, dto);
-
-      expect(result).toBe(true);
-      expect(centerService.update).toHaveBeenCalledWith(centerId, dto);
-    });
-
-    it('should return false when no center was updated', async () => {
-      centerService.update.mockResolvedValue(false);
-
-      await expect(controller.update('unknown', dto)).resolves.toBe(false);
-    });
-
-    it('should propagate a NotFoundException raised by the service', async () => {
-      centerService.update.mockRejectedValue(
-        new NotFoundException('Centre introuvable'),
-      );
-
-      await expect(controller.update('unknown', dto)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
-
-  describe('delete()', () => {
-    it('should delete the center and return true', async () => {
-      centerService.delete.mockResolvedValue(true);
-
-      const result = await controller.delete(centerId);
-
-      expect(result).toBe(true);
-      expect(centerService.delete).toHaveBeenCalledWith(centerId);
-    });
-
-    it('should return false when no center was deleted', async () => {
-      centerService.delete.mockResolvedValue(false);
-
-      await expect(controller.delete('unknown')).resolves.toBe(false);
-    });
-
-    it('should propagate a NotFoundException raised by the service', async () => {
-      centerService.delete.mockRejectedValue(
-        new NotFoundException('Centre introuvable'),
-      );
-
-      await expect(controller.delete('unknown')).rejects.toThrow(
+      await expect(controller.getCenterDetail('unknown')).rejects.toThrow(
         NotFoundException,
       );
     });

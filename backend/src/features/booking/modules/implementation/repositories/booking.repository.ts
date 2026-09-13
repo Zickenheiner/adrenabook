@@ -16,6 +16,7 @@ import { Slot, SlotDocument } from '@features/slot/domains/schemas/slot.schema';
 import {
   Activity,
   ActivityDocument,
+  Prerequisites,
 } from '@features/activity/domains/schemas/activity.schema';
 import {
   Waiver,
@@ -29,6 +30,8 @@ import {
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
+  MyBookingDto,
+  PaymentIntentResponseDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { BookingEntity } from '@features/booking/domains/entities/booking.entity';
 import { InjectModel } from '@nestjs/mongoose';
@@ -40,11 +43,9 @@ const StripeLib = require('stripe');
 /**
  * Regles metier de la reservation (US-11 a US-13).
  *
- * Un acompte de 30 % est preleve a la reservation, le solde etant regle sur
- * place au centre. La TVA de 20 % est le taux normal applicable aux activites
- * de loisir sportif encadre.
+ * La reservation se regle integralement au moment de la reservation. La TVA de
+ * 20 % est le taux normal applicable aux activites de loisir sportif encadre.
  */
-const DEPOSIT_RATE = 0.3;
 
 const VAT_RATE = 0.2;
 
@@ -107,7 +108,7 @@ export class BookingRepository implements IBookingRepository {
    * construction. Les annulees sont exclues, elles liberent leur place.
    *
    * La reservation expire au bout de 15 minutes, delai laisse au client pour
-   * regler l'acompte avant que les places ne soient rendues disponibles.
+   * regler avant que les places ne soient rendues disponibles.
    *
    * Les montants sont arrondis au centime a chaque etape, et non seulement sur
    * le total : c'est le montant affiche ligne par ligne au client qui doit
@@ -118,6 +119,82 @@ export class BookingRepository implements IBookingRepository {
    * @throws NotFoundException creneau inexistant
    * @throws ConflictException plus assez de places pour le groupe
    */
+  /**
+   * Age atteint a une date donnee, et non age courant : une limite d'age en
+   * encadrement sportif s'apprecie le jour de la pratique.
+   */
+  private ageAt(birthDate: string, reference: Date): number {
+    const birth = new Date(birthDate);
+    let age = reference.getFullYear() - birth.getFullYear();
+    const monthDiff = reference.getMonth() - birth.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && reference.getDate() < birth.getDate())
+    ) {
+      age -= 1;
+    }
+    return age;
+  }
+
+  /**
+   * Verifie chaque participant contre les prerequis de l'activite.
+   *
+   * Ce controle appartient au serveur : le formulaire peut l'annoncer plus
+   * tot, mais un appel direct a l'API le contournerait. Les prerequis
+   * repondent a des exigences d'encadrement et d'assurance, ils ne sont pas
+   * qu'un confort d'affichage.
+   */
+  private assertParticipantsMeetPrerequisites(
+    participants: CreateBookingDto['participants'],
+    prerequisites: Prerequisites | undefined,
+    slotStartAt: Date,
+  ): void {
+    if (!prerequisites) return;
+
+    const { minAge, maxAge, minWeightKg, maxWeightKg } = prerequisites;
+    const constrainsWeight = minWeightKg != null || maxWeightKg != null;
+
+    for (const participant of participants) {
+      const who = `${participant.firstName} ${participant.lastName}`;
+      const birth = new Date(participant.birthDate);
+      if (isNaN(birth.getTime())) {
+        throw new BadRequestException(
+          `Date de naissance invalide pour ${who}.`,
+        );
+      }
+
+      const age = this.ageAt(participant.birthDate, slotStartAt);
+      if (minAge != null && age < minAge) {
+        throw new BadRequestException(
+          `${who} doit avoir au moins ${minAge} ans le jour de l'activité (${age} ans).`,
+        );
+      }
+      if (maxAge != null && age > maxAge) {
+        throw new BadRequestException(
+          `${who} dépasse l'âge maximum de ${maxAge} ans pour cette activité (${age} ans).`,
+        );
+      }
+
+      if (!constrainsWeight) continue;
+
+      if (participant.weightKg == null) {
+        throw new BadRequestException(
+          `Le poids de ${who} est requis pour cette activité.`,
+        );
+      }
+      if (minWeightKg != null && participant.weightKg < minWeightKg) {
+        throw new BadRequestException(
+          `${who} doit peser au moins ${minWeightKg} kg pour cette activité.`,
+        );
+      }
+      if (maxWeightKg != null && participant.weightKg > maxWeightKg) {
+        throw new BadRequestException(
+          `${who} dépasse le poids maximum de ${maxWeightKg} kg pour cette activité.`,
+        );
+      }
+    }
+  }
+
   async create(
     dto: CreateBookingDto,
     userId: string,
@@ -138,7 +215,22 @@ export class BookingRepository implements IBookingRepository {
       throw new ConflictException('Plus assez de places disponibles');
     }
 
-    const priceEur = slot.priceEur * participantCount;
+    // Le creneau ne porte plus de tarif : l'activite en est la seule source.
+    const activity = await this.activityModel
+      .findById(slot.activityId)
+      .select('priceEur prerequisites')
+      .exec();
+    if (!activity) {
+      throw new NotFoundException('Activité introuvable');
+    }
+
+    this.assertParticipantsMeetPrerequisites(
+      dto.participants,
+      activity.prerequisites,
+      slot.startAt,
+    );
+
+    const priceEur = activity.priceEur * participantCount;
     const vatEur = Math.round(priceEur * VAT_RATE * 100) / 100;
     const totalEur = Math.round((priceEur + vatEur) * 100) / 100;
     const reservationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -230,6 +322,146 @@ export class BookingRepository implements IBookingRepository {
       : null;
   }
 
+  async findMine(userId: string, bookingId?: string): Promise<MyBookingDto[]> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) return [];
+    if (bookingId && !mongoose.Types.ObjectId.isValid(bookingId)) return [];
+
+    const docs = await this.bookingModel
+      .aggregate<{
+        _id: mongoose.Types.ObjectId;
+        status: string;
+        totalEur?: number;
+        paidAmountEur?: number;
+        remainingAmountEur?: number;
+        reservationExpiresAt?: Date;
+        participants?: unknown[];
+        slot?: { startAt?: Date; durationMinutes?: number };
+        activity?: {
+          _id: mongoose.Types.ObjectId;
+          title?: string;
+          photoFileIds?: string[];
+        };
+        center?: {
+          companyName?: string;
+          address?: {
+            street: string;
+            postalCode: string;
+            city: string;
+            country: string;
+          };
+        };
+        waiverCount?: number;
+      }>([
+        {
+          $match: {
+            userId: new mongoose.Types.ObjectId(userId),
+            ...(bookingId
+              ? { _id: new mongoose.Types.ObjectId(bookingId) }
+              : {}),
+          },
+        },
+        {
+          $lookup: {
+            from: 'slots',
+            localField: 'slotId',
+            foreignField: '_id',
+            as: 'slot',
+          },
+        },
+        { $unwind: { path: '$slot', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: 'slot.activityId',
+            foreignField: '_id',
+            as: 'activity',
+          },
+        },
+        { $unwind: { path: '$activity', preserveNullAndEmptyArrays: true } },
+        // Le centre n'est pas porte par la reservation : il se retrouve par
+        // l'activite.
+        {
+          $lookup: {
+            from: 'professionalcenters',
+            localField: 'activity.centerId',
+            foreignField: '_id',
+            as: 'center',
+          },
+        },
+        { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
+        // La decharge vit dans sa propre collection : on ne remonte que son
+        // existence, la liste n'a pas besoin de son contenu.
+        {
+          $lookup: {
+            from: 'waivers',
+            localField: '_id',
+            foreignField: 'bookingId',
+            as: 'waivers',
+          },
+        },
+        { $addFields: { waiverCount: { $size: '$waivers' } } },
+        { $sort: { 'slot.startAt': -1 } },
+      ])
+      .exec();
+
+    return docs.map((doc) => {
+      const address = doc.center?.address;
+
+      return {
+        bookingId: doc._id.toString(),
+        activityTitle: doc.activity?.title ?? '',
+        activityId: doc.activity?._id?.toString() ?? '',
+        centerName: doc.center?.companyName ?? '',
+        centerAddress: address
+          ? `${address.street}, ${address.postalCode} ${address.city}, ${address.country}`
+          : '',
+        slotStartAt: doc.slot?.startAt?.toISOString() ?? '',
+        durationMinutes: doc.slot?.durationMinutes ?? 0,
+        participants: doc.participants?.length ?? 0,
+        status: doc.status,
+        totalEur: doc.totalEur ?? 0,
+        paidAmountEur: doc.paidAmountEur ?? 0,
+        remainingAmountEur: doc.remainingAmountEur ?? 0,
+        waiverSigned: (doc.waiverCount ?? 0) > 0,
+        coverPhotoUrl: doc.activity?.photoFileIds?.[0] ?? '',
+        reservationExpiresAt: doc.reservationExpiresAt?.toISOString(),
+      };
+    });
+  }
+
+  async createPaymentIntent(
+    id: string,
+    userId: string,
+  ): Promise<PaymentIntentResponseDto> {
+    const booking = await this.bookingModel.findById(id).exec();
+    if (!booking) {
+      throw new NotFoundException('Reservation introuvable');
+    }
+    // Une reservation ne se paie que par celui qui l'a faite.
+    if (booking.userId.toString() !== userId) {
+      throw new ForbiddenException('Cette reservation ne vous appartient pas');
+    }
+    if (booking.status !== 'pending_payment') {
+      throw new BadRequestException(
+        'Cette reservation n’est plus en attente de paiement',
+      );
+    }
+    if (booking.reservationExpiresAt.getTime() < Date.now()) {
+      throw new BadRequestException(
+        'Le delai de reservation est expire : reprenez la reservation',
+      );
+    }
+
+    return {
+      bookingId: id,
+      // Prefixe explicite : aucune trace ne doit pouvoir passer pour un
+      // identifiant Stripe une fois l'integration en place.
+      paymentIntentId: `sim_${id}_${Date.now()}`,
+      amountEur: booking.totalEur,
+      simulated: true,
+    };
+  }
+
   async confirmPayment(
     id: string,
     dto: ConfirmPaymentDto,
@@ -249,29 +481,10 @@ export class BookingRepository implements IBookingRepository {
       );
     }
 
-    const depositAmount =
-      Math.round(booking.totalEur * DEPOSIT_RATE * 100) / 100;
-    const remainingAmount =
-      Math.round((booking.totalEur - depositAmount) * 100) / 100;
-
-    const isFullPayment = dto.paymentIntentId !== undefined;
-    const paidAmount = isFullPayment ? booking.totalEur : depositAmount;
-    const remaining = isFullPayment ? 0 : remainingAmount;
-    const status: 'confirmed' | 'partial_paid' =
-      remaining === 0 ? 'confirmed' : 'partial_paid';
-
-    // J-7 final payment due date (only relevant for partial payments)
-    let finalPaymentDueAt: Date | undefined;
-    if (status === 'partial_paid') {
-      const slot = await this.bookingModel
-        .findById(id)
-        .select('slotId')
-        .populate('slotId')
-        .exec();
-      // Fallback: set 7 days from now if slot date not available
-      finalPaymentDueAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      void slot;
-    }
+    // Une reservation se regle en une fois : rien ne reste du.
+    const paidAmount = booking.totalEur;
+    const remaining = 0;
+    const status = 'confirmed' as const;
 
     await this.bookingModel
       .findByIdAndUpdate(
@@ -281,7 +494,6 @@ export class BookingRepository implements IBookingRepository {
           stripePaymentIntentId: dto.paymentIntentId,
           paidAmountEur: paidAmount,
           remainingAmountEur: remaining,
-          ...(finalPaymentDueAt && { finalPaymentDueAt }),
         },
         { new: true },
       )
@@ -292,9 +504,6 @@ export class BookingRepository implements IBookingRepository {
       status,
       paidAmountEur: paidAmount,
       remainingAmountEur: remaining,
-      ...(finalPaymentDueAt && {
-        finalPaymentDueAt: finalPaymentDueAt.toISOString(),
-      }),
     };
   }
 

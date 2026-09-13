@@ -48,10 +48,6 @@ export class AccountingExportController {
     @Body() dto: CreateAccountingExportDto,
     @Req() req: { user: { sub: string; email: string } },
   ): Promise<AccountingExportResponseDto> {
-    return this.accountingExportService.createExport(
-      dto,
-      req.user.sub,
-      req.user.email,
-    );
+    return this.accountingExportService.createExport(dto, req.user.sub);
   }
 }

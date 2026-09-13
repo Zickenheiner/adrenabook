@@ -1,20 +1,22 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
-  LogOut,
-  Heart,
+  BadgeCheck,
   Bell,
-  ShieldCheck,
+  Briefcase,
+  Building2,
+  CalendarCheck,
+  CalendarClock,
+  ClipboardList,
+  FileSpreadsheet,
+  Heart,
+  Home,
+  LogOut,
   Map,
   Search,
-  Home,
-  Briefcase,
-  ShieldAlert,
-  CalendarClock,
-  FileSpreadsheet,
+  ShieldCheck,
+  Store,
   Upload,
   Users,
-  ClipboardList,
-  BadgeCheck,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -22,6 +24,7 @@ import { cn } from '@/core/utils/cn';
 import { clearTokens } from '@/core/local/storage';
 import { getSessionUser, getUserInitial } from '@/core/utils/session';
 import routes from '@/core/constants/routes';
+import Logo from '@/core/components/Logo';
 
 import { Button } from '@/core/components/ui/button';
 import {
@@ -33,6 +36,8 @@ import {
   DropdownMenuTrigger,
 } from '@/core/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/core/components/ui/avatar';
+import CenterSwitcher from './CenterSwitcher';
+import { useCenterStore } from '@/core/stores/center.store';
 import NavbarMobileDrawer from './NavbarMobileDrawer';
 
 const navLinks = [
@@ -50,7 +55,13 @@ const navLinks = [
  */
 const proLinks = [
   { label: 'Tableau de bord', to: routes.proDashboard, icon: Briefcase },
-  { label: 'Mes activités', to: routes.proActivityList, icon: CalendarClock },
+  { label: 'Mes centres', to: routes.proCenterList, icon: Building2 },
+  {
+    label: 'Mes activités',
+    to: routes.proActivityList,
+    icon: CalendarClock,
+  },
+  { label: 'Réservations', to: routes.proBookings, icon: CalendarCheck },
   { label: 'Import CSV', to: routes.proCsvImport, icon: Upload },
   {
     label: 'Export comptable',
@@ -68,6 +79,7 @@ const adminLinks = [
 export default function Navbar() {
   const navigate = useNavigate();
   const user = getSessionUser();
+  const currentCenterId = useCenterStore((s) => s.currentCenterId);
   const roleLinks =
     user?.role === 'admin'
       ? adminLinks
@@ -75,7 +87,16 @@ export default function Navbar() {
         ? proLinks
         : [];
   const roleLabel = user?.role === 'admin' ? 'Administration' : 'Espace pro';
-  const RoleIcon = user?.role === 'admin' ? ShieldAlert : Briefcase;
+  // Certaines entrees pro sont parametrees par le centre : sans centre
+  // courant, le lien resterait sur un ':centerId' litteral.
+  const resolveTo = (to: string) =>
+    to.includes(':centerId')
+      ? currentCenterId
+        ? to.replace(':centerId', currentCenterId)
+        : routes.proCenterList
+      : to;
+  const canRegisterCenter =
+    user?.role !== 'admin' && user?.role !== 'professionnel';
 
   const handleLogout = () => {
     clearTokens();
@@ -95,7 +116,7 @@ export default function Navbar() {
           to={routes.home}
           className="flex items-center gap-2 font-display text-xl font-bold text-primary select-none"
         >
-          <span className="text-2xl">⚡</span>
+          <Logo className="h-8 w-8" />
           AdrenaBook
         </Link>
 
@@ -119,27 +140,11 @@ export default function Navbar() {
               {label}
             </NavLink>
           ))}
-
-          {roleLinks.length > 0 && (
-            <NavLink
-              to={roleLinks[0].to}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-accent text-primary'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                )
-              }
-            >
-              <RoleIcon className="h-4 w-4" />
-              {roleLabel}
-            </NavLink>
-          )}
         </nav>
 
         {/* Desktop profile dropdown */}
         <div className="hidden md:flex items-center gap-2">
+          {user?.role === 'professionnel' && <CenterSwitcher />}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -156,6 +161,15 @@ export default function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link
+                  to={routes.myBookings}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <CalendarCheck className="h-4 w-4" />
+                  Mes réservations
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
                   to={routes.healthProfile}
@@ -183,6 +197,17 @@ export default function Navbar() {
                   Mes droits RGPD
                 </Link>
               </DropdownMenuItem>
+              {canRegisterCenter && (
+                <DropdownMenuItem asChild>
+                  <Link
+                    to={routes.professionalRegister}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Store className="h-4 w-4" />
+                    Enregistrer ma structure
+                  </Link>
+                </DropdownMenuItem>
+              )}
               {roleLinks.length > 0 && (
                 <>
                   <DropdownMenuSeparator />
@@ -192,7 +217,7 @@ export default function Navbar() {
                   {roleLinks.map(({ label, to, icon: Icon }) => (
                     <DropdownMenuItem key={to} asChild>
                       <Link
-                        to={to}
+                        to={resolveTo(to)}
                         className="flex cursor-pointer items-center gap-2"
                       >
                         <Icon className="h-4 w-4" />
@@ -219,7 +244,10 @@ export default function Navbar() {
           <NavbarMobileDrawer
             onLogout={handleLogout}
             navLinks={navLinks}
-            roleLinks={roleLinks}
+            roleLinks={roleLinks.map((link) => ({
+              ...link,
+              to: resolveTo(link.to),
+            }))}
             roleLabel={roleLabel}
           />
         </div>

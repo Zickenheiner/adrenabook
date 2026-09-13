@@ -24,6 +24,8 @@ describe('ActivityController', () => {
     update: jest.Mock;
     delete: jest.Mock;
     search: jest.Mock;
+    isPublicPhoto: jest.Mock;
+    findMine: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -36,6 +38,8 @@ describe('ActivityController', () => {
       update: jest.fn(),
       delete: jest.fn(),
       search: jest.fn(),
+      isPublicPhoto: jest.fn(),
+      findMine: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -57,14 +61,16 @@ describe('ActivityController', () => {
     it('should create the activity for an authenticated professional', async () => {
       const response: ActivityResponseDto = {
         id: 'activity-1',
-        status: 'draft',
+        status: 'unpublished',
         createdAt: '2026-03-01T10:00:00.000Z',
       };
       service.create.mockResolvedValue(response);
 
       const result = await controller.create(dto, proRequest);
 
-      expect(service.create).toHaveBeenCalledWith(dto, USER_ID);
+      // Sans centre explicite, le service retombe sur l'unique centre du
+      // professionnel.
+      expect(service.create).toHaveBeenCalledWith(dto, USER_ID, undefined);
       expect(result).toBe(response);
     });
 
@@ -99,21 +105,28 @@ describe('ActivityController', () => {
   });
 
   describe('findMine()', () => {
-    it('should list the activities of the authenticated center', async () => {
+    const CENTER_ID = '68b4d59919d9b7a94b4fde40';
+
+    it('should list the activities of the requested center', async () => {
       const activities = [buildActivity('a')];
-      service.findByCenterId.mockResolvedValue(activities);
+      service.findMine.mockResolvedValue(activities);
 
-      const result = await controller.findMine({ user: { sub: USER_ID } });
+      const result = await controller.findMine(
+        { user: { sub: USER_ID } },
+        CENTER_ID,
+      );
 
-      expect(service.findByCenterId).toHaveBeenCalledWith(USER_ID);
+      // Le centre vient de la requete : passer l'identifiant utilisateur ne
+      // designe aucun centre et renvoyait une liste vide.
+      expect(service.findMine).toHaveBeenCalledWith(USER_ID, CENTER_ID);
       expect(result).toBe(activities);
     });
 
     it('should return null when the service returns null', async () => {
-      service.findByCenterId.mockResolvedValue(null);
+      service.findMine.mockResolvedValue(null);
 
       await expect(
-        controller.findMine({ user: { sub: USER_ID } }),
+        controller.findMine({ user: { sub: USER_ID } }, CENTER_ID),
       ).resolves.toBeNull();
     });
   });
@@ -154,35 +167,63 @@ describe('ActivityController', () => {
   });
 
   describe('update()', () => {
-    it('should delegate to the service', async () => {
+    const proRequest = { user: { sub: USER_ID, role: 'professionnel' } };
+
+    it('should delegate to the service with the caller id', async () => {
       const dto = { title: 'Nouveau titre' } as UpdateActivityDto;
       service.update.mockResolvedValue(true);
 
-      await expect(controller.update('activity-1', dto)).resolves.toBe(true);
-      expect(service.update).toHaveBeenCalledWith('activity-1', dto);
+      await expect(
+        controller.update('activity-1', dto, proRequest),
+      ).resolves.toBe(true);
+      expect(service.update).toHaveBeenCalledWith('activity-1', dto, USER_ID);
     });
 
     it('should return false when nothing was updated', async () => {
       service.update.mockResolvedValue(false);
 
       await expect(
-        controller.update('unknown', {} as UpdateActivityDto),
+        controller.update('unknown', {} as UpdateActivityDto, proRequest),
       ).resolves.toBe(false);
+    });
+
+    it('should reject a caller who is not a professional', async () => {
+      await expect(
+        controller.update('activity-1', {} as UpdateActivityDto, {
+          user: { sub: USER_ID, role: 'client' },
+        }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.update).not.toHaveBeenCalled();
     });
   });
 
   describe('delete()', () => {
-    it('should delegate to the service', async () => {
+    const proRequest = { user: { sub: USER_ID, role: 'professionnel' } };
+
+    it('should delegate to the service with the caller id', async () => {
       service.delete.mockResolvedValue(true);
 
-      await expect(controller.delete('activity-1')).resolves.toBe(true);
-      expect(service.delete).toHaveBeenCalledWith('activity-1');
+      await expect(controller.delete('activity-1', proRequest)).resolves.toBe(
+        true,
+      );
+      expect(service.delete).toHaveBeenCalledWith('activity-1', USER_ID);
     });
 
     it('should return false when nothing was deleted', async () => {
       service.delete.mockResolvedValue(false);
 
-      await expect(controller.delete('unknown')).resolves.toBe(false);
+      await expect(controller.delete('unknown', proRequest)).resolves.toBe(
+        false,
+      );
+    });
+
+    it('should reject a caller who is not a professional', async () => {
+      await expect(
+        controller.delete('activity-1', {
+          user: { sub: USER_ID, role: 'client' },
+        }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.delete).not.toHaveBeenCalled();
     });
   });
 });

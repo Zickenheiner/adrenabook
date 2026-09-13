@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { AlertCircle, ArrowLeft, CalendarCheck } from 'lucide-react';
@@ -9,7 +10,7 @@ import { Form } from '@/core/components/ui/form';
 import routes from '@/core/constants/routes';
 import { ApiError } from '@/core/errors/api.error';
 import {
-  createBookingSchema,
+  buildCreateBookingSchema,
   type CreateBookingFormData,
 } from '../../domain/schemas/booking.schema';
 import { useCreateBooking } from '../../domain/hooks/booking.hook';
@@ -84,8 +85,20 @@ export default function BookingPage() {
   const { createBookingAsync, createBookingIsPending, createBookingError } =
     useCreateBooking();
 
+  // Le schema depend du creneau : tant qu'il n'est pas charge, seules les
+  // regles de format s'appliquent. useForm relit ses options a chaque rendu,
+  // le resolver suit donc l'arrivee des prerequis.
+  const schema = useMemo(
+    () =>
+      buildCreateBookingSchema({
+        prerequisites: slot?.prerequisites,
+        slotStartAt: slot?.startAt,
+      }),
+    [slot?.prerequisites, slot?.startAt],
+  );
+
   const form = useForm<CreateBookingFormData>({
-    resolver: zodResolver(createBookingSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       slotId: slotId ?? '',
       participants: [
@@ -146,7 +159,7 @@ export default function BookingPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Participants */}
-            <BookingParticipantsSection />
+            <BookingParticipantsSection prerequisites={slot.prerequisites} />
 
             {/* Conditions */}
             <BookingTermsSection />

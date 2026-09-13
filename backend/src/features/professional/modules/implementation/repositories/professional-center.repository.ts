@@ -11,14 +11,19 @@ import {
   UpdateProfessionalCenterDto,
 } from '@features/professional/domains/dtos/professional-center.dto';
 import { ProfessionalCenterEntity } from '@features/professional/domains/entities/professional-center.entity';
+import { OwnedCenterDto } from '@features/professional/domains/dtos/professional-center.dto';
 import { InjectModel } from '@nestjs/mongoose';
+import { GeocodingService } from '../services/geocoding.service';
 
 @Injectable()
-export class ProfessionalCenterRepository implements IProfessionalCenterRepository {
+export class ProfessionalCenterRepository
+  implements IProfessionalCenterRepository
+{
   constructor(
     @InjectModel(ProfessionalCenter.name)
     private readonly professionalCenterModel: Model<ProfessionalCenterDocument>,
     private readonly professionalCenterMapper: ProfessionalCenterMapper,
+    private readonly geocodingService: GeocodingService,
   ) {}
 
   async findAll(): Promise<ProfessionalCenterEntity[] | null> {
@@ -31,6 +36,55 @@ export class ProfessionalCenterRepository implements IProfessionalCenterReposito
   async findById(id: string): Promise<ProfessionalCenterEntity | null> {
     const doc = await this.professionalCenterModel.findById(id).exec();
     return doc ? this.professionalCenterMapper.toEntity(doc) : null;
+  }
+
+  async findOwnedWithActivityCount(ownerId: string): Promise<OwnedCenterDto[]> {
+    if (!Types.ObjectId.isValid(ownerId)) return [];
+
+    return this.professionalCenterModel
+      .aggregate<OwnedCenterDto>([
+        { $match: { ownerId: new Types.ObjectId(ownerId) } },
+        { $sort: { createdAt: 1 } },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: '_id',
+            foreignField: 'centerId',
+            as: 'activities',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: { $toString: '$_id' },
+            companyName: 1,
+            status: 1,
+            contactEmail: 1,
+            contactPhone: 1,
+            address: 1,
+            activitiesCount: { $size: '$activities' },
+          },
+        },
+      ])
+      .exec();
+  }
+
+  async countActivities(id: string): Promise<number> {
+    if (!Types.ObjectId.isValid(id)) return 0;
+    return this.professionalCenterModel.db
+      .collection('activities')
+      .countDocuments({ centerId: new Types.ObjectId(id) });
+  }
+
+  async findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]> {
+    if (!Types.ObjectId.isValid(ownerId)) {
+      return [];
+    }
+    const docs = await this.professionalCenterModel
+      .find({ ownerId: new Types.ObjectId(ownerId) })
+      .sort({ createdAt: 1 })
+      .exec();
+    return docs.map((doc) => this.professionalCenterMapper.toEntity(doc));
   }
 
   async findByOwnerId(
@@ -49,9 +103,18 @@ export class ProfessionalCenterRepository implements IProfessionalCenterReposito
     dto: CreateProfessionalCenterDto,
     ownerId: string,
   ): Promise<boolean> {
+    // Localise le centre des l'inscription : la carte n'affiche que les centres
+    // geocodes. En echec, geocode() renvoie null et l'inscription se poursuit.
+    const location = await this.geocodingService.geocode({
+      street: dto.address.street,
+      postalCode: dto.address.postalCode,
+      city: dto.address.city,
+    });
+
     const document = new this.professionalCenterModel({
       ...dto,
       ownerId: new Types.ObjectId(ownerId),
+      ...(location ? { location } : {}),
     });
 
     try {
@@ -71,8 +134,22 @@ export class ProfessionalCenterRepository implements IProfessionalCenterReposito
   }
 
   async update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean> {
+    // Une adresse modifiee sans regeocodage laisserait le centre epingle a son
+    // ancienne position sur la carte.
+    const location = dto.address
+      ? await this.geocodingService.geocode({
+          street: dto.address.street,
+          postalCode: dto.address.postalCode,
+          city: dto.address.city,
+        })
+      : null;
+
     const updated = await this.professionalCenterModel
-      .findByIdAndUpdate(id, dto, { new: true })
+      .findByIdAndUpdate(
+        id,
+        { ...dto, ...(location ? { location } : {}) },
+        { new: true },
+      )
       .exec();
     return !!updated;
   }

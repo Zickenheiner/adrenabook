@@ -11,7 +11,7 @@ export interface ActivitySummaryEntity {
   id: string;
   title: string;
   type: string;
-  priceFromEur: number;
+  priceEur: number;
   durationMinutes: number;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   centerName: string;

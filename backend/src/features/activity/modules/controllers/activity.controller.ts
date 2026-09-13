@@ -18,6 +18,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -25,6 +26,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -40,7 +42,7 @@ export class ActivityController {
   @ApiOperation({
     summary: 'Créer une activité (US-18)',
     description:
-      "Crée une nouvelle activité pour le centre du professionnel authentifié. Rôle professionnel requis. Si status='published', l'activité passe en révision admin avant publication.",
+      "Crée une nouvelle activité pour le centre du professionnel authentifié. Rôle professionnel requis. L'activité est toujours créée non publiée : sa mise en ligne se fait ensuite via PATCH.",
   })
   @ApiBody({
     type: CreateActivityDto,
@@ -60,6 +62,7 @@ export class ActivityController {
   async create(
     @Body() dto: CreateActivityDto,
     @Req() req: { user: { sub: string; role: string } },
+    @Query('centerId') centerId?: string,
   ): Promise<ActivityResponseDto> {
     const user = req.user;
     if (!user || user.role !== 'professionnel') {
@@ -67,7 +70,7 @@ export class ActivityController {
         'Accès réservé aux professionnels avec un centre validé',
       );
     }
-    const result = await this.activityService.create(dto, user.sub);
+    const result = await this.activityService.create(dto, user.sub, centerId);
     if (!result) {
       throw new ForbiddenException(
         "Impossible de créer l'activité. Centre non validé.",
@@ -86,11 +89,19 @@ export class ActivityController {
     description: 'Liste des activités',
     type: [ActivityEntity],
   })
+  @ApiQuery({
+    name: 'centerId',
+    description: 'Centre dont on veut les activités',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
   @Get('my')
   async findMine(
     @Req() req: { user: { sub: string } },
+    @Query('centerId') centerId: string,
   ): Promise<ActivityEntity[] | null> {
-    return this.activityService.findByCenterId(req.user.sub);
+    return this.activityService.findMine(req.user.sub, centerId);
   }
 
   @ApiOperation({
@@ -135,7 +146,7 @@ export class ActivityController {
   @ApiOperation({
     summary: 'Mettre à jour une activité',
     description:
-      "Met à jour les champs d'une activité existante. Rôle professionnel requis.",
+      "Met à jour les champs d'une activité existante, statut de publication compris. Rôle professionnel requis.",
   })
   @ApiParam({
     name: 'id',
@@ -155,12 +166,18 @@ export class ActivityController {
   })
   @ApiResponse({ status: 401, description: 'Non authentifié' })
   @ApiResponse({ status: 403, description: 'Accès interdit' })
+  @ApiResponse({ status: 404, description: 'Activité introuvable' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateActivityDto,
+    @Req() req: { user: { sub: string; role: string } },
   ): Promise<boolean> {
-    return this.activityService.update(id, dto);
+    const user = req.user;
+    if (!user || user.role !== 'professionnel') {
+      throw new ForbiddenException('Accès réservé aux professionnels');
+    }
+    return this.activityService.update(id, dto, user.sub);
   }
 
   @ApiOperation({
@@ -180,8 +197,17 @@ export class ActivityController {
     type: Boolean,
   })
   @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès interdit' })
+  @ApiResponse({ status: 404, description: 'Activité introuvable' })
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<boolean> {
-    return this.activityService.delete(id);
+  async delete(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string; role: string } },
+  ): Promise<boolean> {
+    const user = req.user;
+    if (!user || user.role !== 'professionnel') {
+      throw new ForbiddenException('Accès réservé aux professionnels');
+    }
+    return this.activityService.delete(id, user.sub);
   }
 }

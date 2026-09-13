@@ -23,13 +23,15 @@ export const createActivitySchema = z.object({
   durationMinutes: z
     .number({ error: 'La durée est requise' })
     .min(1, 'La durée doit être supérieure à 0'),
-  priceFromEur: z
+  priceEur: z
     .number({ error: 'Le prix est requis' })
     .min(0, 'Le prix doit être positif'),
   prerequisites: prerequisitesSchema,
   includedEquipment: z.array(z.string()),
   photoFileIds: z.array(z.string()),
-  status: z.enum(['draft', 'published']),
+  // Present pour l'edition seulement : a la creation le champ n'est pas
+  // affiche et sa valeur est ignoree, le serveur imposant `unpublished`.
+  status: z.enum(['unpublished', 'published']),
 });
 
 export type CreateActivityFormData = z.infer<typeof createActivitySchema>;

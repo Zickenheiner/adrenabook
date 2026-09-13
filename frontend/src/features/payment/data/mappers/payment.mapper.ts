@@ -8,9 +8,6 @@ class PaymentMapper {
       status: dto.status,
       paidAmountEur: dto.paidAmountEur,
       remainingAmountEur: dto.remainingAmountEur,
-      finalPaymentDueAt: dto.finalPaymentDueAt
-        ? new Date(dto.finalPaymentDueAt)
-        : undefined,
     };
   }
 }

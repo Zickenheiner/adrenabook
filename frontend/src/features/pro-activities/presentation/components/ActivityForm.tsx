@@ -23,6 +23,7 @@ import {
 import { Checkbox } from '@/core/components/ui/checkbox';
 import { Separator } from '@/core/components/ui/separator';
 import { Badge } from '@/core/components/ui/badge';
+import ActivityImageField from './ActivityImageField';
 import {
   createActivitySchema,
   type CreateActivityFormData,
@@ -33,6 +34,11 @@ interface Props {
   onSubmit: (data: CreateActivityFormData) => void;
   isPending?: boolean;
   submitLabel?: string;
+  /**
+   * Le statut ne se choisit qu'a l'edition : une activite nouvelle naît
+   * toujours non publiee, sans que le formulaire ait a poser la question.
+   */
+  showStatus?: boolean;
 }
 
 export default function ActivityForm({
@@ -40,6 +46,7 @@ export default function ActivityForm({
   onSubmit,
   isPending = false,
   submitLabel = "Créer l'activité",
+  showStatus = false,
 }: Props) {
   const [equipmentInput, setEquipmentInput] = useState('');
 
@@ -51,14 +58,14 @@ export default function ActivityForm({
       type: '',
       difficulty: 'beginner',
       durationMinutes: 60,
-      priceFromEur: 0,
+      priceEur: 0,
       prerequisites: {
         minAge: 18,
         medicalCertificateRequired: false,
       },
       includedEquipment: [],
       photoFileIds: [],
-      status: 'draft',
+      status: 'unpublished',
       ...defaultValues,
     },
   });
@@ -120,6 +127,26 @@ export default function ActivityForm({
                     placeholder="Décrivez l'activité en détail..."
                     className="min-h-[100px] resize-none"
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Image */}
+          <FormField
+            control={form.control}
+            name="photoFileIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image de l'activité</FormLabel>
+                <FormControl>
+                  <ActivityImageField
+                    fileId={field.value[0]}
+                    onChange={(fileId) =>
+                      field.onChange(fileId ? [fileId] : [])
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -202,10 +229,10 @@ export default function ActivityForm({
 
             <FormField
               control={form.control}
-              name="priceFromEur"
+              name="priceEur"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Prix à partir de (€)</FormLabel>
+                  <FormLabel>Prix (€)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -414,30 +441,37 @@ export default function ActivityForm({
           )}
         </div>
 
-        <Separator />
+        {showStatus && (
+          <>
+            <Separator />
 
-        {/* Statut */}
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Statut</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="draft">Brouillon</SelectItem>
-                  <SelectItem value="published">Publier</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            {/* Statut */}
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Statut</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="published">Publiée</SelectItem>
+                      <SelectItem value="unpublished">Non publiée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? 'Enregistrement...' : submitLabel}

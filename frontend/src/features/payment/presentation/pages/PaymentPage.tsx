@@ -41,8 +41,12 @@ export default function PaymentPage() {
     confirmPayment(
       { paymentIntentId },
       {
-        onSuccess: () => {
-          navigate(routes.paymentSuccess.replace(':id', bookingId));
+        onSuccess: (confirmation) => {
+          // La page de succes lit la confirmation dans l'etat de navigation :
+          // sans elle, elle ne peut qu'afficher une erreur.
+          navigate(routes.paymentSuccess.replace(':id', bookingId), {
+            state: confirmation,
+          });
         },
       },
     );
@@ -102,8 +106,8 @@ export default function PaymentPage() {
 
       {!paymentIntentId && (
         <p className="text-center text-xs text-muted-foreground">
-          Aucun intent de paiement détecté. Retournez à la réservation pour
-          initialiser le paiement via Stripe.
+          Aucune référence de paiement. Repassez par la réservation pour
+          initialiser le paiement.
         </p>
       )}
     </motion.div>

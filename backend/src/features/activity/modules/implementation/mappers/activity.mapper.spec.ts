@@ -22,7 +22,7 @@ describe('ActivityMapper', () => {
       type: 'climbing',
       difficulty: 'beginner',
       durationMinutes: 180,
-      priceFromEur: 90,
+      priceEur: 90,
       prerequisites: {
         minAge: 12,
         maxAge: 65,
@@ -60,7 +60,7 @@ describe('ActivityMapper', () => {
       expect(entity.getType()).toBe('climbing');
       expect(entity.getDifficulty()).toBe('beginner');
       expect(entity.getDurationMinutes()).toBe(180);
-      expect(entity.getPriceFromEur()).toBe(90);
+      expect(entity.getPriceEur()).toBe(90);
       expect(entity.getPrerequisites()).toEqual({
         minAge: 12,
         maxAge: 65,

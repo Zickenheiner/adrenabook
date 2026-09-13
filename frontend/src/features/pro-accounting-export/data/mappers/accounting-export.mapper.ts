@@ -7,7 +7,6 @@ class AccountingExportMapper {
       exportJobId: dto.exportJobId,
       status: dto.status,
       downloadUrl: dto.downloadUrl,
-      emailDeliveredTo: dto.emailDeliveredTo,
       recordsCount: dto.recordsCount,
     };
   }

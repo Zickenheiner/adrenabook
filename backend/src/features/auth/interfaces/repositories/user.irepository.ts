@@ -57,6 +57,9 @@ export interface IUserRepository {
   // ——— Statut admin US-22 ———
   updateStatus(id: string, status: string): Promise<boolean>;
 
+  // ——— Promotion de role apres validation KYC (US-23) ———
+  updateRole(id: string, role: string): Promise<boolean>;
+
   // ——— RGPD US-24 ———
   setRgpdExportCompleted(
     id: string,

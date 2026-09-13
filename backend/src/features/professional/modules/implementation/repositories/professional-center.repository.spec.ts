@@ -4,6 +4,7 @@ import { ConflictException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ProfessionalCenterRepository } from './professional-center.repository';
 import { ProfessionalCenterMapper } from '../mappers/professional-center.mapper';
+import { GeocodingService } from '../services/geocoding.service';
 import { ProfessionalCenterEntity } from '@features/professional/domains/entities/professional-center.entity';
 import {
   CreateProfessionalCenterDto,
@@ -22,6 +23,7 @@ describe('ProfessionalCenterRepository', () => {
   let centerModel: jest.Mock & Record<string, jest.Mock>;
   let mapper: { toEntity: jest.Mock };
   let saveMock: jest.Mock;
+  let geocodingService: { geocode: jest.Mock };
 
   beforeEach(async () => {
     saveMock = jest.fn().mockResolvedValue({ _id: 'center-1' });
@@ -43,11 +45,16 @@ describe('ProfessionalCenterRepository', () => {
       ),
     };
 
+    geocodingService = {
+      geocode: jest.fn().mockResolvedValue({ lat: 43.6753, lng: 1.4989 }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProfessionalCenterRepository,
         { provide: getModelToken('ProfessionalCenter'), useValue: centerModel },
         { provide: ProfessionalCenterMapper, useValue: mapper },
+        { provide: GeocodingService, useValue: geocodingService },
       ],
     }).compile();
 
@@ -125,6 +132,12 @@ describe('ProfessionalCenterRepository', () => {
     const dto = {
       companyName: 'Alpes Aventures',
       siret: '12345678901234',
+      address: {
+        street: '13 Rte de Lavaur',
+        city: "L'Union",
+        postalCode: '31240',
+        country: 'France',
+      },
     } as CreateProfessionalCenterDto;
 
     it('should attach the owner object id and return true on success', async () => {
@@ -136,6 +149,33 @@ describe('ProfessionalCenterRepository', () => {
       };
       expect(payload.companyName).toBe('Alpes Aventures');
       expect(payload.ownerId.toString()).toBe(OWNER_ID);
+      expect(result).toBe(true);
+    });
+
+    it('should geocode the postal address and store the coordinates', async () => {
+      await repository.create(dto, OWNER_ID);
+
+      expect(geocodingService.geocode).toHaveBeenCalledWith({
+        street: '13 Rte de Lavaur',
+        postalCode: '31240',
+        city: "L'Union",
+      });
+
+      const payload = centerModel.mock.calls[0][0] as {
+        location?: { lat: number; lng: number };
+      };
+      expect(payload.location).toEqual({ lat: 43.6753, lng: 1.4989 });
+    });
+
+    it('should register the center even when the geocoding fails', async () => {
+      geocodingService.geocode.mockResolvedValue(null);
+
+      const result = await repository.create(dto, OWNER_ID);
+
+      // Une adresse non localisee prive de carte, elle ne doit pas priver
+      // d'inscription.
+      const payload = centerModel.mock.calls[0][0] as Record<string, unknown>;
+      expect(payload).not.toHaveProperty('location');
       expect(result).toBe(true);
     });
 

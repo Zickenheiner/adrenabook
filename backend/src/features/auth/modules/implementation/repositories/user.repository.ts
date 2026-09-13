@@ -229,6 +229,13 @@ export class UserRepository implements IUserRepository {
     return !!updated;
   }
 
+  async updateRole(id: string, role: string): Promise<boolean> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { role }, { new: true })
+      .exec();
+    return !!updated;
+  }
+
   // ——— RGPD US-24 ———
 
   /**
@@ -422,12 +429,28 @@ export class UserRepository implements IUserRepository {
           activity: { $arrayElemAt: ['$activityArray', 0] },
         },
       },
+      // Le centre n'est pas porte par la reservation : il se retrouve par
+      // l'activite.
+      {
+        $lookup: {
+          from: 'professionalcenters',
+          localField: 'activity.centerId',
+          foreignField: '_id',
+          as: 'centerArray',
+        },
+      },
       {
         $project: {
           _id: 1,
           status: 1,
           slotStartAt: '$slotArray.startAt',
           activityTitle: '$activity.title',
+          centerName: {
+            $ifNull: [{ $arrayElemAt: ['$centerArray.companyName', 0] }, ''],
+          },
+          coverPhotoUrl: {
+            $ifNull: [{ $arrayElemAt: ['$activity.photoFileIds', 0] }, ''],
+          },
         },
       },
     ];
@@ -437,6 +460,8 @@ export class UserRepository implements IUserRepository {
       status: string;
       slotStartAt: Date;
       activityTitle: string;
+      centerName: string;
+      coverPhotoUrl: string;
     }
 
     const bookingDocs =
@@ -450,6 +475,8 @@ export class UserRepository implements IUserRepository {
           ? doc.slotStartAt.toISOString()
           : String(doc.slotStartAt),
       status: doc.status,
+      centerName: doc.centerName ?? '',
+      coverPhotoUrl: doc.coverPhotoUrl ?? '',
     }));
 
     // Récupère les types d'activités déjà réservées pour la personnalisation
@@ -492,8 +519,10 @@ export class UserRepository implements IUserRepository {
       _id: Types.ObjectId;
       title: string;
       type: string;
-      priceFromEur: number;
+      priceEur: number;
+      durationMinutes: number;
       difficulty: string;
+      centerName: string;
       coverPhotoUrl: string;
     }
 
@@ -510,12 +539,23 @@ export class UserRepository implements IUserRepository {
         },
         { $sample: { size: 4 } },
         {
+          $lookup: {
+            from: 'professionalcenters',
+            localField: 'centerId',
+            foreignField: '_id',
+            as: 'center',
+          },
+        },
+        { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
+        {
           $project: {
             _id: 1,
             title: 1,
             type: 1,
-            priceFromEur: 1,
+            priceEur: 1,
+            durationMinutes: 1,
             difficulty: 1,
+            centerName: '$center.companyName',
             coverPhotoUrl: { $arrayElemAt: ['$photoFileIds', 0] },
           },
         },
@@ -539,12 +579,23 @@ export class UserRepository implements IUserRepository {
         },
         { $sample: { size: remaining } },
         {
+          $lookup: {
+            from: 'professionalcenters',
+            localField: 'centerId',
+            foreignField: '_id',
+            as: 'center',
+          },
+        },
+        { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
+        {
           $project: {
             _id: 1,
             title: 1,
             type: 1,
-            priceFromEur: 1,
+            priceEur: 1,
+            durationMinutes: 1,
             difficulty: 1,
+            centerName: '$center.companyName',
             coverPhotoUrl: { $arrayElemAt: ['$photoFileIds', 0] },
           },
         },
@@ -559,8 +610,10 @@ export class UserRepository implements IUserRepository {
         activityId: doc._id.toString(),
         title: doc.title,
         type: doc.type,
-        priceFromEur: doc.priceFromEur,
+        priceEur: doc.priceEur,
+        durationMinutes: doc.durationMinutes,
         difficulty: doc.difficulty,
+        centerName: doc.centerName ?? '',
         coverPhotoUrl: doc.coverPhotoUrl ?? '',
       }),
     );

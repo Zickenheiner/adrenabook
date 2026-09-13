@@ -18,16 +18,18 @@ export class Address {
   country: string;
 }
 
+/**
+ * Coordonnees geocodees depuis l'adresse postale. Optionnelles : un geocodage
+ * en echec ne doit pas empecher l'inscription, le centre est simplement absent
+ * de la carte tant qu'il n'est pas localise.
+ */
 @Schema({ _id: false })
-export class LegalRepresentative {
-  @Prop({ required: true, type: String, trim: true })
-  firstName: string;
+export class GeoLocation {
+  @Prop({ required: true, type: Number })
+  lat: number;
 
-  @Prop({ required: true, type: String, trim: true })
-  lastName: string;
-
-  @Prop({ required: true, type: String, trim: true })
-  role: string;
+  @Prop({ required: true, type: Number })
+  lng: number;
 }
 
 @Schema({ _id: false })
@@ -74,8 +76,8 @@ export class ProfessionalCenter {
   @Prop({ required: true, type: Address })
   address: Address;
 
-  @Prop({ required: true, type: LegalRepresentative })
-  legalRepresentative: LegalRepresentative;
+  @Prop({ required: false, type: GeoLocation })
+  location?: GeoLocation;
 
   @Prop({ required: true, type: Documents })
   documents: Documents;

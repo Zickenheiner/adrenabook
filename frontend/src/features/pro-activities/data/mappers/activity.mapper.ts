@@ -10,7 +10,7 @@ class ActivityMapper {
       type: dto.type,
       difficulty: dto.difficulty,
       durationMinutes: dto.durationMinutes,
-      priceFromEur: dto.priceFromEur,
+      priceEur: dto.priceEur,
       prerequisites: dto.prerequisites,
       includedEquipment: dto.includedEquipment,
       photoFileIds: dto.photoFileIds,

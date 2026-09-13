@@ -1,3 +1,4 @@
+import { OwnedCenterDto } from '@features/professional/domains/dtos/professional-center.dto';
 import {
   CreateProfessionalCenterDto,
   UpdateProfessionalCenterDto,
@@ -36,6 +37,23 @@ export class ProfessionalCenterController {
   @Get()
   async findAll() {
     return this.professionalCenterService.findAll();
+  }
+
+  @ApiOperation({
+    summary: 'Lister ses propres centres',
+    description:
+      "Retourne les centres dont l'utilisateur authentifie est proprietaire, du plus ancien au plus recent, quel que soit leur statut d'instruction.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Centres de l'utilisateur",
+    type: [OwnedCenterDto],
+  })
+  @Get('mine')
+  async findMine(@Req() req: { user: { sub: string } }) {
+    return this.professionalCenterService.findOwnedWithActivityCount(
+      req.user.sub,
+    );
   }
 
   @ApiOperation({
@@ -100,12 +118,15 @@ export class ProfessionalCenterController {
     description: 'The updated professional-center',
     type: Boolean,
   })
+  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
+  @ApiResponse({ status: 404, description: 'Centre introuvable' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProfessionalCenterDto,
+    @Req() req: { user: { sub: string } },
   ) {
-    return this.professionalCenterService.update(id, dto);
+    return this.professionalCenterService.update(id, dto, req.user.sub);
   }
 
   @ApiOperation({
@@ -123,8 +144,11 @@ export class ProfessionalCenterController {
     description: 'The deleted professional-center',
     type: Boolean,
   })
+  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
+  @ApiResponse({ status: 404, description: 'Centre introuvable' })
+  @ApiResponse({ status: 409, description: 'Le centre porte des activités' })
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return this.professionalCenterService.delete(id);
+  async delete(@Param('id') id: string, @Req() req: { user: { sub: string } }) {
+    return this.professionalCenterService.delete(id, req.user.sub);
   }
 }

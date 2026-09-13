@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Download, Mail } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
   accountingExportSchema,
@@ -18,14 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/core/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/core/components/ui/select';
-import { Checkbox } from '@/core/components/ui/checkbox';
 import {
   Popover,
   PopoverContent,
@@ -49,7 +41,6 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
       format: 'csv_generic',
       from: '',
       to: '',
-      includeRefunds: false,
       deliveryMode: 'download',
     },
   });
@@ -66,32 +57,6 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Format */}
-          <FormField
-            control={form.control}
-            name="format"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Format d&apos;export</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir un format" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="sage50">Sage 50</SelectItem>
-                    <SelectItem value="sage100">Sage 100</SelectItem>
-                    <SelectItem value="csv_generic">CSV Générique</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Période */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
@@ -188,61 +153,6 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
               )}
             />
           </div>
-
-          {/* Inclure les remboursements */}
-          <FormField
-            control={form.control}
-            name="includeRefunds"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Inclure les remboursements</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          {/* Mode de livraison */}
-          <FormField
-            control={form.control}
-            name="deliveryMode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mode de livraison</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir un mode" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="download">
-                      <span className="flex items-center gap-2">
-                        <Download className="h-4 w-4" />
-                        Téléchargement direct
-                      </span>
-                    </SelectItem>
-                    <SelectItem value="email">
-                      <span className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        Envoi par email
-                      </span>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? 'Export en cours...' : "Générer l'export"}

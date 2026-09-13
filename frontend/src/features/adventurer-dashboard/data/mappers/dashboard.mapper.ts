@@ -15,7 +15,7 @@ class DashboardMapper {
       bookingId: dto.bookingId,
       activityTitle: dto.activityTitle,
       centerName: dto.centerName,
-      date: new Date(dto.date),
+      date: new Date(dto.slotStartAt),
       status: dto.status,
       coverPhotoUrl: dto.coverPhotoUrl,
     };
@@ -23,10 +23,10 @@ class DashboardMapper {
 
   private toActivityEntity(dto: ActivitySummaryDto): ActivitySummaryEntity {
     return {
-      id: dto.id,
+      id: dto.activityId,
       title: dto.title,
       type: dto.type,
-      priceFromEur: dto.priceFromEur,
+      priceEur: dto.priceEur,
       durationMinutes: dto.durationMinutes,
       difficulty: dto.difficulty,
       centerName: dto.centerName,

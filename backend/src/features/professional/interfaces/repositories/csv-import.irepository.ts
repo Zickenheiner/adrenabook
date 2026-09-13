@@ -5,6 +5,13 @@ export interface ICsvImportRepository {
   create(
     dto: CsvImportDto,
     professionalId: string,
+    outcome: {
+      status: string;
+      rowsTotal: number;
+      rowsSuccess: number;
+      rowsErrors: number;
+      errors: { line: number; column: string; reason: string }[];
+    },
   ): Promise<CsvImportEntity | null>;
   findById(id: string): Promise<CsvImportEntity | null>;
 }

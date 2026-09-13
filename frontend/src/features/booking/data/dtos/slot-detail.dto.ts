@@ -1,3 +1,11 @@
+export interface SlotPrerequisitesDto {
+  minAge: number;
+  maxAge?: number;
+  minWeightKg?: number;
+  maxWeightKg?: number;
+  medicalCertificateRequired: boolean;
+}
+
 export interface SlotDetailResponseDto {
   id: string;
   activityId: string;
@@ -6,4 +14,5 @@ export interface SlotDetailResponseDto {
   maxParticipants: number;
   remainingSeats: number;
   priceEur: number;
+  prerequisites?: SlotPrerequisitesDto;
 }

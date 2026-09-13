@@ -4,6 +4,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/core/components/ui/dropdown-menu';
@@ -21,15 +24,21 @@ import { cn } from '@/core/utils/cn';
 import type {
   ActivityEntity,
   ActivityDifficulty,
+  ActivityStatus,
 } from '../../domain/entities/activity.entity';
-import ActivityStatusBadge from './ActivityStatusBadge';
+import ActivityStatusBadge, { statusConfig } from './ActivityStatusBadge';
 
 interface Props {
   activity: ActivityEntity;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onManageSlots?: (id: string) => void;
+  onStatusChange?: (id: string, status: ActivityStatus) => void;
+  /** Verrouille le choix le temps que le serveur confirme la bascule. */
+  statusIsPending?: boolean;
 }
+
+const statusOrder: ActivityStatus[] = ['published', 'unpublished'];
 
 const difficultyConfig: Record<
   ActivityDifficulty,
@@ -45,6 +54,8 @@ export default function ActivityCard({
   onEdit,
   onDelete,
   onManageSlots,
+  onStatusChange,
+  statusIsPending = false,
 }: Props) {
   const diffConfig = difficultyConfig[activity.difficulty];
 
@@ -77,18 +88,47 @@ export default function ActivityCard({
               </div>
             </div>
 
-            {(onEdit || onDelete || onManageSlots) && (
+            {(onEdit || onDelete || onManageSlots || onStatusChange) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    aria-label={`Actions sur ${activity.title}`}
+                    // Toujours visible : masquer le menu hors survol le rend
+                    // inatteignable sur tactile, faute de survol.
+                    className="h-8 w-8 shrink-0"
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {onStatusChange && (
+                    <>
+                      <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                        Statut
+                      </DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={activity.status}
+                        onValueChange={(value) =>
+                          onStatusChange(activity.id, value as ActivityStatus)
+                        }
+                      >
+                        {statusOrder.map((status) => (
+                          <DropdownMenuRadioItem
+                            key={status}
+                            value={status}
+                            disabled={statusIsPending}
+                          >
+                            {statusConfig[status].label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                      {(onManageSlots || onEdit || onDelete) && (
+                        <DropdownMenuSeparator />
+                      )}
+                    </>
+                  )}
                   {onManageSlots && (
                     <DropdownMenuItem
                       onClick={() => onManageSlots(activity.id)}
@@ -131,8 +171,8 @@ export default function ActivityCard({
               {activity.durationMinutes} min
             </span>
             <span className="flex items-center gap-1">
-              <Euro className="h-3.5 w-3.5" />À partir de{' '}
-              {activity.priceFromEur} €
+              <Euro className="h-3.5 w-3.5" />
+              {activity.priceEur} € / personne
             </span>
             <span className="text-xs capitalize">{activity.type}</span>
           </div>

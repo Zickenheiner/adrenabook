@@ -33,9 +33,7 @@ export default function CenterMapPopup({ center }: Props) {
       <Button
         size="sm"
         className="w-full mt-1"
-        onClick={() =>
-          navigate(routes.activitySearch + `?centerId=${center.id}`)
-        }
+        onClick={() => navigate(routes.centerDetail.replace(':id', center.id))}
       >
         Voir les activités
         <ArrowRight className="ml-1 h-3 w-3" />

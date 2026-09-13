@@ -1,78 +1,191 @@
 import { Injectable } from '@nestjs/common';
 import { ICenterRepository } from '../../../interfaces/repositories/center.irepository';
-import { CenterMapper } from '../mappers/center.mapper';
+import { Model, PipelineStage, Types } from 'mongoose';
 import {
-  Center,
-  CenterDocument,
-} from '@features/centers/domains/schemas/center.schema';
-import { Model } from 'mongoose';
-import {
+  CenterDetailResponseDto,
   CentersMapQueryDto,
   CentersQueryDto,
-  CreateCenterDto,
-  UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
 import { CenterEntity } from '@features/centers/domains/entities/center.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import {
+  ProfessionalCenter,
+  ProfessionalCenterDocument,
+} from '@features/professional/domains/schemas/professional-center.schema';
 
 @Injectable()
 export class CenterRepository implements ICenterRepository {
   constructor(
-    @InjectModel(Center.name)
-    private readonly centerModel: Model<CenterDocument>,
-    private readonly centerMapper: CenterMapper,
+    @InjectModel(ProfessionalCenter.name)
+    private readonly professionalCenterModel: Model<ProfessionalCenterDocument>,
   ) {}
 
-  async findAll(): Promise<CenterEntity[] | null> {
-    const centers = await this.centerModel.find().exec();
-    return centers
-      ? centers.map((doc) => this.centerMapper.toEntity(doc))
-      : null;
+  /**
+   * Source unique des centres affiches : la collection professionnelle, seule
+   * alimentee par le parcours d'inscription. Seuls les centres approuves et
+   * geocodes peuvent apparaitre sur la carte.
+   */
+  private mapPipeline(extraMatch: Record<string, unknown>): PipelineStage[] {
+    return [
+      {
+        $match: {
+          status: 'approved',
+          'location.lat': { $exists: true },
+          ...extraMatch,
+        },
+      },
+      {
+        $lookup: {
+          from: 'activities',
+          localField: '_id',
+          foreignField: 'centerId',
+          pipeline: [{ $match: { status: 'published' } }],
+          as: 'activities',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: '$companyName',
+          lat: '$location.lat',
+          lng: '$location.lng',
+          city: '$address.city',
+          activityTypes: '$activities.type',
+          activitiesCount: { $size: '$activities' },
+        },
+      },
+    ];
   }
 
-  async findById(id: string): Promise<CenterEntity | null> {
-    const center = await this.centerModel.findById(id).exec();
-    return center ? this.centerMapper.toEntity(center) : null;
-  }
+  private async runMapPipeline(
+    extraMatch: Record<string, unknown>,
+    activityType?: string,
+  ): Promise<CenterEntity[]> {
+    const pipeline = this.mapPipeline(extraMatch);
 
-  async create(dto: CreateCenterDto): Promise<CenterEntity | null> {
-    const document = new this.centerModel(dto);
-    const createdCenter = await document.save();
-    return createdCenter ? this.centerMapper.toEntity(createdCenter) : null;
-  }
+    // Le filtre par type s'applique apres le $lookup, sur les types agreges.
+    if (activityType) {
+      pipeline.push({ $match: { activityTypes: activityType } });
+    }
 
-  async update(id: string, dto: UpdateCenterDto): Promise<boolean> {
-    const updatedCenter = await this.centerModel
-      .findByIdAndUpdate(id, dto, { new: true })
+    const docs = await this.professionalCenterModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        name: string;
+        lat: number;
+        lng: number;
+        city: string;
+        activityTypes: string[];
+        activitiesCount: number;
+      }>(pipeline)
       .exec();
-    return !!updatedCenter;
+
+    return docs.map((doc) => {
+      const entity = new CenterEntity(doc._id as never);
+      entity.setName(doc.name);
+      entity.setLat(doc.lat);
+      entity.setLng(doc.lng);
+      entity.setCity(doc.city ?? '');
+      entity.setActivityTypes(doc.activityTypes ?? []);
+      entity.setActivitiesCount(doc.activitiesCount ?? 0);
+      return entity;
+    });
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.centerModel.findByIdAndDelete(id).exec();
-    return !!result;
+  /**
+   * Fiche publique : memes garde-fous que la carte — seul un centre approuve
+   * est visible, et seules ses activites publiees sont listees.
+   */
+  async findDetailById(id: string): Promise<CenterDetailResponseDto | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+
+    const docs = await this.professionalCenterModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        name: string;
+        city: string;
+        address?: {
+          street: string;
+          postalCode: string;
+          city: string;
+          country: string;
+        };
+        lat?: number;
+        lng?: number;
+        activities: {
+          _id: Types.ObjectId;
+          title: string;
+          type: string;
+          difficulty: string;
+          durationMinutes: number;
+          priceEur: number;
+          photoFileIds?: string[];
+        }[];
+      }>([
+        { $match: { _id: new Types.ObjectId(id), status: 'approved' } },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: '_id',
+            foreignField: 'centerId',
+            pipeline: [{ $match: { status: 'published' } }],
+            as: 'activities',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: '$companyName',
+            city: '$address.city',
+            address: 1,
+            lat: '$location.lat',
+            lng: '$location.lng',
+            activities: 1,
+          },
+        },
+      ])
+      .exec();
+
+    const doc = docs[0];
+    if (!doc) return null;
+
+    const addr = doc.address;
+
+    return {
+      id: doc._id.toString(),
+      name: doc.name,
+      city: doc.city ?? '',
+      address: addr
+        ? `${addr.street}, ${addr.postalCode} ${addr.city}, ${addr.country}`
+        : '',
+      lat: doc.lat ?? 0,
+      lng: doc.lng ?? 0,
+      activities: (doc.activities ?? []).map((a) => ({
+        id: a._id.toString(),
+        title: a.title,
+        type: a.type,
+        difficulty: a.difficulty,
+        durationMinutes: a.durationMinutes,
+        priceEur: a.priceEur,
+        coverPhotoUrl: a.photoFileIds?.[0] ?? '',
+      })),
+    };
   }
 
   async findByBbox(query: CentersMapQueryDto): Promise<CenterEntity[] | null> {
     const [minLng, minLat, maxLng, maxLat] = query.bbox.split(',').map(Number);
 
-    const filter: Record<string, unknown> = {
-      lat: { $gte: minLat, $lte: maxLat },
-      lng: { $gte: minLng, $lte: maxLng },
-    };
-
-    if (query.activityType) {
-      filter.activityTypes = query.activityType;
-    }
-
-    const centers = await this.centerModel.find(filter).exec();
-    return centers
-      ? centers.map((doc) => this.centerMapper.toEntity(doc))
-      : null;
+    return this.runMapPipeline(
+      {
+        'location.lat': { $exists: true, $gte: minLat, $lte: maxLat },
+        'location.lng': { $gte: minLng, $lte: maxLng },
+      },
+      query.activityType,
+    );
   }
 
   async findByRadius(query: CentersQueryDto): Promise<CenterEntity[] | null> {
-    const filter: Record<string, unknown> = {};
+    const extraMatch: Record<string, unknown> = {};
 
     if (
       query.lat !== undefined &&
@@ -84,23 +197,17 @@ export class CenterRepository implements ICenterRepository {
       const deltaLng =
         query.radius / (111 * Math.cos((query.lat * Math.PI) / 180));
 
-      filter.lat = {
+      extraMatch['location.lat'] = {
+        $exists: true,
         $gte: query.lat - deltaLat,
         $lte: query.lat + deltaLat,
       };
-      filter.lng = {
+      extraMatch['location.lng'] = {
         $gte: query.lng - deltaLng,
         $lte: query.lng + deltaLng,
       };
     }
 
-    if (query.type) {
-      filter.activityTypes = query.type;
-    }
-
-    const centers = await this.centerModel.find(filter).exec();
-    return centers
-      ? centers.map((doc) => this.centerMapper.toEntity(doc))
-      : null;
+    return this.runMapPipeline(extraMatch, query.type);
   }
 }

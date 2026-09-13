@@ -15,8 +15,6 @@ export const activitySearchSchema = z.object({
   lat: z.number().optional(),
   lng: z.number().optional(),
   radiusKm: z.number().min(1).max(500).optional(),
-  dateFrom: z.string().optional(),
-  dateTo: z.string().optional(),
   priceMin: z.number().min(0).optional(),
   priceMax: z.number().min(0).optional(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),

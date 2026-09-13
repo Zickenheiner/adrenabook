@@ -14,6 +14,7 @@ import { CenterReviewRepository } from './implementation/repositories/center-rev
 import { CenterReviewMapper } from './implementation/mappers/center-review.mapper';
 import { ProfessionalCenterBaseModule } from '@features/professional/modules/professional-center.module';
 import { AuditLogBaseModule } from './audit-log.module';
+import { UserBaseModule } from '@features/auth/modules/user.module';
 
 @Module({
   imports: [
@@ -24,6 +25,9 @@ import { AuditLogBaseModule } from './audit-log.module';
     ProfessionalCenterBaseModule,
     // Fournit ISensitiveActionLogService pour alimenter le journal US-25.
     AuditLogBaseModule,
+    // Fournit IUserService pour promouvoir le proprietaire en professionnel
+    // lorsque son dossier est approuve.
+    UserBaseModule,
   ],
   controllers: [CenterReviewController],
   providers: [

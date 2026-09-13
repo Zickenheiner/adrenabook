@@ -1,189 +1,188 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { AccountingExportService } from './accounting-export.service';
-import { IAccountingExportRepository } from '@features/professional/interfaces/repositories/accounting-export.irepository';
-import { AccountingExportEntity } from '@features/professional/domains/entities/accounting-export.entity';
 import {
   AccountingExportDeliveryMode,
   AccountingExportFormat,
   CreateAccountingExportDto,
 } from '@features/professional/domains/dtos/accounting-export.dto';
+import { AccountingRow } from '@features/professional/utils/accounting-csv';
+
+const CENTER_ID = '68b4d59919d9b7a94b4fde21';
+const USER_ID = '68b4d59919d9b7a94b4fde22';
 
 describe('AccountingExportService', () => {
   let service: AccountingExportService;
-  let repository: jest.Mocked<IAccountingExportRepository>;
-
-  const professionalId = '68b4d59919d9b7a94b4fde10';
-  const professionalEmail = 'pro@example.com';
-  const exportJobId = '68b4d59919d9b7a94b4fde21';
-
-  // Entite renvoyee par le repository, alimentee via ses setters
-  const buildEntity = (overrides?: {
-    status?: string;
-    recordsCount?: number;
-    downloadUrl?: string;
-  }): AccountingExportEntity => {
-    const entity = new AccountingExportEntity(exportJobId as never);
-    entity.setStatus(overrides?.status ?? 'queued');
-    entity.setRecordsCount(overrides?.recordsCount ?? 0);
-    entity.setDownloadUrl(overrides?.downloadUrl);
-    return entity;
+  let repository: {
+    create: jest.Mock;
+    findById: jest.Mock;
+    findAccountingRows: jest.Mock;
+    markReady: jest.Mock;
   };
+  let centerService: { findAllByOwnerId: jest.Mock };
+  let uploadService: { upload: jest.Mock };
 
-  const buildDto = (
-    overrides: Partial<CreateAccountingExportDto> = {},
-  ): CreateAccountingExportDto => ({
-    format: AccountingExportFormat.CSV_GENERIC,
-    from: '2026-01-01',
-    to: '2026-03-31',
-    includeRefunds: false,
-    deliveryMode: AccountingExportDeliveryMode.DOWNLOAD,
+  const row = (overrides: Partial<AccountingRow> = {}): AccountingRow => ({
+    bookingId: 'booking-1',
+    bookingDate: new Date('2026-09-01T10:00:00.000Z'),
+    slotDate: new Date('2026-09-15T08:00:00.000Z'),
+    activityTitle: 'Parapente',
+    customerName: 'Marie Dupont',
+    participants: 2,
+    status: 'confirmed',
+    totalEur: 240,
+    vatEur: 40,
+    paidEur: 240,
+    refundedEur: 0,
     ...overrides,
   });
 
+  const dto = (
+    overrides: Partial<CreateAccountingExportDto> = {},
+  ): CreateAccountingExportDto =>
+    ({
+      format: AccountingExportFormat.CSV_GENERIC,
+      from: '2026-09-01',
+      to: '2026-09-30',
+      includeRefunds: false,
+      deliveryMode: AccountingExportDeliveryMode.DOWNLOAD,
+      centerId: CENTER_ID,
+      ...overrides,
+    }) as CreateAccountingExportDto;
+
   beforeEach(async () => {
-    const repositoryMock: jest.Mocked<IAccountingExportRepository> = {
-      create: jest.fn(),
+    repository = {
+      create: jest.fn().mockResolvedValue({ getId: () => 'job-1' }),
       findById: jest.fn(),
+      findAccountingRows: jest.fn().mockResolvedValue([]),
+      markReady: jest.fn().mockResolvedValue(undefined),
+    };
+    centerService = {
+      findAllByOwnerId: jest
+        .fn()
+        .mockResolvedValue([{ getId: () => CENTER_ID }]),
+    };
+    uploadService = {
+      upload: jest.fn().mockResolvedValue({ fileId: 'file-1' }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AccountingExportService,
-        {
-          provide: 'IAccountingExportRepository',
-          useValue: repositoryMock,
-        },
+        { provide: 'IAccountingExportRepository', useValue: repository },
+        { provide: 'IProfessionalCenterService', useValue: centerService },
+        { provide: 'IUploadService', useValue: uploadService },
       ],
     }).compile();
 
     service = module.get<AccountingExportService>(AccountingExportService);
-    repository = module.get('IAccountingExportRepository');
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('stores a CSV file and returns its download url', async () => {
+    repository.findAccountingRows.mockResolvedValue([row(), row()]);
+
+    const result = await service.createExport(dto(), USER_ID);
+
+    expect(result.status).toBe('ready');
+    expect(result.recordsCount).toBe(2);
+    expect(result.downloadUrl).toBe('/uploads/file-1');
+    expect(uploadService.upload).toHaveBeenCalledWith(
+      expect.objectContaining({ mimetype: 'text/csv' }),
+      USER_ID,
+    );
   });
 
-  describe('createExport()', () => {
-    it('should create the export and return a download url in download mode', async () => {
-      repository.create.mockResolvedValue(
-        buildEntity({
-          status: 'ready',
-          recordsCount: 42,
-          downloadUrl: 'https://cdn.adrenabook.com/exports/export-2026.csv',
-        }),
-      );
-      const dto = buildDto();
+  it('writes the rows into the uploaded file', async () => {
+    repository.findAccountingRows.mockResolvedValue([row()]);
 
-      const result = await service.createExport(
-        dto,
-        professionalId,
-        professionalEmail,
-      );
+    await service.createExport(dto(), USER_ID);
 
-      expect(result).toEqual({
-        exportJobId,
-        status: 'ready',
-        recordsCount: 42,
-        downloadUrl: 'https://cdn.adrenabook.com/exports/export-2026.csv',
-      });
-      expect(repository.create).toHaveBeenCalledWith(dto, professionalId);
-      expect(result.emailDeliveredTo).toBeUndefined();
-    });
+    const uploaded = uploadService.upload.mock.calls[0][0] as {
+      buffer: Buffer;
+    };
+    const content = uploaded.buffer.toString('utf8');
+    expect(content).toContain('Parapente');
+    expect(content).toContain('Marie Dupont');
+    // Montants a la virgule, comme les tableurs francais les attendent.
+    expect(content).toContain('240,00');
+  });
 
-    it('should return the professional email in email delivery mode', async () => {
-      repository.create.mockResolvedValue(buildEntity());
+  it('marks the job ready with the row count', async () => {
+    repository.findAccountingRows.mockResolvedValue([row(), row(), row()]);
 
-      const result = await service.createExport(
-        buildDto({ deliveryMode: AccountingExportDeliveryMode.EMAIL }),
-        professionalId,
-        professionalEmail,
-      );
+    await service.createExport(dto(), USER_ID);
 
-      expect(result.emailDeliveredTo).toBe(professionalEmail);
-      expect(result.downloadUrl).toBeUndefined();
-      expect(result.status).toBe('queued');
-    });
+    expect(repository.markReady).toHaveBeenCalledWith(
+      'job-1',
+      '/uploads/file-1',
+      3,
+    );
+  });
 
-    it('should leave the download url undefined when the export is not ready yet', async () => {
-      repository.create.mockResolvedValue(buildEntity());
+  it('queries the requested period', async () => {
+    await service.createExport(dto(), USER_ID);
 
-      const result = await service.createExport(
-        buildDto(),
-        professionalId,
-        professionalEmail,
-      );
+    expect(repository.findAccountingRows).toHaveBeenCalledWith(
+      CENTER_ID,
+      new Date('2026-09-01'),
+      new Date('2026-09-30'),
+    );
+  });
 
-      expect(result.downloadUrl).toBeUndefined();
-      expect(result.recordsCount).toBe(0);
-    });
+  it('produces a header-only file when nothing matches', async () => {
+    const result = await service.createExport(dto(), USER_ID);
 
-    it('should accept an ISO 8601 date-time range', async () => {
-      repository.create.mockResolvedValue(buildEntity());
+    expect(result.recordsCount).toBe(0);
+    const uploaded = uploadService.upload.mock.calls[0][0] as {
+      buffer: Buffer;
+    };
+    expect(uploaded.buffer.toString('utf8')).toContain('Reservation');
+  });
 
-      await expect(
-        service.createExport(
-          buildDto({
-            from: '2026-01-01T00:00:00.000Z',
-            to: '2026-03-31T23:59:59.000Z',
-          }),
-          professionalId,
-          professionalEmail,
-        ),
-      ).resolves.toBeDefined();
-    });
+  it('rejects a reversed date range', async () => {
+    await expect(
+      service.createExport(
+        dto({ from: '2026-09-30', to: '2026-09-01' }),
+        USER_ID,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 
-    it('should throw a BadRequestException when the start date is unparseable', async () => {
-      await expect(
-        service.createExport(
-          buildDto({ from: 'not-a-date' }),
-          professionalId,
-          professionalEmail,
-        ),
-      ).rejects.toThrow(BadRequestException);
-      expect(repository.create).not.toHaveBeenCalled();
-    });
+  it('rejects an unreadable date', async () => {
+    await expect(
+      service.createExport(dto({ from: 'pas une date' }), USER_ID),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 
-    it('should throw a BadRequestException when the end date is unparseable', async () => {
-      await expect(
-        service.createExport(
-          buildDto({ to: 'not-a-date' }),
-          professionalId,
-          professionalEmail,
-        ),
-      ).rejects.toThrow('Invalid date range');
-      expect(repository.create).not.toHaveBeenCalled();
-    });
+  it('refuses a center the professional does not own', async () => {
+    centerService.findAllByOwnerId.mockResolvedValue([
+      { getId: () => 'another-center' },
+    ]);
 
-    it('should throw a BadRequestException when the range is inverted', async () => {
-      await expect(
-        service.createExport(
-          buildDto({ from: '2026-03-31', to: '2026-01-01' }),
-          professionalId,
-          professionalEmail,
-        ),
-      ).rejects.toThrow(BadRequestException);
-      expect(repository.create).not.toHaveBeenCalled();
-    });
+    await expect(service.createExport(dto(), USER_ID)).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
+    expect(uploadService.upload).not.toHaveBeenCalled();
+  });
 
-    it('should throw a BadRequestException when both dates are equal', async () => {
-      await expect(
-        service.createExport(
-          buildDto({ from: '2026-01-01', to: '2026-01-01' }),
-          professionalId,
-          professionalEmail,
-        ),
-      ).rejects.toThrow(BadRequestException);
-      expect(repository.create).not.toHaveBeenCalled();
-    });
+  it('falls back to the only center when none is given', async () => {
+    await service.createExport(dto({ centerId: undefined }), USER_ID);
 
-    it('should propagate a repository failure', async () => {
-      repository.create.mockRejectedValue(new Error('database down'));
+    expect(repository.findAccountingRows).toHaveBeenCalledWith(
+      CENTER_ID,
+      expect.any(Date),
+      expect.any(Date),
+    );
+  });
 
-      await expect(
-        service.createExport(buildDto(), professionalId, professionalEmail),
-      ).rejects.toThrow('database down');
-    });
+  it('asks which center when several could match', async () => {
+    centerService.findAllByOwnerId.mockResolvedValue([
+      { getId: () => CENTER_ID },
+      { getId: () => 'second-center' },
+    ]);
+
+    await expect(
+      service.createExport(dto({ centerId: undefined }), USER_ID),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

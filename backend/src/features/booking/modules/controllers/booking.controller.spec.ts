@@ -35,12 +35,15 @@ describe('BookingController', () => {
     const bookingServiceMock: jest.Mocked<IBookingService> = {
       createBooking: jest.fn(),
       getBookingDetail: jest.fn(),
+      findMine: jest.fn(),
+      createPaymentIntent: jest.fn(),
       confirmPayment: jest.fn(),
       cancelBooking: jest.fn(),
     };
 
     const invoiceServiceMock: jest.Mocked<IInvoiceService> = {
       getInvoiceByBookingId: jest.fn(),
+      renderInvoicePdf: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -190,7 +193,6 @@ describe('BookingController', () => {
       status: 'partial_paid',
       paidAmountEur: 36,
       remainingAmountEur: 84,
-      finalPaymentDueAt: '2026-06-08T09:00:00.000Z',
     };
 
     it('should confirm the payment and return the payment summary', async () => {

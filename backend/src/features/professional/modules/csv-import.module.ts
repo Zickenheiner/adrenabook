@@ -9,11 +9,20 @@ import { CsvImportService } from './implementation/services/csv-import.service';
 import { CsvImportRepository } from './implementation/repositories/csv-import.repository';
 import { CsvImportMapper } from './implementation/mappers/csv-import.mapper';
 
+import { ProfessionalCenterBaseModule } from './professional-center.module';
+import { UploadModule } from '@features/uploads/modules/upload.module';
+import { ActivityBaseModule } from '@features/activity/modules/activity.module';
+import { SlotBaseModule } from '@features/slot/modules/slot.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: CsvImport.name, schema: CsvImportSchema },
     ]),
+    ProfessionalCenterBaseModule,
+    UploadModule,
+    ActivityBaseModule,
+    SlotBaseModule,
   ],
   controllers: [CsvImportController],
   providers: [

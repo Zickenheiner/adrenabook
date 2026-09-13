@@ -15,6 +15,18 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+/**
+ * Une activite est publiee ou elle ne l'est pas : tout ce qui n'est pas
+ * `published` reste invisible du public et non reservable.
+ */
+export type ActivityStatus = 'unpublished' | 'published';
+
+/**
+ * Ce qui est reellement ecrit a la creation. Le statut n'appartient pas au
+ * DTO client : il est impose par le service, jamais choisi a la creation.
+ */
+export type NewActivityData = CreateActivityDto & { status: ActivityStatus };
+
 export class PrerequisitesDto {
   @ApiProperty({
     description: 'Minimum age required',
@@ -104,12 +116,12 @@ export class CreateActivityDto {
   durationMinutes: number;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
   })
   @IsNumber()
   @Min(0)
-  priceFromEur: number;
+  priceEur: number;
 
   @ApiProperty({
     description: 'Prerequisites for the activity',
@@ -138,14 +150,6 @@ export class CreateActivityDto {
   @IsArray()
   @IsString({ each: true })
   photoFileIds: string[];
-
-  @ApiProperty({
-    description: 'Publication status',
-    example: 'draft',
-    enum: ['draft', 'published'],
-  })
-  @IsEnum(['draft', 'published'])
-  status: 'draft' | 'published';
 }
 
 export class UpdateActivityDto {
@@ -197,14 +201,14 @@ export class UpdateActivityDto {
   durationMinutes?: number;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
     required: false,
   })
   @IsNumber()
   @Min(0)
   @IsOptional()
-  priceFromEur?: number;
+  priceEur?: number;
 
   @ApiProperty({
     description: 'Prerequisites for the activity',
@@ -239,14 +243,15 @@ export class UpdateActivityDto {
   photoFileIds?: string[];
 
   @ApiProperty({
-    description: 'Publication status',
-    example: 'draft',
-    enum: ['draft', 'published'],
+    description:
+      "Statut de publication. Une activite non publiee reste invisible du public et n'est pas reservable.",
+    example: 'unpublished',
+    enum: ['unpublished', 'published'],
     required: false,
   })
-  @IsEnum(['draft', 'published'])
+  @IsEnum(['unpublished', 'published'])
   @IsOptional()
-  status?: 'draft' | 'published';
+  status?: ActivityStatus;
 }
 
 export class ActivityResponseDto {
@@ -258,8 +263,8 @@ export class ActivityResponseDto {
 
   @ApiProperty({
     description: 'Publication status',
-    example: 'draft',
-    enum: ['draft', 'pending_admin_review', 'published', 'archived'],
+    example: 'unpublished',
+    enum: ['unpublished', 'published'],
   })
   status: string;
 
@@ -432,10 +437,10 @@ export class SearchActivitiesItemDto {
   type: string;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
   })
-  priceFromEur: number;
+  priceEur: number;
 
   @ApiProperty({
     description: 'Duration in minutes',
@@ -594,18 +599,21 @@ export class ActivityDetailUpcomingSlotDto {
   priceEur: number;
 }
 
-export class ActivityDetailReviewsSummaryDto {
+export class ActivityMonthSlotsResponseDto {
   @ApiProperty({
-    description: 'Total number of verified reviews',
-    example: 42,
+    description: 'Creneaux du mois demande, tries par date croissante',
+    type: [ActivityDetailUpcomingSlotDto],
   })
-  count: number;
+  slots: ActivityDetailUpcomingSlotDto[];
 
   @ApiProperty({
-    description: 'Average rating (0–5)',
-    example: 4.7,
+    description:
+      'Mois a venir comportant au moins un creneau, au format YYYY-MM. ' +
+      "Permet de sauter directement a un mois ouvert plutot que de naviguer a l'aveugle.",
+    example: ['2026-09', '2026-10', '2027-03'],
+    type: [String],
   })
-  averageRating: number;
+  availableMonths: string[];
 }
 
 export class ActivityDetailResponseDto {
@@ -647,10 +655,10 @@ export class ActivityDetailResponseDto {
   durationMinutes: number;
 
   @ApiProperty({
-    description: 'Starting price in euros',
+    description: 'Price per participant in euros',
     example: 150,
   })
-  priceFromEur: number;
+  priceEur: number;
 
   @ApiProperty({
     description: 'Prerequisites for the activity',
@@ -687,16 +695,4 @@ export class ActivityDetailResponseDto {
     type: ActivityDetailCenterDto,
   })
   center: ActivityDetailCenterDto;
-
-  @ApiProperty({
-    description: 'Upcoming available slots within the next 90 days',
-    type: [ActivityDetailUpcomingSlotDto],
-  })
-  upcomingSlots: ActivityDetailUpcomingSlotDto[];
-
-  @ApiProperty({
-    description: 'Reviews summary',
-    type: ActivityDetailReviewsSummaryDto,
-  })
-  reviewsSummary: ActivityDetailReviewsSummaryDto;
 }

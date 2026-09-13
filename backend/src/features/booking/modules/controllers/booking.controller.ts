@@ -6,6 +6,8 @@ import {
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
+  MyBookingDto,
+  PaymentIntentResponseDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { IBookingService } from '@features/booking/interfaces/services/booking.iservice';
 import { IInvoiceService } from '@features/invoice/interfaces/services/invoice.iservice';
@@ -20,6 +22,7 @@ import {
   Param,
   Post,
   Req,
+  Res,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -29,6 +32,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+
+import type { Response } from 'express';
 
 @ApiTags('Bookings')
 @ApiBearerAuth()
@@ -93,6 +98,23 @@ export class BookingController {
     description: 'La réservation appartient à un autre utilisateur',
   })
   @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @ApiOperation({
+    summary: 'Lister ses réservations',
+    description:
+      "Retourne les réservations de l'utilisateur authentifié, de la plus proche à la plus ancienne, tous statuts confondus.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Réservations de l'utilisateur",
+    type: [MyBookingDto],
+  })
+  @Get('me')
+  async findMine(
+    @Req() req: { user: { sub: string } },
+  ): Promise<MyBookingDto[]> {
+    return this.bookingService.findMine(req.user.sub);
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async getBooking(
@@ -105,7 +127,7 @@ export class BookingController {
   @ApiOperation({
     summary: 'Confirmer le paiement Stripe (US-12)',
     description:
-      "Confirme le paiement d'une reservation via un PaymentIntent Stripe. Applique un acompte de 30% (partial_paid) ou le paiement total (confirmed). Idempotent : rejet si la reservation est deja payee.",
+      "Confirme le paiement d'une reservation. Le montant est regle en une fois : la reservation passe en confirmed. Idempotent : rejet si la reservation est deja payee.",
   })
   @ApiParam({
     name: 'id',
@@ -132,6 +154,28 @@ export class BookingController {
     status: 409,
     description: 'Paiement deja traite (idempotence)',
   })
+  @ApiOperation({
+    summary: "Préparer le paiement d'une réservation",
+    description:
+      "Renvoie la référence à présenter à la confirmation. En attendant l'intégration Stripe, elle est simulée : `simulated` vaut true et aucun encaissement n'a lieu.",
+  })
+  @ApiParam({ name: 'id', description: 'Identifiant de la réservation' })
+  @ApiResponse({
+    status: 201,
+    description: 'Référence de paiement',
+    type: PaymentIntentResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Réservation non payable' })
+  @ApiResponse({ status: 403, description: 'Réservation détenue par un autre' })
+  @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @Post(':id/payment-intent')
+  async createPaymentIntent(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string } },
+  ): Promise<PaymentIntentResponseDto> {
+    return this.bookingService.createPaymentIntent(id, req.user.sub);
+  }
+
   @Post(':id/confirm-payment')
   @HttpCode(HttpStatus.OK)
   async confirmPayment(
@@ -176,6 +220,34 @@ export class BookingController {
     @Req() req: { user: { sub: string } },
   ): Promise<InvoiceMetadataResponseDto> {
     return this.invoiceService.getInvoiceByBookingId(id, req.user.sub);
+  }
+
+  @ApiOperation({
+    summary: "Télécharger la facture PDF d'une réservation",
+    description:
+      'Renvoie le document PDF. Mêmes conditions que ses métadonnées : la réservation doit appartenir au demandeur et être payée.',
+  })
+  @ApiParam({ name: 'id', description: 'Identifiant de la réservation' })
+  @ApiResponse({ status: 200, description: 'Document PDF' })
+  @Get(':id/invoice/pdf')
+  async getInvoicePdf(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string } },
+    @Res() res: Response,
+  ): Promise<void> {
+    const pdf = await this.invoiceService.renderInvoicePdf(id, req.user.sub);
+    const { invoiceNumber } = await this.invoiceService.getInvoiceByBookingId(
+      id,
+      req.user.sub,
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', pdf.length);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="facture-${invoiceNumber}.pdf"`,
+    );
+    res.end(pdf);
   }
 
   @ApiOperation({

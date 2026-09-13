@@ -46,7 +46,7 @@ export class Activity {
   durationMinutes: number;
 
   @Prop({ required: true, type: Number })
-  priceFromEur: number;
+  priceEur: number;
 
   @Prop({ required: true, type: Prerequisites })
   prerequisites: Prerequisites;
@@ -60,8 +60,8 @@ export class Activity {
   @Prop({
     required: true,
     type: String,
-    default: 'draft',
-    enum: ['draft', 'pending_admin_review', 'published', 'archived'],
+    default: 'unpublished',
+    enum: ['unpublished', 'published'],
   })
   status: string;
 
@@ -74,3 +74,11 @@ export class Activity {
 }
 
 export const ActivitySchema = SchemaFactory.createForClass(Activity);
+
+// La recherche par mot-cle s'appuie sur $text, qui exige un index dedie :
+// sans lui, MongoDB rejette la requete. Le francais comme langue par defaut
+// active la racinisation et le retrait des mots vides adaptes au catalogue.
+ActivitySchema.index(
+  { title: 'text', description: 'text' },
+  { default_language: 'french', name: 'activity_text_search' },
+);

@@ -1,32 +1,14 @@
 import {
+  CenterDetailResponseDto,
   CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
   CentersQueryDto,
-  CreateCenterDto,
-  UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
-import { CenterEntity } from '@features/centers/domains/entities/center.entity';
 import { ICenterService } from '@features/centers/interfaces/services/center.iservice';
 import { Public } from '@core/decorators/public.decorator';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Inject,
-  Param,
-  Post,
-  Patch,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @Controller('centers')
 export class CenterController {
@@ -117,87 +99,23 @@ export class CenterController {
     return this.centerService.getCenters(query);
   }
 
+  @Public()
   @ApiOperation({
-    summary: 'Get center by id',
-    description: 'Retrieve a center by its id',
+    summary: "Fiche publique d'un centre",
+    description:
+      "Retourne l'identite d'un centre approuve et les activites publiees qu'il propose. Les donnees du dossier (SIRET, representant legal, justificatifs) ne sont pas exposees.",
   })
-  @ApiParam({
-    name: 'id',
-    description: 'The id of the center to retrieve',
-    required: true,
-    type: String,
-  })
+  @ApiParam({ name: 'id', description: 'Identifiant du centre', type: String })
   @ApiResponse({
     status: 200,
-    description: 'The center with the given id',
-    type: CenterEntity,
+    description: 'Fiche du centre',
+    type: CenterDetailResponseDto,
   })
+  @ApiResponse({ status: 404, description: 'Centre introuvable' })
   @Get(':id')
-  async findById(@Param('id') id: string) {
-    return this.centerService.findById(id);
-  }
-
-  @ApiOperation({
-    summary: 'Create center',
-    description: 'Create a new center',
-  })
-  @ApiBody({
-    type: CreateCenterDto,
-    description: 'The data to create a new center',
-    required: true,
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'The created center',
-    type: CenterEntity,
-  })
-  @Post()
-  async create(@Body() dto: CreateCenterDto) {
-    return this.centerService.create(dto);
-  }
-
-  @ApiOperation({
-    summary: 'Update center',
-    description: 'Update a center',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'The id of the center to update',
-    required: true,
-    type: String,
-  })
-  @ApiBody({
-    type: UpdateCenterDto,
-    description: 'The updated center data',
-    required: true,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The updated center',
-    type: Boolean,
-  })
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateCenterDto) {
-    return this.centerService.update(id, dto);
-  }
-
-  @ApiOperation({
-    summary: 'Delete center',
-    description: 'Delete a center',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'The id of the center to delete',
-    required: true,
-    type: String,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The deleted center',
-    type: Boolean,
-  })
-  @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return this.centerService.delete(id);
+  async getCenterDetail(
+    @Param('id') id: string,
+  ): Promise<CenterDetailResponseDto> {
+    return this.centerService.getCenterDetail(id);
   }
 }

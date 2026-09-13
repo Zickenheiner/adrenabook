@@ -10,8 +10,6 @@ export interface SearchActivitiesQueryDto {
   lat?: number;
   lng?: number;
   radiusKm?: number;
-  dateFrom?: string;
-  dateTo?: string;
   priceMin?: number;
   priceMax?: number;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
@@ -24,7 +22,7 @@ export interface ActivityItemResponseDto {
   id: string;
   title: string;
   type: string;
-  priceFromEur: number;
+  priceEur: number;
   durationMinutes: number;
   difficulty: string;
   centerName: string;

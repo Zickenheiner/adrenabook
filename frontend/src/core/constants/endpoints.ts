@@ -8,6 +8,8 @@ const endpoints = {
   },
   professionalCenter: {
     create: '/professional-center',
+    mine: '/professional-center/mine',
+    byId: (id: string) => `/professional-center/${id}`,
   },
   system: {
     health: '/health',
@@ -20,13 +22,27 @@ const endpoints = {
   healthProfile: {
     update: '/users/me/health-profile',
   },
+  users: {
+    byId: (id: string) => `/users/${id}`,
+  },
+  proBookings: {
+    byCenter: (centerId: string) =>
+      `/pro/dashboard/bookings?centerId=${encodeURIComponent(centerId)}`,
+  },
   proActivities: {
     base: '/pro/activities',
+    mine: (centerId: string) =>
+      `/pro/activities/my?centerId=${encodeURIComponent(centerId)}`,
+    createIn: (centerId: string) =>
+      `/pro/activities?centerId=${encodeURIComponent(centerId)}`,
     byId: (id: string) => `/pro/activities/${id}`,
   },
   proSlots: {
     create: (activityId: string) => `/pro/activities/${activityId}/slots`,
-    list: (activityId: string) => `/pro/activities/${activityId}/slots`,
+    list: (activityId: string, month: string) =>
+      `/pro/activities/${activityId}/slots?month=${month}`,
+    byId: (activityId: string, slotId: string) =>
+      `/pro/activities/${activityId}/slots/${slotId}`,
   },
   uploads: {
     create: '/uploads',
@@ -37,15 +53,22 @@ const endpoints = {
   },
   activitySearch: {
     search: '/activities/search',
+    photo: (fileId: string) => `/activities/photos/${fileId}`,
   },
   activityDetail: {
     byId: (id: string) => `/activities/${id}`,
+    slotsByMonth: (id: string, month: string) =>
+      `/activities/${id}/slots?month=${month}`,
   },
   centerMap: {
     list: '/centers',
   },
+  centers: {
+    byId: (id: string) => `/centers/${id}`,
+  },
   bookings: {
     base: '/bookings',
+    mine: '/bookings/me',
     byId: (id: string) => `/bookings/${id}`,
   },
   waiver: {
@@ -54,9 +77,11 @@ const endpoints = {
   payment: {
     confirmPayment: (bookingId: string) =>
       `/bookings/${bookingId}/confirm-payment`,
+    intent: (bookingId: string) => `/bookings/${bookingId}/payment-intent`,
   },
   invoice: {
     byBookingId: (bookingId: string) => `/bookings/${bookingId}/invoice`,
+    pdfByBookingId: (bookingId: string) => `/bookings/${bookingId}/invoice/pdf`,
   },
   notificationPreferences: {
     update: '/users/me/notification-preferences',

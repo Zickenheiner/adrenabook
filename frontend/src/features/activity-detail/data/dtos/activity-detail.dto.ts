@@ -5,7 +5,7 @@ export interface ActivityDetailResponseDto {
   type: string;
   difficulty: string;
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: {
     minAge: number;
     maxAge?: number;
@@ -21,11 +21,15 @@ export interface ActivityDetailResponseDto {
     name: string;
     location: { lat: number; lng: number; address: string };
   };
-  upcomingSlots: {
+}
+
+export interface ActivityMonthSlotsResponseDto {
+  slots: {
     id: string;
     startAt: string;
     remainingSeats: number;
     priceEur: number;
   }[];
-  reviewsSummary: { count: number; averageRating: number };
+  /** Mois à venir comportant au moins un créneau, au format YYYY-MM. */
+  availableMonths: string[];
 }

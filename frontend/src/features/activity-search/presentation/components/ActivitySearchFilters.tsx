@@ -1,8 +1,12 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SlidersHorizontal, RotateCcw } from 'lucide-react';
+import {
+  SlidersHorizontal,
+  RotateCcw,
+  LocateFixed,
+  Loader2,
+} from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
-import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
 import {
   Select,
@@ -16,22 +20,32 @@ import {
   activitySearchSchema,
   type ActivitySearchFormData,
 } from '../../domain/schemas/activity-search.schema';
+import type { GeolocationStatus } from '@/core/utils/geolocation.hook';
+
+/** Radix refuse une valeur vide : sentinelle pour « aucun rayon ». */
+const NO_RADIUS = 'all';
 
 interface Props {
   defaultValues?: ActivitySearchFormData;
   onSearch: (data: ActivitySearchFormData) => void;
+  geoStatus: GeolocationStatus;
+  onRetryGeolocation?: () => void;
 }
 
 export default function ActivitySearchFilters({
   defaultValues,
   onSearch,
+  geoStatus,
+  onRetryGeolocation,
 }: Props) {
-  const { register, handleSubmit, setValue, watch, reset } =
+  // Le rayon et le tri par distance se mesurent depuis la position : sans
+  // elle, les proposer donnerait un filtre sans effet.
+  const locationReady = geoStatus === 'granted';
+  const { handleSubmit, setValue, watch, reset } =
     useForm<ActivitySearchFormData>({
       resolver: zodResolver(activitySearchSchema),
       defaultValues: {
         sortBy: 'relevance',
-        radiusKm: 50,
         ...defaultValues,
       },
     });
@@ -40,8 +54,8 @@ export default function ActivitySearchFilters({
   const priceMax = watch('priceMax') ?? 500;
 
   const handleReset = () => {
-    reset({ sortBy: 'relevance', radiusKm: 50 });
-    onSearch({ sortBy: 'relevance', radiusKm: 50 });
+    reset({ sortBy: 'relevance', radiusKm: undefined });
+    onSearch({ sortBy: 'relevance', radiusKm: undefined });
   };
 
   return (
@@ -53,7 +67,10 @@ export default function ActivitySearchFilters({
 
       {/* Type d'activité */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Label
+          id="filtre-type-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
           Type d'activité
         </Label>
         <Select
@@ -64,7 +81,7 @@ export default function ActivitySearchFilters({
             )
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger aria-labelledby="filtre-type-label" className="w-full">
             <SelectValue placeholder="Tous les types" />
           </SelectTrigger>
           <SelectContent>
@@ -81,7 +98,10 @@ export default function ActivitySearchFilters({
 
       {/* Difficulté */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Label
+          id="filtre-difficulte-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
           Difficulté
         </Label>
         <Select
@@ -94,7 +114,10 @@ export default function ActivitySearchFilters({
             )
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger
+            aria-labelledby="filtre-difficulte-label"
+            className="w-full"
+          >
             <SelectValue placeholder="Tous niveaux" />
           </SelectTrigger>
           <SelectContent>
@@ -124,33 +147,29 @@ export default function ActivitySearchFilters({
         />
       </div>
 
-      {/* Dates */}
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-          Du
-        </Label>
-        <Input type="date" {...register('dateFrom')} className="w-full" />
-      </div>
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-          Au
-        </Label>
-        <Input type="date" {...register('dateTo')} className="w-full" />
-      </div>
-
       {/* Rayon de recherche */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-          Rayon (km)
+        <Label
+          id="filtre-rayon-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
+          Rayon
         </Label>
         <Select
-          defaultValue="50"
-          onValueChange={(v) => setValue('radiusKm', Number(v))}
+          defaultValue={NO_RADIUS}
+          disabled={!locationReady}
+          onValueChange={(v) =>
+            setValue('radiusKm', v === NO_RADIUS ? undefined : Number(v))
+          }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger
+            aria-labelledby="filtre-rayon-label"
+            className="w-full"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={NO_RADIUS}>Partout</SelectItem>
             <SelectItem value="10">10 km</SelectItem>
             <SelectItem value="25">25 km</SelectItem>
             <SelectItem value="50">50 km</SelectItem>
@@ -158,11 +177,45 @@ export default function ActivitySearchFilters({
             <SelectItem value="200">200 km</SelectItem>
           </SelectContent>
         </Select>
+        <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          {geoStatus === 'pending' && (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+              Localisation en cours…
+            </>
+          )}
+          {geoStatus === 'granted' && (
+            <>
+              <LocateFixed className="h-3 w-3 text-primary shrink-0" />
+              Autour de votre position
+            </>
+          )}
+          {geoStatus === 'denied' && (
+            <>
+              <span>Activez la localisation pour filtrer par distance.</span>
+              {onRetryGeolocation && (
+                <button
+                  type="button"
+                  onClick={onRetryGeolocation}
+                  className="shrink-0 underline underline-offset-2 hover:text-foreground"
+                >
+                  Réessayer
+                </button>
+              )}
+            </>
+          )}
+          {geoStatus === 'unsupported' && (
+            <>Votre navigateur ne gère pas la localisation.</>
+          )}
+        </p>
       </div>
 
       {/* Tri */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Label
+          id="filtre-tri-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
           Trier par
         </Label>
         <Select
@@ -171,14 +224,16 @@ export default function ActivitySearchFilters({
             setValue('sortBy', v as ActivitySearchFormData['sortBy'])
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger aria-labelledby="filtre-tri-label" className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="relevance">Pertinence</SelectItem>
             <SelectItem value="price_asc">Prix croissant</SelectItem>
             <SelectItem value="price_desc">Prix décroissant</SelectItem>
-            <SelectItem value="distance">Distance</SelectItem>
+            <SelectItem value="distance" disabled={!locationReady}>
+              Distance
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

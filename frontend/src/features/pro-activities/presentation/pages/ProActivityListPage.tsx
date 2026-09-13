@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertCircle, Inbox, Plus, Activity } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
@@ -15,11 +15,18 @@ import {
   AlertDialogTitle,
 } from '@/core/components/ui/alert-dialog';
 import routes from '@/core/constants/routes';
+import { useCenterStore } from '@/core/stores/center.store';
+import { toast } from 'sonner';
 import {
   useActivityList,
   useDeleteActivity,
+  useUpdateActivity,
 } from '../../domain/hooks/activity.hook';
 import ActivityCard from '../components/ActivityCard';
+import type {
+  ActivityEntity,
+  ActivityStatus,
+} from '../../domain/entities/activity.entity';
 
 function ProActivityListSkeleton() {
   return (
@@ -75,10 +82,58 @@ function ProActivityListEmpty({ onAdd }: { onAdd: () => void }) {
 
 export default function ProActivityListPage() {
   const navigate = useNavigate();
+  const { centerId = '' } = useParams<{ centerId: string }>();
+  const setCurrentCenterId = useCenterStore((s) => s.setCurrentCenterId);
   const { activities, activitiesIsLoading, activitiesError } =
-    useActivityList();
+    useActivityList(centerId);
   const { deleteActivity, deleteActivityIsPending } = useDeleteActivity();
+  const { updateActivity } = useUpdateActivity();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [statusPendingId, setStatusPendingId] = useState<string | null>(null);
+
+  /**
+   * Le PATCH remplace l'activite entiere : on renvoie ses champs courants avec
+   * le seul statut modifie, sinon la bascule ecraserait le reste du dossier.
+   */
+  function handleStatusChange(
+    activity: ActivityEntity,
+    status: ActivityStatus,
+  ) {
+    setStatusPendingId(activity.id);
+    updateActivity(
+      {
+        id: activity.id,
+        data: {
+          title: activity.title,
+          description: activity.description,
+          type: activity.type,
+          difficulty: activity.difficulty,
+          durationMinutes: activity.durationMinutes,
+          priceEur: activity.priceEur,
+          prerequisites: activity.prerequisites,
+          includedEquipment: activity.includedEquipment,
+          photoFileIds: activity.photoFileIds,
+          status,
+        },
+      },
+      {
+        onSuccess: () =>
+          toast.success(
+            status === 'published'
+              ? 'Activité publiée'
+              : 'Activité retirée de la publication',
+          ),
+        onError: () => toast.error('Le changement de statut a échoué'),
+        onSettled: () => setStatusPendingId(null),
+      },
+    );
+  }
+
+  // L'URL fait foi : arriver ici par un lien direct doit aligner le centre
+  // courant, sinon les ecrans enfants renverraient vers un autre centre.
+  useEffect(() => {
+    if (centerId) setCurrentCenterId(centerId);
+  }, [centerId, setCurrentCenterId]);
 
   if (activitiesIsLoading) return <ProActivityListSkeleton />;
   if (activitiesError) return <ProActivityListError />;
@@ -109,7 +164,11 @@ export default function ProActivityListPage() {
             </div>
           </div>
 
-          <Button onClick={() => navigate(routes.proActivityCreate)}>
+          <Button
+            onClick={() =>
+              navigate(routes.proActivityCreate.replace(':centerId', centerId))
+            }
+          >
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle activité
           </Button>
@@ -118,7 +177,9 @@ export default function ProActivityListPage() {
         {/* Content */}
         {!activities?.length ? (
           <ProActivityListEmpty
-            onAdd={() => navigate(routes.proActivityCreate)}
+            onAdd={() =>
+              navigate(routes.proActivityCreate.replace(':centerId', centerId))
+            }
           />
         ) : (
           <motion.div
@@ -137,7 +198,14 @@ export default function ProActivityListPage() {
                   onManageSlots={(id) =>
                     navigate(routes.proSlotManage.replace(':id', id))
                   }
+                  onEdit={(id) =>
+                    navigate(routes.proActivityEdit.replace(':id', id))
+                  }
                   onDelete={(id) => setDeleteTargetId(id)}
+                  onStatusChange={(_, status) =>
+                    handleStatusChange(activity, status)
+                  }
+                  statusIsPending={statusPendingId === activity.id}
                 />
               ))}
             </AnimatePresence>

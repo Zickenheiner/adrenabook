@@ -1,13 +1,16 @@
 import type { ActivityEntity } from '../entities/activity.entity';
-import type { CreateActivityRequestDto } from '../../data/dtos/activity.dto';
+import type {
+  CreateActivityRequestDto,
+  UpdateActivityRequestDto,
+} from '../../data/dtos/activity.dto';
 
 export interface ActivityRepository {
-  getAll(): Promise<ActivityEntity[]>;
+  getAll(centerId: string): Promise<ActivityEntity[]>;
   getById(id: string): Promise<ActivityEntity>;
-  create(data: CreateActivityRequestDto): Promise<ActivityEntity>;
-  update(
-    id: string,
-    data: Partial<CreateActivityRequestDto>,
+  create(
+    data: CreateActivityRequestDto,
+    centerId: string,
   ): Promise<ActivityEntity>;
+  update(id: string, data: UpdateActivityRequestDto): Promise<ActivityEntity>;
   delete(id: string): Promise<void>;
 }

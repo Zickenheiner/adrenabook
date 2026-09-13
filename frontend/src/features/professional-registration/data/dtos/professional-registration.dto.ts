@@ -14,11 +14,6 @@ export interface CreateProfessionalCenterRequestDto {
     postalCode: string;
     country: string;
   };
-  legalRepresentative: {
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
   documents: {
     kbisFileId: string;
     rcProFileId: string;

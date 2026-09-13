@@ -2,113 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class CreateCenterDto {
-  @ApiProperty({
-    description: 'Name of the center',
-    example: 'Centre Outdoor Lyon',
-  })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({ description: 'Latitude of the center', example: 45.764 })
-  @IsNumber()
-  @IsNotEmpty()
-  @Type(() => Number)
-  lat: number;
-
-  @ApiProperty({ description: 'Longitude of the center', example: 4.8357 })
-  @IsNumber()
-  @IsNotEmpty()
-  @Type(() => Number)
-  lng: number;
-
-  @ApiProperty({
-    description: 'City of the center',
-    example: 'Lyon',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  city?: string;
-
-  @ApiProperty({
-    description: 'Activity types offered',
-    example: ['escalade', 'canyoning'],
-    required: false,
-  })
-  @IsOptional()
-  activityTypes?: string[];
-
-  @ApiProperty({
-    description: 'Number of activities',
-    example: 5,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  @Type(() => Number)
-  activitiesCount?: number;
-}
-
-export class UpdateCenterDto {
-  @ApiProperty({
-    description: 'Name of the center',
-    example: 'Centre Outdoor Lyon',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  name?: string;
-
-  @ApiProperty({
-    description: 'Latitude of the center',
-    example: 45.764,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  @Type(() => Number)
-  lat?: number;
-
-  @ApiProperty({
-    description: 'Longitude of the center',
-    example: 4.8357,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  @Type(() => Number)
-  lng?: number;
-
-  @ApiProperty({
-    description: 'City of the center',
-    example: 'Lyon',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  city?: string;
-
-  @ApiProperty({
-    description: 'Activity types offered',
-    example: ['escalade', 'canyoning'],
-    required: false,
-  })
-  @IsOptional()
-  activityTypes?: string[];
-
-  @ApiProperty({
-    description: 'Number of activities',
-    example: 5,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  @Type(() => Number)
-  activitiesCount?: number;
-}
-
 export class CentersMapQueryDto {
   @ApiProperty({
     description: "Bounding box in format 'minLng,minLat,maxLng,maxLat'",
@@ -229,4 +122,59 @@ export class CenterListItemDto {
 export class CentersListResponseDto {
   @ApiProperty({ type: [CenterListItemDto] })
   centers: CenterListItemDto[];
+}
+
+export class CenterActivityItemDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde30' })
+  id: string;
+
+  @ApiProperty({ example: 'Via ferrata du Vercors' })
+  title: string;
+
+  @ApiProperty({ example: 'climbing' })
+  type: string;
+
+  @ApiProperty({ example: 'beginner' })
+  difficulty: string;
+
+  @ApiProperty({ example: 120 })
+  durationMinutes: number;
+
+  @ApiProperty({ example: 45 })
+  priceEur: number;
+
+  @ApiProperty({
+    example: '68b4d59919d9b7a94b4fde99',
+    description:
+      "Identifiant de l'image de couverture, a resoudre via GET /activities/photos/:fileId. Vide si l'activite n'en a pas.",
+  })
+  coverPhotoUrl: string;
+}
+
+/**
+ * Fiche publique d'un centre : son identite et les activites publiees qu'il
+ * propose. Les donnees sensibles du dossier (SIRET, representant legal,
+ * justificatifs) n'y figurent pas.
+ */
+export class CenterDetailResponseDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  id: string;
+
+  @ApiProperty({ example: 'Centre Outdoor Lyon' })
+  name: string;
+
+  @ApiProperty({ example: 'Lyon' })
+  city: string;
+
+  @ApiProperty({ example: '12 rue des Alpes, 69000 Lyon, France' })
+  address: string;
+
+  @ApiProperty({ example: 45.764 })
+  lat: number;
+
+  @ApiProperty({ example: 4.8357 })
+  lng: number;
+
+  @ApiProperty({ type: [CenterActivityItemDto] })
+  activities: CenterActivityItemDto[];
 }

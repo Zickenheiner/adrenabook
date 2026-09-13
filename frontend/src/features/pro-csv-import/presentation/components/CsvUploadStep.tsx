@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Upload, FileText, X } from 'lucide-react';
+import { FileText, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import {
   Select,
@@ -12,23 +12,46 @@ import {
 import { Label } from '@/core/components/ui/label';
 import { cn } from '@/core/utils/cn';
 
-export type EntityType = 'slots' | 'customers' | 'activities';
+export type EntityType = 'slots' | 'activities';
 
 interface Props {
-  onNext: (entityType: EntityType, fileId: string, fileName: string) => void;
+  onNext: (
+    entityType: EntityType,
+    fileId: string,
+    fileName: string,
+    columns: string[],
+  ) => void;
 }
+
+import { useUploadDocument } from '@/features/uploads/domain/hooks/upload.hook';
 
 const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   slots: 'Créneaux',
-  customers: 'Clients',
   activities: 'Activités',
 };
+
+/** Premiere ligne du fichier, decoupee comme le fera le backend. */
+async function readHeader(file: File): Promise<string[]> {
+  const text = await file.text();
+  const firstLine = text.replace(/^\ufeff/, '').split(/\r?\n/)[0] ?? '';
+  if (!firstLine.trim()) return [];
+
+  const delimiter =
+    firstLine.split(';').length > firstLine.split(',').length ? ';' : ',';
+
+  return firstLine
+    .split(delimiter)
+    .map((name) => name.trim().replace(/^"|"$/g, ''))
+    .filter((name) => name !== '');
+}
 
 export default function CsvUploadStep({ onNext }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [entityType, setEntityType] = useState<EntityType | ''>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { uploadDocument, uploadIsPending } = useUploadDocument();
 
   const handleFileChange = (file: File) => {
     if (!file.name.endsWith('.csv')) return;
@@ -42,13 +65,27 @@ export default function CsvUploadStep({ onNext }: Props) {
     if (file) handleFileChange(file);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!entityType || !selectedFile) return;
-    const simulatedFileId = `file_${Date.now()}`;
-    onNext(entityType, simulatedFileId, selectedFile.name);
+    setError(null);
+
+    try {
+      // Les en-tetes sont lues localement : l'etape de correspondance doit
+      // proposer les colonnes du fichier, pas une liste figee.
+      const header = await readHeader(selectedFile);
+      if (header.length === 0) {
+        setError('Le fichier ne contient aucune colonne.');
+        return;
+      }
+
+      const { fileId } = await uploadDocument(selectedFile);
+      onNext(entityType, fileId, selectedFile.name, header);
+    } catch {
+      setError("L'envoi du fichier a échoué. Réessayez.");
+    }
   };
 
-  const isValid = !!entityType && !!selectedFile;
+  const isValid = !!entityType && !!selectedFile && !uploadIsPending;
 
   return (
     <motion.div
@@ -143,7 +180,16 @@ export default function CsvUploadStep({ onNext }: Props) {
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleNext} disabled={!isValid}>
+        {error && (
+          <p className="text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+
+        <Button onClick={() => void handleNext()} disabled={!isValid}>
+          {uploadIsPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+          )}
           Suivant — Mapping des colonnes
         </Button>
       </div>

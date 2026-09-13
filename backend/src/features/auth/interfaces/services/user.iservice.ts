@@ -43,6 +43,14 @@ export interface IUserService {
   ): Promise<PasswordResetConfirmResponseDto>;
   create(dto: CreateUserDto): Promise<boolean>;
   update(id: string, dto: UpdateUserDto): Promise<boolean>;
+  /**
+   * Promotion en professionnel apres validation du dossier KYC (US-23).
+   *
+   * Volontairement hors de `UpdateUserDto` : le role ne doit jamais etre
+   * modifiable depuis l'endpoint de mise a jour de profil, sous peine
+   * d'escalade de privileges.
+   */
+  promoteToProfessional(id: string): Promise<boolean>;
   delete(id: string): Promise<boolean>;
 
   // ——— Profil de sante US-05 ———

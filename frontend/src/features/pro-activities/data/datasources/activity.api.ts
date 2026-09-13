@@ -2,18 +2,19 @@ import endpoints from '@/core/constants/endpoints';
 import request from '@/core/config/api';
 import methods from '@/core/constants/methods';
 import type {
-  CreateActivityRequestDto,
   ActivityResponseDto,
+  CreateActivityRequestDto,
+  UpdateActivityRequestDto,
 } from '../dtos/activity.dto';
 
 class ActivityApi {
-  constructor(
-    private readonly baseUrl: string = endpoints.proActivities.base,
-  ) {}
-
-  async getAll(): Promise<ActivityResponseDto[]> {
+  /**
+   * Activites d'un centre. `this.baseUrl` listerait celles de toute la
+   * plateforme : c'est l'endpoint d'administration.
+   */
+  async getAll(centerId: string): Promise<ActivityResponseDto[]> {
     return request<ActivityResponseDto[]>({
-      url: this.baseUrl,
+      url: endpoints.proActivities.mine(centerId),
       method: methods.GET,
     });
   }
@@ -25,9 +26,12 @@ class ActivityApi {
     });
   }
 
-  async create(data: CreateActivityRequestDto): Promise<ActivityResponseDto> {
+  async create(
+    data: CreateActivityRequestDto,
+    centerId: string,
+  ): Promise<ActivityResponseDto> {
     return request<ActivityResponseDto>({
-      url: this.baseUrl,
+      url: endpoints.proActivities.createIn(centerId),
       method: methods.POST,
       data,
     });
@@ -35,7 +39,7 @@ class ActivityApi {
 
   async update(
     id: string,
-    data: Partial<CreateActivityRequestDto>,
+    data: UpdateActivityRequestDto,
   ): Promise<ActivityResponseDto> {
     return request<ActivityResponseDto>({
       url: endpoints.proActivities.byId(id),

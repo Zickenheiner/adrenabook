@@ -3,6 +3,7 @@ import { ProfessionalCenterController } from './controllers/professional-center.
 import { ProfessionalCenterService } from './implementation/services/professional-center.service';
 import { ProfessionalCenterRepository } from './implementation/repositories/professional-center.repository';
 import { ProfessionalCenterMapper } from './implementation/mappers/professional-center.mapper';
+import { GeocodingService } from './implementation/services/geocoding.service';
 import {
   ProfessionalCenter,
   ProfessionalCenterSchema,
@@ -18,6 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
   controllers: [ProfessionalCenterController],
   providers: [
     ProfessionalCenterMapper,
+    GeocodingService,
     {
       provide: 'IProfessionalCenterService',
       useClass: ProfessionalCenterService,

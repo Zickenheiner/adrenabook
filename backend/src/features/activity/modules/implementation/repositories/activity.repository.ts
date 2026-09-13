@@ -5,10 +5,12 @@ import {
   Activity,
   ActivityDocument,
 } from '@features/activity/domains/schemas/activity.schema';
+import { Slot, SlotDocument } from '@features/slot/domains/schemas/slot.schema';
 import { Model, PipelineStage, Types } from 'mongoose';
 import {
   ActivityDetailResponseDto,
-  CreateActivityDto,
+  ActivityMonthSlotsResponseDto,
+  NewActivityData,
   SearchActivitiesItemDto,
   SearchActivitiesQueryDto,
   SearchActivitiesResponseDto,
@@ -24,7 +26,7 @@ interface ActivityDetailAggregationResult {
   type: string;
   difficulty: string;
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: {
     minAge: number;
     maxAge?: number;
@@ -45,12 +47,6 @@ interface ActivityDetailAggregationResult {
       country: string;
     };
   };
-  upcomingSlots: Array<{
-    _id: Types.ObjectId;
-    startAt: Date;
-    maxParticipants: number;
-    priceEur: number;
-  }>;
 }
 
 @Injectable()
@@ -58,6 +54,8 @@ export class ActivityRepository implements IActivityRepository {
   constructor(
     @InjectModel(Activity.name)
     private readonly activityModel: Model<ActivityDocument>,
+    @InjectModel(Slot.name)
+    private readonly slotModel: Model<SlotDocument>,
     private readonly activityMapper: ActivityMapper,
   ) {}
 
@@ -73,10 +71,19 @@ export class ActivityRepository implements IActivityRepository {
     return activity ? this.activityMapper.toEntity(activity) : null;
   }
 
-  async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
-    const now = new Date();
-    const ninetyDaysLater = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+  /**
+   * Une photo n'est servie publiquement que si une activite publiee la
+   * reference : les autres fichiers du depot (justificatifs KYC) restent
+   * inaccessibles sans authentification.
+   */
+  async existsPublishedWithPhoto(fileId: string): Promise<boolean> {
+    const count = await this.activityModel
+      .countDocuments({ status: 'published', photoFileIds: fileId })
+      .exec();
+    return count > 0;
+  }
 
+  async findDetailById(id: string): Promise<ActivityDetailResponseDto | null> {
     let objectId: Types.ObjectId;
     try {
       objectId = new Types.ObjectId(id);
@@ -97,23 +104,6 @@ export class ActivityRepository implements IActivityRepository {
       {
         $addFields: {
           center: { $arrayElemAt: ['$centerArray', 0] },
-        },
-      },
-      {
-        $lookup: {
-          from: 'slots',
-          let: { actId: '$_id' },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$activityId', '$$actId'] },
-                startAt: { $gte: now, $lte: ninetyDaysLater },
-              },
-            },
-            { $sort: { startAt: 1 } },
-            { $limit: 50 },
-          ],
-          as: 'upcomingSlots',
         },
       },
       {
@@ -141,7 +131,7 @@ export class ActivityRepository implements IActivityRepository {
     dto.type = doc.type;
     dto.difficulty = doc.difficulty;
     dto.durationMinutes = doc.durationMinutes;
-    dto.priceFromEur = doc.priceFromEur;
+    dto.priceEur = doc.priceEur;
     dto.prerequisites = doc.prerequisites;
     dto.includedEquipment = doc.includedEquipment ?? [];
 
@@ -174,21 +164,6 @@ export class ActivityRepository implements IActivityRepository {
       };
     }
 
-    dto.upcomingSlots = (doc.upcomingSlots ?? []).map((slot) => ({
-      id: slot._id.toString(),
-      startAt:
-        slot.startAt instanceof Date
-          ? slot.startAt.toISOString()
-          : String(slot.startAt),
-      remainingSeats: slot.maxParticipants,
-      priceEur: slot.priceEur,
-    }));
-
-    dto.reviewsSummary = {
-      count: 0,
-      averageRating: 0,
-    };
-
     return dto;
   }
 
@@ -200,10 +175,10 @@ export class ActivityRepository implements IActivityRepository {
   }
 
   async create(
-    dto: CreateActivityDto,
+    data: NewActivityData,
     centerId: string,
   ): Promise<ActivityEntity | null> {
-    const document = new this.activityModel({ ...dto, centerId });
+    const document = new this.activityModel({ ...data, centerId });
     const created = await document.save();
     return created ? this.activityMapper.toEntity(created) : null;
   }
@@ -218,6 +193,122 @@ export class ActivityRepository implements IActivityRepository {
   async delete(id: string): Promise<boolean> {
     const result = await this.activityModel.findByIdAndDelete(id).exec();
     return !!result;
+  }
+
+  /**
+   * Encadrement lat/lng deduit du rayon, comme pour la carte : un degre de
+   * latitude vaut environ 111 km, et un degre de longitude se resserre vers
+   * les poles d'un facteur cos(latitude).
+   */
+  private radiusFilter(
+    lat: number,
+    lng: number,
+    radiusKm: number,
+  ): Record<string, { $gte: number; $lte: number }> {
+    const deltaLat = radiusKm / 111;
+    const deltaLng = radiusKm / (111 * Math.cos((lat * Math.PI) / 180));
+
+    return {
+      'center.location.lat': { $gte: lat - deltaLat, $lte: lat + deltaLat },
+      'center.location.lng': { $gte: lng - deltaLng, $lte: lng + deltaLng },
+    };
+  }
+
+  /**
+   * Distance equirectangulaire en kilometres. L'approximation suffit pour
+   * ordonner des resultats a l'echelle d'une region, sans imposer d'index
+   * geospatial ni de migration du champ location en GeoJSON.
+   */
+  private distanceExpression(
+    lat: number,
+    lng: number,
+  ): Record<string, unknown> {
+    return {
+      $let: {
+        vars: {
+          dLat: { $subtract: ['$center.location.lat', lat] },
+          dLng: {
+            $multiply: [
+              { $subtract: ['$center.location.lng', lng] },
+              { $cos: { $degreesToRadians: lat } },
+            ],
+          },
+        },
+        in: {
+          $multiply: [
+            111.32,
+            {
+              $sqrt: {
+                $add: [{ $pow: ['$$dLat', 2] }, { $pow: ['$$dLng', 2] }],
+              },
+            },
+          ],
+        },
+      },
+    };
+  }
+
+  /**
+   * Creneaux d'un mois donne, et mois a venir qui en comportent.
+   *
+   * Charger un mois a la fois evite d'envoyer une annee de creneaux pour une
+   * recurrence longue ; `availableMonths` evite en retour de naviguer a
+   * l'aveugle de mois en mois.
+   *
+   * @param month mois vise au format YYYY-MM
+   */
+  async findSlotsByMonth(
+    id: string,
+    month: string,
+  ): Promise<ActivityMonthSlotsResponseDto | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+
+    const activity = await this.activityModel
+      .findOne({ _id: id, status: 'published' })
+      .select('priceEur')
+      .exec();
+    if (!activity) {
+      return null;
+    }
+
+    const activityId = new Types.ObjectId(id);
+    const now = new Date();
+    const [year, monthIndex] = month.split('-').map(Number);
+    const monthStart = new Date(Date.UTC(year, monthIndex - 1, 1));
+    const monthEnd = new Date(Date.UTC(year, monthIndex, 1));
+
+    // Un mois deja entame ne doit pas proposer ses dates passees.
+    const from = monthStart > now ? monthStart : now;
+
+    const [docs, months] = await Promise.all([
+      this.slotModel
+        .find({ activityId, startAt: { $gte: from, $lt: monthEnd } })
+        .sort({ startAt: 1 })
+        .exec(),
+      this.slotModel.aggregate<{ _id: string }>([
+        { $match: { activityId, startAt: { $gte: now } } },
+        {
+          $group: {
+            _id: {
+              $dateToString: { format: '%Y-%m', date: '$startAt' },
+            },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+    ]);
+
+    const response = new ActivityMonthSlotsResponseDto();
+    response.slots = docs.map((slot) => ({
+      id: String(slot._id),
+      startAt: slot.startAt.toISOString(),
+      remainingSeats: slot.maxParticipants,
+      priceEur: activity.priceEur,
+    }));
+    response.availableMonths = months.map((m) => m._id);
+    return response;
   }
 
   async search(
@@ -239,20 +330,30 @@ export class ActivityRepository implements IActivityRepository {
       const priceFilter: Record<string, number> = {};
       if (query.priceMin !== undefined) priceFilter['$gte'] = query.priceMin;
       if (query.priceMax !== undefined) priceFilter['$lte'] = query.priceMax;
-      matchFilter['priceFromEur'] = priceFilter;
+      matchFilter['priceEur'] = priceFilter;
     }
     if (query.query) {
       matchFilter['$text'] = { $search: query.query };
     }
 
+    // Position et rayon repondent a deux besoins distincts : la position seule
+    // suffit a classer du plus proche au plus loin, le rayon s'y ajoute pour
+    // restreindre la zone. Les lier obligerait a borner la recherche pour
+    // pouvoir la trier.
+    const hasPosition = query.lat !== undefined && query.lng !== undefined;
+    const hasRadius = hasPosition && query.radiusKm !== undefined;
+
     let sortField: string;
     let sortOrder: 1 | -1;
     if (query.sortBy === 'price_asc') {
-      sortField = 'priceFromEur';
+      sortField = 'priceEur';
       sortOrder = 1;
     } else if (query.sortBy === 'price_desc') {
-      sortField = 'priceFromEur';
+      sortField = 'priceEur';
       sortOrder = -1;
+    } else if (query.sortBy === 'distance' && hasPosition) {
+      sortField = 'distanceKm';
+      sortOrder = 1;
     } else {
       sortField = '_id';
       sortOrder = -1;
@@ -269,8 +370,25 @@ export class ActivityRepository implements IActivityRepository {
         },
       },
       { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
-      { $sort: { [sortField]: sortOrder } },
     ];
+
+    if (hasRadius) {
+      // Les coordonnees sont portees par le centre : le filtre ne peut donc
+      // s'appliquer qu'apres la jointure.
+      pipeline.push({
+        $match: this.radiusFilter(query.lat!, query.lng!, query.radiusKm!),
+      });
+    }
+
+    if (hasPosition) {
+      pipeline.push({
+        $addFields: {
+          distanceKm: this.distanceExpression(query.lat!, query.lng!),
+        },
+      });
+    }
+
+    pipeline.push({ $sort: { [sortField]: sortOrder } });
 
     const countPipeline: PipelineStage[] = [...pipeline, { $count: 'total' }];
     const dataPipeline: PipelineStage[] = [
@@ -282,7 +400,7 @@ export class ActivityRepository implements IActivityRepository {
           _id: 1,
           title: 1,
           type: 1,
-          priceFromEur: 1,
+          priceEur: 1,
           durationMinutes: 1,
           difficulty: 1,
           centerName: '$center.companyName',
@@ -304,7 +422,7 @@ export class ActivityRepository implements IActivityRepository {
         _id: unknown;
         title: string;
         type: string;
-        priceFromEur: number;
+        priceEur: number;
         durationMinutes: number;
         difficulty: string;
         centerName: string;
@@ -315,7 +433,7 @@ export class ActivityRepository implements IActivityRepository {
       item.id = String(doc._id);
       item.title = doc.title;
       item.type = doc.type;
-      item.priceFromEur = doc.priceFromEur;
+      item.priceEur = doc.priceEur;
       item.durationMinutes = doc.durationMinutes;
       item.difficulty = doc.difficulty;
       item.centerName = doc.centerName ?? '';

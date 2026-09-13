@@ -1,7 +1,9 @@
+import { useCreatePaymentIntent } from '@/features/payment/domain/hooks/payment.hook';
+import { useState } from 'react';
 import { useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { AlertCircle, ArrowLeft, CreditCard } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Separator } from '@/core/components/ui/separator';
 import { Skeleton } from '@/core/components/ui/skeleton';
@@ -47,12 +49,37 @@ function BookingConfirmationError({ error }: { error: unknown }) {
 }
 
 export default function BookingConfirmationPage() {
+  const [payError, setPayError] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const { booking, bookingIsLoading, bookingError } = useBookingDetail(
     id ?? '',
   );
+  const { createPaymentIntentAsync, createPaymentIntentIsPending } =
+    useCreatePaymentIntent(id ?? '');
+
+  /**
+   * Le paiement se prepare cote API : la reference vient de la, jamais du
+   * navigateur, et l'appel verifie au passage que la reservation est encore
+   * payable.
+   */
+  const handlePay = async () => {
+    if (!id) return;
+    setPayError(null);
+    try {
+      const intent = await createPaymentIntentAsync();
+      navigate(
+        `${routes.paymentPage.replace(':id', id)}?payment_intent=${intent.paymentIntentId}`,
+      );
+    } catch (error) {
+      setPayError(
+        error instanceof ApiError
+          ? error.message
+          : 'Le paiement n’a pas pu être initialisé. Réessayez.',
+      );
+    }
+  };
 
   const handleExpire = useCallback(() => {
     navigate(routes.activitySearch);
@@ -110,12 +137,26 @@ export default function BookingConfirmationPage() {
               Finalisez votre paiement pour confirmer définitivement votre
               réservation.
             </p>
-            <Button className="w-full" size="lg" disabled>
-              <CreditCard className="mr-2 h-4 w-4" />
-              Procéder au paiement (Stripe)
+            <Button
+              className="w-full"
+              size="lg"
+              disabled={createPaymentIntentIsPending}
+              onClick={() => void handlePay()}
+            >
+              {createPaymentIntentIsPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              Procéder au paiement
             </Button>
+            {payError && (
+              <p className="text-destructive text-center text-sm" role="alert">
+                {payError}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground text-center">
-              Paiement sécurisé — intégration Stripe à venir
+              Paiement simulé — l&apos;encaissement Stripe reste à intégrer
             </p>
           </motion.div>
         </>

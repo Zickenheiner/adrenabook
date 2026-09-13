@@ -22,12 +22,12 @@ import {
   type ProfessionalRegistrationFormData,
 } from '../../domain/schemas/professional-registration.schema';
 import DocumentUploadField from './DocumentUploadField';
+import AddressAutocomplete from '@/core/components/AddressAutocomplete';
 import ProfessionalRegistrationStep from './ProfessionalRegistrationStep';
 
 const STEPS = [
   { label: 'Société', description: 'Informations générales' },
   { label: 'Adresse', description: 'Localisation du centre' },
-  { label: 'Représentant', description: 'Représentant légal' },
   { label: 'Documents', description: 'Pièces justificatives' },
 ];
 
@@ -39,7 +39,6 @@ interface Props {
 const STEP_FIELDS: (keyof ProfessionalRegistrationFormData)[][] = [
   ['companyName', 'siret', 'contactEmail', 'contactPhone'],
   ['address'],
-  ['legalRepresentative'],
   ['documents'],
 ];
 
@@ -59,10 +58,26 @@ export default function ProfessionalRegistrationForm({
       contactEmail: '',
       contactPhone: '',
       address: { street: '', city: '', postalCode: '', country: 'France' },
-      legalRepresentative: { firstName: '', lastName: '', role: '' },
       documents: { kbisFileId: '', rcProFileId: '', instructorDiplomas: [] },
     },
   });
+
+  // Lus ici, dans le rendu du composant : `formState` est un Proxy qui n'abonne
+  // que ce qu'il voit passer pendant le rendu de CE composant. Lus depuis le
+  // render prop d'un Controller, leurs changements ne provoqueraient aucun
+  // rendu de ce formulaire.
+  const { errors, submitCount, touchedFields } = form.formState;
+
+  /**
+   * Un depot de document ne signale son absence qu'une fois l'utilisateur passe
+   * dessus, ou apres une tentative d'envoi : afficher l'erreur des l'arrivee
+   * sur l'etape reprocherait une faute qu'il n'a pas encore eu l'occasion de
+   * commettre.
+   */
+  const documentError = (field: 'kbisFileId' | 'rcProFileId') =>
+    submitCount > 0 || touchedFields.documents?.[field]
+      ? errors.documents?.[field]?.message
+      : undefined;
 
   const handleNext = async () => {
     const valid = await form.trigger(STEP_FIELDS[step] as never);
@@ -107,7 +122,16 @@ export default function ProfessionalRegistrationForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleValid, handleInvalid)}
+        onSubmit={(event) => {
+          // Seule la derniere etape envoie le dossier : une soumission
+          // declenchee autrement (touche Entree, bouton recycle par React)
+          // signalerait des champs que l'utilisateur n'a pas encore vus.
+          if (step < STEPS.length - 1) {
+            event.preventDefault();
+            return;
+          }
+          void form.handleSubmit(handleValid, handleInvalid)(event);
+        }}
         className="space-y-6"
         noValidate
       >
@@ -195,7 +219,19 @@ export default function ProfessionalRegistrationForm({
                 <FormItem>
                   <FormLabel>Rue</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="12 rue des Alpes" />
+                    <AddressAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      onSelect={(address) => {
+                        // Le code postal et la ville accompagnent la rue
+                        // choisie : les ressaisir serait redondant et source
+                        // d'incoherence avec le geocodage.
+                        field.onChange(address.street);
+                        form.setValue('address.postalCode', address.postalCode);
+                        form.setValue('address.city', address.city);
+                      }}
+                      placeholder="12 rue des Alpes"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -247,52 +283,6 @@ export default function ProfessionalRegistrationForm({
 
         {step === 2 && (
           <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="legalRepresentative.firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prénom</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Marie" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="legalRepresentative.lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Dupont" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="legalRepresentative.role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rôle / Fonction</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Gérant" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4">
             <FormField
               control={form.control}
               name="documents.kbisFileId"
@@ -304,9 +294,7 @@ export default function ProfessionalRegistrationForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isSubmitting}
-                      error={
-                        form.formState.errors.documents?.kbisFileId?.message
-                      }
+                      error={documentError('kbisFileId')}
                     />
                   </FormControl>
                 </FormItem>
@@ -323,9 +311,7 @@ export default function ProfessionalRegistrationForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isSubmitting}
-                      error={
-                        form.formState.errors.documents?.rcProFileId?.message
-                      }
+                      error={documentError('rcProFileId')}
                     />
                   </FormControl>
                 </FormItem>
@@ -375,12 +361,12 @@ export default function ProfessionalRegistrationForm({
           )}
 
           {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={handleNext}>
+            <Button key="next" type="button" onClick={handleNext}>
               Suivant
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting}>
+            <Button key="submit" type="submit" disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}

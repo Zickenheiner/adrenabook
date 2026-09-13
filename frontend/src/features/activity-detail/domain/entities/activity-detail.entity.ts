@@ -29,11 +29,6 @@ export interface ActivityDetailSlot {
   priceEur: number;
 }
 
-export interface ActivityDetailReviewsSummary {
-  count: number;
-  averageRating: number;
-}
-
 export interface ActivityDetailEntity {
   id: string;
   title: string;
@@ -41,12 +36,15 @@ export interface ActivityDetailEntity {
   type: string;
   difficulty: string;
   durationMinutes: number;
-  priceFromEur: number;
+  priceEur: number;
   prerequisites: ActivityDetailPrerequisites;
   includedEquipment: string[];
   photos: ActivityDetailPhoto[];
   videos: ActivityDetailVideo[];
   center: ActivityDetailCenter;
-  upcomingSlots: ActivityDetailSlot[];
-  reviewsSummary: ActivityDetailReviewsSummary;
+}
+
+export interface ActivityMonthSlotsEntity {
+  slots: ActivityDetailSlot[];
+  availableMonths: string[];
 }

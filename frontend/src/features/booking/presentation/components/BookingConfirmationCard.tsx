@@ -27,7 +27,7 @@ interface Props {
 const STATUS_LABELS: Record<BookingStatus, string> = {
   pending_payment: 'En attente de paiement',
   confirmed: 'Confirmée',
-  partial_paid: 'Acompte versé',
+  partial_paid: 'Partiellement réglée',
   cancelled: 'Annulée',
   completed: 'Terminée',
 };

@@ -8,9 +8,7 @@ export class SlotMapper {
     const entity = new SlotEntity(doc._id);
     entity.setActivityId(doc.activityId);
     entity.setStartAt(doc.startAt);
-    entity.setDurationMinutes(doc.durationMinutes);
     entity.setMaxParticipants(doc.maxParticipants);
-    entity.setPriceEur(doc.priceEur);
     entity.setInstructorIds(doc.instructorIds);
     if (doc.recurrence) {
       entity.setRecurrence({

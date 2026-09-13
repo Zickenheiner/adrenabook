@@ -127,7 +127,7 @@ export default function InvoiceDownloadPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <InvoiceCard invoice={invoice} />
+        <InvoiceCard invoice={invoice} bookingId={bookingId} />
       </motion.div>
     </motion.div>
   );

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, Activity } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
@@ -8,16 +8,28 @@ import routes from '@/core/constants/routes';
 import { useCreateActivity } from '../../domain/hooks/activity.hook';
 import ActivityForm from '../components/ActivityForm';
 import type { CreateActivityFormData } from '../../domain/schemas/activity.schema';
+import type { CreateActivityRequestDto } from '../../data/dtos/activity.dto';
+
+/**
+ * Le statut n'est pas de la partie a la creation : le serveur pose lui-meme
+ * `unpublished`, la mise en ligne se fera depuis le catalogue.
+ */
+const toCreatePayload = ({
+  status: _status,
+  ...rest
+}: CreateActivityFormData): CreateActivityRequestDto => rest;
 
 export default function ProActivityCreatePage() {
   const navigate = useNavigate();
-  const { createActivity, createActivityIsPending } = useCreateActivity();
+  const { centerId = '' } = useParams<{ centerId: string }>();
+  const { createActivity, createActivityIsPending } =
+    useCreateActivity(centerId);
 
   function handleSubmit(data: CreateActivityFormData) {
-    createActivity(data, {
+    createActivity(toCreatePayload(data), {
       onSuccess: () => {
         toast.success('Activité créée avec succès');
-        navigate(routes.proActivityList);
+        navigate(routes.proActivityList.replace(':centerId', centerId));
       },
       onError: () => {
         toast.error('Une erreur est survenue lors de la création');
@@ -39,10 +51,12 @@ export default function ProActivityCreatePage() {
             variant="ghost"
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
-            onClick={() => navigate(routes.proActivityList)}
+            onClick={() =>
+              navigate(routes.proActivityList.replace(':centerId', centerId))
+            }
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour au catalogue
+            Retour aux activités
           </Button>
 
           <div className="flex items-center gap-3">

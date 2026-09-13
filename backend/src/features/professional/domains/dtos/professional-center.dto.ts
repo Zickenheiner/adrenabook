@@ -2,8 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDefined,
+  IsEmail,
   IsNotEmpty,
   IsNotEmptyObject,
+  IsOptional,
   IsString,
   Matches,
   ValidateNested,
@@ -30,26 +32,6 @@ export class AddressDto {
   @IsString()
   @IsNotEmpty()
   country: string;
-}
-
-export class LegalRepresentativeDto {
-  @ApiProperty({
-    description: 'Prénom du représentant légal',
-    example: 'Marie',
-  })
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
-
-  @ApiProperty({ description: 'Nom du représentant légal', example: 'Dupont' })
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
-
-  @ApiProperty({ description: 'Rôle du représentant légal', example: 'Gérant' })
-  @IsString()
-  @IsNotEmpty()
-  role: string;
 }
 
 export class DocumentsDto {
@@ -132,16 +114,6 @@ export class RegisterProfessionalDto {
   address: AddressDto;
 
   @ApiProperty({
-    description: 'Représentant légal du centre',
-    type: LegalRepresentativeDto,
-  })
-  @IsDefined()
-  @IsNotEmptyObject()
-  @ValidateNested()
-  @Type(() => LegalRepresentativeDto)
-  legalRepresentative: LegalRepresentativeDto;
-
-  @ApiProperty({
     description: 'Documents KYC (Kbis, RC Pro, diplômes encadrants)',
     type: DocumentsDto,
   })
@@ -178,6 +150,14 @@ export class RegisterProfessionalResponseDto {
 
 export class CreateProfessionalCenterDto extends RegisterProfessionalDto {}
 
+/**
+ * Champs qu'un professionnel peut corriger sur son centre.
+ *
+ * Le SIRET en est volontairement absent, comme les justificatifs, le
+ * representant legal et le statut : ils fondent la decision d'instruction du
+ * dossier (US-23) et les laisser modifier apres validation reviendrait a
+ * approuver une structure puis a en changer l'identite.
+ */
 export class UpdateProfessionalCenterDto {
   @ApiProperty({
     description: 'Nom de la société',
@@ -186,5 +166,63 @@ export class UpdateProfessionalCenterDto {
   })
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
   companyName?: string;
+
+  @ApiProperty({
+    description: 'Email de contact',
+    example: 'contact@alpes-aventures.fr',
+    required: false,
+  })
+  @IsEmail()
+  @IsOptional()
+  contactEmail?: string;
+
+  @ApiProperty({
+    description: 'Téléphone de contact',
+    example: '+33450123456',
+    required: false,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  contactPhone?: string;
+
+  @ApiProperty({
+    description: 'Adresse du centre. Sa modification déclenche un regéocodage.',
+    type: AddressDto,
+    required: false,
+  })
+  @ValidateNested()
+  @Type(() => AddressDto)
+  @IsOptional()
+  address?: AddressDto;
+}
+
+/**
+ * Centre tel que son proprietaire le voit dans "Mes centres". `activitiesCount`
+ * conditionne la suppression : un centre qui porte des activites ne peut pas
+ * etre supprime.
+ */
+export class OwnedCenterDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  id: string;
+
+  @ApiProperty({ example: 'Centre Outdoor Lyon' })
+  companyName: string;
+
+  @ApiProperty({ example: 'approved' })
+  status: string;
+
+  @ApiProperty({ example: 'contact@alpes-aventures.fr' })
+  contactEmail: string;
+
+  @ApiProperty({ example: '+33450123456' })
+  contactPhone: string;
+
+  @ApiProperty({ type: AddressDto })
+  address: AddressDto;
+
+  @ApiProperty({ example: 3 })
+  activitiesCount: number;
 }

@@ -38,7 +38,7 @@ export class UploadService implements IUploadService {
       )
     ) {
       throw new BadRequestException(
-        `Format non accepté : ${file.mimetype}. Formats autorisés : PDF, JPEG, PNG.`,
+        `Format non accepté : ${file.mimetype}. Formats autorisés : PDF, JPEG, PNG, CSV.`,
       );
     }
 
@@ -81,6 +81,10 @@ export class UploadService implements IUploadService {
     }
 
     return file;
+  }
+
+  async findPublicById(id: string): Promise<UploadEntity | null> {
+    return this.uploadRepository.findById(id);
   }
 
   openDownloadStream(id: string): Readable {

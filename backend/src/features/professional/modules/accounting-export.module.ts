@@ -9,11 +9,16 @@ import { AccountingExportService } from './implementation/services/accounting-ex
 import { AccountingExportRepository } from './implementation/repositories/accounting-export.repository';
 import { AccountingExportMapper } from './implementation/mappers/accounting-export.mapper';
 
+import { ProfessionalCenterBaseModule } from './professional-center.module';
+import { UploadModule } from '@features/uploads/modules/upload.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: AccountingExport.name, schema: AccountingExportSchema },
     ]),
+    ProfessionalCenterBaseModule,
+    UploadModule,
   ],
   controllers: [AccountingExportController],
   providers: [

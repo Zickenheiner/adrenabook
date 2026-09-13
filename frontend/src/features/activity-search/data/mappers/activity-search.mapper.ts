@@ -13,7 +13,7 @@ class ActivitySearchMapper {
       id: dto.id,
       title: dto.title,
       type: dto.type,
-      priceFromEur: dto.priceFromEur,
+      priceEur: dto.priceEur,
       durationMinutes: dto.durationMinutes,
       difficulty: dto.difficulty,
       centerName: dto.centerName,

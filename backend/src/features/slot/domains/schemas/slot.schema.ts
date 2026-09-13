@@ -28,13 +28,7 @@ export class Slot {
   startAt: Date;
 
   @Prop({ required: true, type: Number })
-  durationMinutes: number;
-
-  @Prop({ required: true, type: Number })
   maxParticipants: number;
-
-  @Prop({ required: true, type: Number })
-  priceEur: number;
 
   @Prop({ required: true, type: [String], default: [] })
   instructorIds: string[];

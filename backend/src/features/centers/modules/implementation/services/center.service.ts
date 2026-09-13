@@ -1,15 +1,18 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ICenterService } from '../../../interfaces/services/center.iservice';
 import { ICenterRepository } from '@features/centers/interfaces/repositories/center.irepository';
 import {
+  CenterDetailResponseDto,
   CentersListResponseDto,
   CentersMapQueryDto,
   CentersMapResponseDto,
   CentersQueryDto,
-  CreateCenterDto,
-  UpdateCenterDto,
 } from '@features/centers/domains/dtos/center.dto';
-import { CenterEntity } from '@features/centers/domains/entities/center.entity';
 
 @Injectable()
 export class CenterService implements ICenterService {
@@ -17,26 +20,6 @@ export class CenterService implements ICenterService {
     @Inject('ICenterRepository')
     private readonly centerRepository: ICenterRepository,
   ) {}
-
-  async findAll(): Promise<CenterEntity[] | null> {
-    return this.centerRepository.findAll();
-  }
-
-  async findById(id: string): Promise<CenterEntity | null> {
-    return this.centerRepository.findById(id);
-  }
-
-  async create(dto: CreateCenterDto): Promise<CenterEntity | null> {
-    return this.centerRepository.create(dto);
-  }
-
-  async update(id: string, dto: UpdateCenterDto): Promise<boolean> {
-    return this.centerRepository.update(id, dto);
-  }
-
-  async delete(id: string): Promise<boolean> {
-    return this.centerRepository.delete(id);
-  }
 
   async getMap(query: CentersMapQueryDto): Promise<CentersMapResponseDto> {
     const parts = query.bbox.split(',').map(Number);
@@ -81,6 +64,14 @@ export class CenterService implements ICenterService {
         activitiesCount: c.getActivitiesCount(),
       })),
     };
+  }
+
+  async getCenterDetail(id: string): Promise<CenterDetailResponseDto> {
+    const center = await this.centerRepository.findDetailById(id);
+    if (!center) {
+      throw new NotFoundException('Centre introuvable');
+    }
+    return center;
   }
 
   async getCenters(query: CentersQueryDto): Promise<CentersListResponseDto> {

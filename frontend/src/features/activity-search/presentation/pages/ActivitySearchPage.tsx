@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useGeolocation } from '@/core/utils/geolocation.hook';
 import { motion } from 'motion/react';
 import { AlertCircle, Inbox, Search } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
@@ -12,6 +13,9 @@ import {
   ActivityCardSkeleton,
 } from '../components/ActivityCard';
 import ActivitySearchPagination from '../components/ActivitySearchPagination';
+
+export type GeolocationStatus =
+  'pending' | 'granted' | 'denied' | 'unsupported';
 
 const DEFAULT_PARAMS: ActivitySearchParamsEntity = {
   page: 1,
@@ -63,6 +67,11 @@ export default function ActivitySearchPage() {
   const [params, setParams] =
     useState<ActivitySearchParamsEntity>(DEFAULT_PARAMS);
   const [queryInput, setQueryInput] = useState('');
+  const {
+    position,
+    status: geoStatus,
+    retry: retryGeolocation,
+  } = useGeolocation();
 
   const { searchResult, searchIsLoading, searchError } =
     useActivitySearch(params);
@@ -70,6 +79,9 @@ export default function ActivitySearchPage() {
   const handleSearch = (data: ActivitySearchFormData) => {
     setParams({
       ...data,
+      // Sans position connue, le rayon est ecarte : le transmettre seul
+      // laisserait croire a un filtrage qui n'a pas lieu.
+      ...(position ? position : { radiusKm: undefined }),
       query: queryInput || data.query,
       page: 1,
       pageSize: 20,
@@ -131,6 +143,8 @@ export default function ActivitySearchPage() {
               <ActivitySearchFilters
                 defaultValues={params}
                 onSearch={handleSearch}
+                geoStatus={geoStatus}
+                onRetryGeolocation={retryGeolocation}
               />
             </div>
           </aside>

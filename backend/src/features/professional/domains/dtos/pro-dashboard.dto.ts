@@ -100,3 +100,56 @@ export class DashboardResponseDto {
   @ApiProperty({ type: [TopActivityDto], description: 'Top 3 activities' })
   topActivities: TopActivityDto[];
 }
+
+/**
+ * Reservation prise sur une activite du centre, telle que le professionnel la
+ * consulte.
+ *
+ * Porte le nom des participants : c'est ce qui permet d'accueillir les clients
+ * le jour venu. Les donnees de sante restent hors de cette vue, elles relevent
+ * du dossier medical et non de l'accueil.
+ */
+export class CenterBookingDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  bookingId: string;
+
+  @ApiProperty({ example: 'Parapente biplace' })
+  activityTitle: string;
+
+  @ApiProperty({ example: '2026-09-05T09:00:00.000Z' })
+  slotStartAt: string;
+
+  @ApiProperty({ example: 90 })
+  durationMinutes: number;
+
+  @ApiProperty({ example: 'Marie Dupont' })
+  customerName: string;
+
+  @ApiProperty({ example: 'marie@example.fr' })
+  customerEmail: string;
+
+  @ApiProperty({
+    example: ['Marie Dupont', 'Paul Dupont'],
+    type: [String],
+    description: 'Participants annonces a la reservation',
+  })
+  participantNames: string[];
+
+  @ApiProperty({ example: 2 })
+  participants: number;
+
+  @ApiProperty({
+    example: 'confirmed',
+    enum: ['pending_payment', 'partial_paid', 'confirmed', 'cancelled'],
+  })
+  status: string;
+
+  @ApiProperty({ example: 240 })
+  totalEur: number;
+
+  @ApiProperty({ example: 240 })
+  paidAmountEur: number;
+
+  @ApiProperty({ example: '2026-08-20T12:15:00.000Z' })
+  bookedAt: string;
+}

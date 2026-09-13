@@ -10,6 +10,11 @@ export const ALLOWED_UPLOAD_MIME_TYPES = [
   'application/pdf',
   'image/jpeg',
   'image/png',
+  // Imports en masse (US-20). Les navigateurs etiquettent un .csv tantot
+  // text/csv, tantot application/vnd.ms-excel selon l'OS et les logiciels
+  // installes : refuser la seconde forme rejetterait des fichiers valides.
+  'text/csv',
+  'application/vnd.ms-excel',
 ] as const;
 
 export const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5 Mo

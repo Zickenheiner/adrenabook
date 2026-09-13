@@ -9,6 +9,8 @@ import {
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
+  MyBookingDto,
+  PaymentIntentResponseDto,
 } from '@features/booking/domains/dtos/booking.dto';
 
 @Injectable()
@@ -40,6 +42,17 @@ export class BookingService implements IBookingService {
     userId: string,
   ): Promise<BookingDetailResponseDto> {
     return this.bookingRepository.findDetailById(id, userId);
+  }
+
+  async findMine(userId: string, bookingId?: string): Promise<MyBookingDto[]> {
+    return this.bookingRepository.findMine(userId, bookingId);
+  }
+
+  async createPaymentIntent(
+    id: string,
+    userId: string,
+  ): Promise<PaymentIntentResponseDto> {
+    return this.bookingRepository.createPaymentIntent(id, userId);
   }
 
   async confirmPayment(

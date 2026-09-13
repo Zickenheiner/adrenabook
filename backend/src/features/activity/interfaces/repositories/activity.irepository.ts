@@ -1,6 +1,7 @@
 import {
+  ActivityMonthSlotsResponseDto,
   ActivityDetailResponseDto,
-  CreateActivityDto,
+  NewActivityData,
   SearchActivitiesQueryDto,
   SearchActivitiesResponseDto,
   UpdateActivityDto,
@@ -10,10 +11,17 @@ import { ActivityEntity } from '@features/activity/domains/entities/activity.ent
 export interface IActivityRepository {
   findAll(): Promise<ActivityEntity[] | null>;
   findById(id: string): Promise<ActivityEntity | null>;
+  /** Une photo n'est publiquement lisible que si une activite publiee la porte. */
+  existsPublishedWithPhoto(fileId: string): Promise<boolean>;
   findDetailById(id: string): Promise<ActivityDetailResponseDto | null>;
+  /** null si l'activite n'existe pas ou n'est pas publiee */
+  findSlotsByMonth(
+    id: string,
+    month: string,
+  ): Promise<ActivityMonthSlotsResponseDto | null>;
   findByCenterId(centerId: string): Promise<ActivityEntity[] | null>;
   create(
-    dto: CreateActivityDto,
+    data: NewActivityData,
     centerId: string,
   ): Promise<ActivityEntity | null>;
   update(id: string, dto: UpdateActivityDto): Promise<boolean>;

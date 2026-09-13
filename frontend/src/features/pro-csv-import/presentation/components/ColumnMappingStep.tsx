@@ -14,56 +14,70 @@ import type { EntityType } from './CsvUploadStep';
 interface Props {
   entityType: EntityType;
   fileName: string;
+  /** En-tetes lues dans le fichier depose. */
+  columns: string[];
   onNext: (columnMapping: Record<string, string>) => void;
   onBack: () => void;
 }
 
-const TARGET_FIELDS: Record<EntityType, { key: string; label: string }[]> = {
+const TARGET_FIELDS: Record<
+  EntityType,
+  { key: string; label: string; required: boolean }[]
+> = {
+  // La duree et le prix sont ceux de l'activite : un creneau ne peut pas les
+  // contredire, le fichier n'a donc pas a les porter.
   slots: [
-    { key: 'title', label: 'Titre' },
-    { key: 'startDate', label: 'Date de début' },
-    { key: 'endDate', label: 'Date de fin' },
-    { key: 'capacity', label: 'Capacité' },
-    { key: 'price', label: 'Prix (€)' },
-  ],
-  customers: [
-    { key: 'firstName', label: 'Prénom' },
-    { key: 'lastName', label: 'Nom' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Téléphone' },
+    { key: 'activityTitle', label: "Titre de l'activité", required: true },
+    { key: 'startAt', label: 'Date et heure de début', required: true },
+    { key: 'maxParticipants', label: 'Participants max', required: true },
   ],
   activities: [
-    { key: 'name', label: 'Nom' },
-    { key: 'description', label: 'Description' },
-    { key: 'duration', label: 'Durée (min)' },
-    { key: 'difficulty', label: 'Difficulté' },
+    { key: 'title', label: 'Titre', required: true },
+    { key: 'description', label: 'Description', required: true },
+    { key: 'type', label: "Type d'activité", required: true },
+    {
+      key: 'difficulty',
+      label: 'Difficulté (beginner, intermediate, advanced)',
+      required: true,
+    },
+    { key: 'durationMinutes', label: 'Durée (min)', required: true },
+    { key: 'priceEur', label: 'Prix (€)', required: true },
   ],
 };
-
-// Simulate CSV column names detected from the file
-const MOCK_CSV_COLUMNS = [
-  'Colonne A',
-  'Colonne B',
-  'Colonne C',
-  'Colonne D',
-  'Colonne E',
-];
 
 export default function ColumnMappingStep({
   entityType,
   fileName,
+  columns,
   onNext,
   onBack,
 }: Props) {
   const fields = TARGET_FIELDS[entityType];
-  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [mapping, setMapping] = useState<Record<string, string>>(() =>
+    // Une colonne portant le nom du champ cible est associee d'office : les
+    // fichiers issus d'un export precedent tombent juste sans rien saisir.
+    Object.fromEntries(
+      fields
+        .map((field) => [
+          field.key,
+          columns.find(
+            (column) => column.toLowerCase() === field.label.toLowerCase(),
+          ) ?? '',
+        ])
+        .filter(([, column]) => column),
+    ),
+  );
 
   const handleMapping = (targetKey: string, csvColumn: string) => {
     setMapping((prev) => ({ ...prev, [targetKey]: csvColumn }));
   };
 
   const mappedCount = Object.keys(mapping).filter((k) => mapping[k]).length;
-  const isValid = mappedCount >= 1;
+  // Une colonne requise non associee ferait echouer toutes les lignes cote
+  // API : autant bloquer ici.
+  const isValid = fields
+    .filter((field) => field.required)
+    .every((field) => !!mapping[field.key]);
 
   return (
     <motion.div
@@ -102,7 +116,7 @@ export default function ColumnMappingStep({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__ignore__">— Ignorer —</SelectItem>
-                  {MOCK_CSV_COLUMNS.map((col) => (
+                  {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
                     </SelectItem>

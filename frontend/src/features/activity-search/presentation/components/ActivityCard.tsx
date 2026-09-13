@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { resolvePhotoUrl } from '@/core/utils/photo-url';
 import { Clock, Image as ImageIcon, MapPin, Star, Users } from 'lucide-react';
 import { Badge } from '@/core/components/ui/badge';
 import { Card, CardContent } from '@/core/components/ui/card';
@@ -42,7 +43,10 @@ function formatDuration(minutes: number): string {
 
 export default function ActivityCard({ activity }: Props) {
   const [coverFailed, setCoverFailed] = useState(false);
-  const hasCover = !!activity.coverPhotoUrl && !coverFailed;
+  // Le backend renvoie l'identifiant du fichier : il faut le resoudre en URL
+  // servie publiquement avant de le donner a <img>.
+  const coverUrl = resolvePhotoUrl(activity.coverPhotoUrl);
+  const hasCover = !!coverUrl && !coverFailed;
 
   return (
     <Link
@@ -54,7 +58,7 @@ export default function ActivityCard({ activity }: Props) {
         <div className="relative h-48 overflow-hidden bg-muted">
           {hasCover ? (
             <img
-              src={activity.coverPhotoUrl}
+              src={coverUrl}
               alt={activity.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={() => setCoverFailed(true)}
@@ -120,9 +124,11 @@ export default function ActivityCard({ activity }: Props) {
 
           <div className="flex items-end justify-between pt-1 border-t border-border/50">
             <div>
-              <span className="text-xs text-muted-foreground">À partir de</span>
+              <span className="text-xs text-muted-foreground">
+                Par personne
+              </span>
               <p className="text-lg font-bold text-primary">
-                {activity.priceFromEur.toLocaleString('fr-FR', {
+                {activity.priceEur.toLocaleString('fr-FR', {
                   style: 'currency',
                   currency: 'EUR',
                 })}

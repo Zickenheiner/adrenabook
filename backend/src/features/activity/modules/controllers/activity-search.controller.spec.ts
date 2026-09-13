@@ -11,6 +11,10 @@ import {
 describe('ActivitySearchController', () => {
   let controller: ActivitySearchController;
   let activityService: jest.Mocked<IActivityService>;
+  let uploadService: {
+    findPublicById: jest.Mock;
+    openDownloadStream: jest.Mock;
+  };
 
   const activityId = '68b4d59919d9b7a94b4fde21';
 
@@ -19,11 +23,21 @@ describe('ActivitySearchController', () => {
       findAll: jest.fn(),
       findById: jest.fn(),
       findDetailById: jest.fn(),
+      findSlotsByMonth: jest.fn(),
       findByCenterId: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       search: jest.fn(),
+      isPublicPhoto: jest.fn(),
+      findMine: jest.fn(),
+    };
+
+    const uploadServiceMock = {
+      upload: jest.fn(),
+      getForReader: jest.fn(),
+      findPublicById: jest.fn(),
+      openDownloadStream: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -33,11 +47,16 @@ describe('ActivitySearchController', () => {
           provide: 'IActivityService',
           useValue: activityServiceMock,
         },
+        {
+          provide: 'IUploadService',
+          useValue: uploadServiceMock,
+        },
       ],
     }).compile();
 
     controller = module.get<ActivitySearchController>(ActivitySearchController);
     activityService = module.get('IActivityService');
+    uploadService = module.get('IUploadService');
   });
 
   it('should be defined', () => {
@@ -51,7 +70,7 @@ describe('ActivitySearchController', () => {
           id: activityId,
           title: 'Parachute en tandem',
           type: 'paragliding',
-          priceFromEur: 150,
+          priceEur: 150,
           durationMinutes: 60,
           difficulty: 'beginner',
           centerName: 'Centre Aventure Alpes',
@@ -121,6 +140,51 @@ describe('ActivitySearchController', () => {
     });
   });
 
+  describe('findSlotsByMonth()', () => {
+    const payload = { slots: [], availableMonths: ['2026-09'] };
+
+    it('should default to the current month when none is given', async () => {
+      activityService.findSlotsByMonth.mockResolvedValue(payload);
+
+      await controller.findSlotsByMonth(activityId, undefined);
+
+      expect(activityService.findSlotsByMonth).toHaveBeenCalledWith(
+        activityId,
+        new Date().toISOString().slice(0, 7),
+      );
+    });
+
+    it('should pass the requested month through', async () => {
+      activityService.findSlotsByMonth.mockResolvedValue(payload);
+
+      const result = await controller.findSlotsByMonth(activityId, '2027-03');
+
+      expect(activityService.findSlotsByMonth).toHaveBeenCalledWith(
+        activityId,
+        '2027-03',
+      );
+      expect(result).toBe(payload);
+    });
+
+    it.each(['septembre', '2026-13', '2026-9', '2026'])(
+      'should reject the malformed month %s',
+      async (month) => {
+        await expect(
+          controller.findSlotsByMonth(activityId, month),
+        ).rejects.toThrow(BadRequestException);
+        expect(activityService.findSlotsByMonth).not.toHaveBeenCalled();
+      },
+    );
+
+    it('should throw NotFoundException when the activity does not exist', async () => {
+      activityService.findSlotsByMonth.mockResolvedValue(null);
+
+      await expect(
+        controller.findSlotsByMonth(activityId, '2026-09'),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('findDetail()', () => {
     const detail: ActivityDetailResponseDto = {
       id: activityId,
@@ -129,7 +193,7 @@ describe('ActivitySearchController', () => {
       type: 'paragliding',
       difficulty: 'beginner',
       durationMinutes: 60,
-      priceFromEur: 150,
+      priceEur: 150,
       prerequisites: {
         minAge: 18,
         medicalCertificateRequired: false,
@@ -156,15 +220,6 @@ describe('ActivitySearchController', () => {
           address: '12 Rue de la Montagne, 69001 Lyon, France',
         },
       },
-      upcomingSlots: [
-        {
-          id: '68b4d59919d9b7a94b4fde23',
-          startAt: '2026-06-15T09:00:00.000Z',
-          remainingSeats: 5,
-          priceEur: 150,
-        },
-      ],
-      reviewsSummary: { count: 42, averageRating: 4.7 },
     };
 
     it('should return the activity detail', async () => {
@@ -195,6 +250,51 @@ describe('ActivitySearchController', () => {
       await expect(controller.findDetail(activityId)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('photo()', () => {
+    const fileId = '68b4d59919d9b7a94b4fde99';
+
+    const buildResponse = () => ({
+      setHeader: jest.fn(),
+    });
+
+    it('streams a photo carried by a published activity', async () => {
+      const pipe = jest.fn();
+      activityService.isPublicPhoto.mockResolvedValue(true);
+      uploadService.findPublicById.mockResolvedValue({
+        getMimeType: () => 'image/jpeg',
+        getSizeBytes: () => 1234,
+      });
+      uploadService.openDownloadStream.mockReturnValue({ pipe });
+
+      const res = buildResponse();
+      await controller.photo(fileId, res as never);
+
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'image/jpeg');
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Length', 1234);
+      expect(pipe).toHaveBeenCalledWith(res);
+    });
+
+    it('hides a file no published activity references', async () => {
+      activityService.isPublicPhoto.mockResolvedValue(false);
+
+      await expect(
+        controller.photo(fileId, buildResponse() as never),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      // Le depot ne doit pas etre interroge : repondre autre chose que 404
+      // revelerait l'existence du fichier.
+      expect(uploadService.findPublicById).not.toHaveBeenCalled();
+    });
+
+    it('reports a missing file as not found', async () => {
+      activityService.isPublicPhoto.mockResolvedValue(true);
+      uploadService.findPublicById.mockResolvedValue(null);
+
+      await expect(
+        controller.photo(fileId, buildResponse() as never),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 });

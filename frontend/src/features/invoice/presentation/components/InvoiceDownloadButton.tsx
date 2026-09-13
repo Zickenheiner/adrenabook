@@ -1,15 +1,17 @@
+import endpoints from '@/core/constants/endpoints';
+import { getAccessToken } from '@/core/local/storage';
 import { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { toast } from 'sonner';
 
 interface Props {
-  downloadUrl: string;
+  bookingId: string;
   invoiceNumber: string;
 }
 
 export default function InvoiceDownloadButton({
-  downloadUrl,
+  bookingId,
   invoiceNumber,
 }: Props) {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -17,7 +19,13 @@ export default function InvoiceDownloadButton({
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(downloadUrl);
+      // Le PDF est servi par l'API sous jeton : une URL nue recevrait la page
+      // du frontend, enregistree telle quelle en .pdf.
+      const token = getAccessToken();
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}${endpoints.invoice.pdfByBookingId(bookingId)}`,
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+      );
       if (!response.ok) {
         throw new Error('Échec du téléchargement');
       }
@@ -25,7 +33,7 @@ export default function InvoiceDownloadButton({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${invoiceNumber}.pdf`;
+      a.download = `facture-${invoiceNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

@@ -9,7 +9,6 @@ import { CreditCard, Euro } from 'lucide-react';
 
 interface Props {
   bookingId: string;
-  depositPercent?: number;
   totalAmountEur: number;
 }
 
@@ -22,12 +21,8 @@ function formatEur(amount: number): string {
 
 export default function PaymentSummaryCard({
   bookingId,
-  depositPercent = 30,
   totalAmountEur,
 }: Props) {
-  const depositAmount = (totalAmountEur * depositPercent) / 100;
-  const remainingAmount = totalAmountEur - depositAmount;
-
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -42,19 +37,6 @@ export default function PaymentSummaryCard({
           <span className="font-mono text-xs">{bookingId}</span>
         </div>
         <Separator />
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span>Acompte ({depositPercent}%)</span>
-            <span className="font-semibold text-primary">
-              {formatEur(depositAmount)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>Solde restant (dû à J-7)</span>
-            <span>{formatEur(remainingAmount)}</span>
-          </div>
-        </div>
-        <Separator />
         <div className="flex items-center justify-between font-semibold">
           <span className="flex items-center gap-1">
             <Euro className="h-4 w-4" />
@@ -63,7 +45,7 @@ export default function PaymentSummaryCard({
           <span>{formatEur(totalAmountEur)}</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Paiement sécurisé par Stripe — 3D Secure obligatoire
+          Paiement simulé — aucun encaissement réel n&apos;est effectué
         </p>
       </CardContent>
     </Card>

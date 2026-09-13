@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { CheckCircle2, CalendarClock, ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import {
   Card,
@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/core/components/ui/card';
-import { Separator } from '@/core/components/ui/separator';
 import PaymentStatusBadge from './PaymentStatusBadge';
 import type { PaymentConfirmationEntity } from '../../domain/entities/payment.entity';
 
@@ -21,14 +20,6 @@ function formatEur(amount: number): string {
     style: 'currency',
     currency: 'EUR',
   }).format(amount);
-}
-
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(date);
 }
 
 export default function PaymentSuccessContent({
@@ -72,29 +63,6 @@ export default function PaymentSuccessContent({
               {formatEur(confirmation.paidAmountEur)}
             </span>
           </div>
-
-          {confirmation.remainingAmountEur > 0 && (
-            <>
-              <Separator />
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Solde restant</span>
-                <span className="font-medium">
-                  {formatEur(confirmation.remainingAmountEur)}
-                </span>
-              </div>
-              {confirmation.finalPaymentDueAt && (
-                <div className="flex items-center gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700">
-                  <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-                  <span>
-                    Solde à régler avant le{' '}
-                    <strong>
-                      {formatDate(confirmation.finalPaymentDueAt)}
-                    </strong>
-                  </span>
-                </div>
-              )}
-            </>
-          )}
         </CardContent>
       </Card>
 

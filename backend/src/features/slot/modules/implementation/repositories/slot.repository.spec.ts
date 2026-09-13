@@ -44,6 +44,9 @@ describe('SlotRepository', () => {
     })) as unknown as jest.Mock & Record<string, jest.Mock>;
     slotModel.findById = jest.fn();
     slotModel.find = jest.fn();
+    slotModel.aggregate = jest.fn();
+    slotModel.findByIdAndUpdate = jest.fn();
+    slotModel.findByIdAndDelete = jest.fn();
 
     bookingModel = { countDocuments: jest.fn() };
     activityModel = { findById: jest.fn() };
@@ -140,6 +143,58 @@ describe('SlotRepository', () => {
     });
   });
 
+  describe('findByActivityIdAndMonth()', () => {
+    it('should return an empty list without querying for an invalid id', async () => {
+      expect(
+        await repository.findByActivityIdAndMonth('bad-id', '2026-06'),
+      ).toEqual([]);
+      expect(slotModel.find).not.toHaveBeenCalled();
+    });
+
+    it('should bound the query to the requested month', async () => {
+      slotModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      });
+
+      await repository.findByActivityIdAndMonth(VALID_ID, '2027-03');
+
+      const filter = slotModel.find.mock.calls[0][0] as {
+        startAt: { $gte: Date; $lt: Date };
+      };
+      expect(filter.startAt.$gte.toISOString()).toBe(
+        '2027-03-01T00:00:00.000Z',
+      );
+      expect(filter.startAt.$lt.toISOString()).toBe('2027-04-01T00:00:00.000Z');
+    });
+  });
+
+  describe('findMonthsWithSlots()', () => {
+    it('should return an empty list without querying for an invalid id', async () => {
+      expect(await repository.findMonthsWithSlots('bad-id')).toEqual([]);
+      expect(slotModel.aggregate).not.toHaveBeenCalled();
+    });
+
+    it('should not filter out past months', async () => {
+      slotModel.aggregate.mockResolvedValue([
+        { _id: '2025-12' },
+        { _id: '2026-06' },
+      ]);
+
+      const result = await repository.findMonthsWithSlots(VALID_ID);
+
+      // Le professionnel consulte aussi l'historique : filtrer sur le futur
+      // lui masquerait ses creneaux passes.
+      const stages = slotModel.aggregate.mock.calls[0][0] as Array<
+        Record<string, never>
+      >;
+      const match = stages[0]['$match'] as unknown as Record<string, unknown>;
+      expect(match).not.toHaveProperty('startAt');
+      expect(result).toEqual(['2025-12', '2026-06']);
+    });
+  });
+
   describe('findActivityOwnership()', () => {
     it('should return null without querying when the activity id is invalid', async () => {
       const result = await repository.findActivityOwnership('bad-id');
@@ -183,11 +238,80 @@ describe('SlotRepository', () => {
     });
   });
 
+  describe('findActivityConditions()', () => {
+    it('should return null without querying when the activity id is invalid', async () => {
+      const result = await repository.findActivityConditions('not-an-id');
+
+      expect(result).toBeNull();
+      expect(activityModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('should return null when the activity does not exist', async () => {
+      activityModel.findById.mockReturnValue(selectChain(null));
+
+      expect(await repository.findActivityConditions(VALID_ID)).toBeNull();
+    });
+
+    it('should read the duration and the price from the activity', async () => {
+      activityModel.findById.mockReturnValue(
+        selectChain({ durationMinutes: 90, priceEur: 45 }),
+      );
+
+      expect(await repository.findActivityConditions(VALID_ID)).toEqual({
+        durationMinutes: 90,
+        priceEur: 45,
+      });
+    });
+  });
+
+  describe('updateSlot() / deleteSlot()', () => {
+    it('should refuse an invalid slot id without querying', async () => {
+      expect(await repository.updateSlot('bad-id', {})).toBe(false);
+      expect(await repository.deleteSlot('bad-id')).toBe(false);
+      expect(slotModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(slotModel.findByIdAndDelete).not.toHaveBeenCalled();
+    });
+
+    it('should only write the fields that were provided', async () => {
+      slotModel.findByIdAndUpdate.mockReturnValue(selectChain({ _id: 'a' }));
+
+      await repository.updateSlot(VALID_ID, { maxParticipants: 12 });
+
+      expect(slotModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        VALID_ID,
+        { maxParticipants: 12 },
+        { new: true },
+      );
+    });
+
+    it('should convert startAt into a Date', async () => {
+      slotModel.findByIdAndUpdate.mockReturnValue(selectChain({ _id: 'a' }));
+
+      await repository.updateSlot(VALID_ID, {
+        startAt: '2026-07-01T09:00:00.000Z',
+      });
+
+      const update = slotModel.findByIdAndUpdate.mock.calls[0][1] as {
+        startAt: Date;
+      };
+      expect(update.startAt).toBeInstanceOf(Date);
+    });
+
+    it('should do nothing when no field changes', async () => {
+      expect(await repository.updateSlot(VALID_ID, {})).toBe(true);
+      expect(slotModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should report a missing slot', async () => {
+      slotModel.findByIdAndDelete.mockReturnValue(selectChain(null));
+
+      expect(await repository.deleteSlot(VALID_ID)).toBe(false);
+    });
+  });
+
   describe('createMany()', () => {
     const dto: CreateSlotsDto = {
-      durationMinutes: 120,
       maxParticipants: 8,
-      priceEur: 90,
       instructorIds: ['instructor-1'],
     } as CreateSlotsDto;
 
@@ -206,17 +330,17 @@ describe('SlotRepository', () => {
       const payload = slotModel.mock.calls[0][0] as {
         activityId: mongoose.Types.ObjectId;
         startAt: Date;
-        durationMinutes: number;
         maxParticipants: number;
-        priceEur: number;
         instructorIds: string[];
       };
       expect(payload.activityId.toString()).toBe(VALID_ID);
       expect(payload.startAt).toEqual(dates[0]);
-      expect(payload.durationMinutes).toBe(120);
       expect(payload.maxParticipants).toBe(8);
-      expect(payload.priceEur).toBe(90);
       expect(payload.instructorIds).toEqual(['instructor-1']);
+
+      // La duree et le prix ne sont plus portes par le creneau.
+      expect(payload).not.toHaveProperty('durationMinutes');
+      expect(payload).not.toHaveProperty('priceEur');
     });
 
     it('should carry the recurrence rule over to every document', async () => {
