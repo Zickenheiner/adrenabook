@@ -34,26 +34,6 @@ export class AddressDto {
   country: string;
 }
 
-export class LegalRepresentativeDto {
-  @ApiProperty({
-    description: 'Prénom du représentant légal',
-    example: 'Marie',
-  })
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
-
-  @ApiProperty({ description: 'Nom du représentant légal', example: 'Dupont' })
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
-
-  @ApiProperty({ description: 'Rôle du représentant légal', example: 'Gérant' })
-  @IsString()
-  @IsNotEmpty()
-  role: string;
-}
-
 export class DocumentsDto {
   @ApiProperty({
     description: 'ID du fichier Kbis uploadé via /uploads',
@@ -132,16 +112,6 @@ export class RegisterProfessionalDto {
   @ValidateNested()
   @Type(() => AddressDto)
   address: AddressDto;
-
-  @ApiProperty({
-    description: 'Représentant légal du centre',
-    type: LegalRepresentativeDto,
-  })
-  @IsDefined()
-  @IsNotEmptyObject()
-  @ValidateNested()
-  @Type(() => LegalRepresentativeDto)
-  legalRepresentative: LegalRepresentativeDto;
 
   @ApiProperty({
     description: 'Documents KYC (Kbis, RC Pro, diplômes encadrants)',

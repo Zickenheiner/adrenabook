@@ -20,11 +20,6 @@ export class ProfessionalCenterEntity {
     postalCode: string;
     country: string;
   };
-  private legalRepresentative: {
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
   private documents: {
     kbisFileId: string;
     rcProFileId: string;
@@ -75,14 +70,6 @@ export class ProfessionalCenterEntity {
     return this.address;
   }
 
-  getLegalRepresentative(): {
-    firstName: string;
-    lastName: string;
-    role: string;
-  } {
-    return this.legalRepresentative;
-  }
-
   getDocuments(): {
     kbisFileId: string;
     rcProFileId: string;
@@ -124,14 +111,6 @@ export class ProfessionalCenterEntity {
     country: string;
   }): void {
     this.address = value;
-  }
-
-  setLegalRepresentative(value: {
-    firstName: string;
-    lastName: string;
-    role: string;
-  }): void {
-    this.legalRepresentative = value;
   }
 
   setDocuments(value: {

@@ -27,7 +27,6 @@ import ProfessionalRegistrationStep from './ProfessionalRegistrationStep';
 const STEPS = [
   { label: 'Société', description: 'Informations générales' },
   { label: 'Adresse', description: 'Localisation du centre' },
-  { label: 'Représentant', description: 'Représentant légal' },
   { label: 'Documents', description: 'Pièces justificatives' },
 ];
 
@@ -39,7 +38,6 @@ interface Props {
 const STEP_FIELDS: (keyof ProfessionalRegistrationFormData)[][] = [
   ['companyName', 'siret', 'contactEmail', 'contactPhone'],
   ['address'],
-  ['legalRepresentative'],
   ['documents'],
 ];
 
@@ -59,7 +57,6 @@ export default function ProfessionalRegistrationForm({
       contactEmail: '',
       contactPhone: '',
       address: { street: '', city: '', postalCode: '', country: 'France' },
-      legalRepresentative: { firstName: '', lastName: '', role: '' },
       documents: { kbisFileId: '', rcProFileId: '', instructorDiplomas: [] },
     },
   });
@@ -246,52 +243,6 @@ export default function ProfessionalRegistrationForm({
         )}
 
         {step === 2 && (
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="legalRepresentative.firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prénom</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Marie" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="legalRepresentative.lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Dupont" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="legalRepresentative.role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rôle / Fonction</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Gérant" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-
-        {step === 3 && (
           <div className="space-y-4">
             <FormField
               control={form.control}

@@ -65,11 +65,6 @@ describe('ProfessionalCenterController', () => {
       postalCode: '69001',
       country: 'France',
     },
-    legalRepresentative: {
-      firstName: 'Marie',
-      lastName: 'Durand',
-      role: 'Gérante',
-    },
     documents: {
       kbisFileId: 'file_abc123',
       rcProFileId: 'file_def456',

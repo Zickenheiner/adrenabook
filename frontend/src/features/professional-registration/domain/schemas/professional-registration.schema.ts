@@ -38,11 +38,6 @@ export const professionalRegistrationSchema = z.object({
       .regex(/^\d{5}$/, 'Le code postal doit contenir 5 chiffres'),
     country: z.string().min(1, 'Le pays est obligatoire'),
   }),
-  legalRepresentative: z.object({
-    firstName: z.string().min(1, 'Le prénom est obligatoire'),
-    lastName: z.string().min(1, 'Le nom est obligatoire'),
-    role: z.string().min(1, 'Le rôle est obligatoire'),
-  }),
   documents: z.object({
     // Obligatoires côté backend (DocumentsDto : @IsNotEmpty)
     kbisFileId: z.string().min(1, 'Le Kbis est obligatoire'),

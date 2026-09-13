@@ -12,7 +12,6 @@ export class ProfessionalCenterMapper {
     entity.setContactEmail(doc.contactEmail);
     entity.setContactPhone(doc.contactPhone);
     entity.setAddress(doc.address);
-    entity.setLegalRepresentative(doc.legalRepresentative);
     entity.setDocuments(doc.documents);
     entity.setStatus(doc.status);
     return entity;

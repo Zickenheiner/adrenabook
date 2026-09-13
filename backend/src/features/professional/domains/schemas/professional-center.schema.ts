@@ -33,18 +33,6 @@ export class GeoLocation {
 }
 
 @Schema({ _id: false })
-export class LegalRepresentative {
-  @Prop({ required: true, type: String, trim: true })
-  firstName: string;
-
-  @Prop({ required: true, type: String, trim: true })
-  lastName: string;
-
-  @Prop({ required: true, type: String, trim: true })
-  role: string;
-}
-
-@Schema({ _id: false })
 export class Documents {
   @Prop({ required: true, type: String })
   kbisFileId: string;
@@ -90,9 +78,6 @@ export class ProfessionalCenter {
 
   @Prop({ required: false, type: GeoLocation })
   location?: GeoLocation;
-
-  @Prop({ required: true, type: LegalRepresentative })
-  legalRepresentative: LegalRepresentative;
 
   @Prop({ required: true, type: Documents })
   documents: Documents;
