@@ -22,6 +22,9 @@ import {
 } from '../../domain/schemas/activity-search.schema';
 import type { GeolocationStatus } from '../pages/ActivitySearchPage';
 
+/** Radix refuse une valeur vide : sentinelle pour « aucun rayon ». */
+const NO_RADIUS = 'all';
+
 interface Props {
   defaultValues?: ActivitySearchFormData;
   onSearch: (data: ActivitySearchFormData) => void;
@@ -41,7 +44,6 @@ export default function ActivitySearchFilters({
       resolver: zodResolver(activitySearchSchema),
       defaultValues: {
         sortBy: 'relevance',
-        radiusKm: 50,
         ...defaultValues,
       },
     });
@@ -50,8 +52,8 @@ export default function ActivitySearchFilters({
   const priceMax = watch('priceMax') ?? 500;
 
   const handleReset = () => {
-    reset({ sortBy: 'relevance', radiusKm: 50 });
-    onSearch({ sortBy: 'relevance', radiusKm: 50 });
+    reset({ sortBy: 'relevance', radiusKm: undefined });
+    onSearch({ sortBy: 'relevance', radiusKm: undefined });
   };
 
   return (
@@ -137,17 +139,20 @@ export default function ActivitySearchFilters({
       {/* Rayon de recherche */}
       <div className="space-y-1.5">
         <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-          Rayon (km)
+          Rayon
         </Label>
         <Select
-          defaultValue="50"
+          defaultValue={NO_RADIUS}
           disabled={!locationReady}
-          onValueChange={(v) => setValue('radiusKm', Number(v))}
+          onValueChange={(v) =>
+            setValue('radiusKm', v === NO_RADIUS ? undefined : Number(v))
+          }
         >
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={NO_RADIUS}>Partout</SelectItem>
             <SelectItem value="10">10 km</SelectItem>
             <SelectItem value="25">25 km</SelectItem>
             <SelectItem value="50">50 km</SelectItem>

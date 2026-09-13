@@ -471,6 +471,28 @@ describe('ActivityRepository', () => {
       expect(geoMatch['center.location.lng'].$lte).toBeGreaterThan(1.44);
     });
 
+    it('should sort by distance without restricting the results when no radius is given', async () => {
+      stubAggregations([], []);
+
+      await repository.search({
+        lat: 43.6,
+        lng: 1.44,
+        sortBy: 'distance',
+      } as SearchActivitiesQueryDto);
+
+      // Trier par distance n'implique pas de limiter la zone : l'utilisateur
+      // peut vouloir les plus proches d'abord, partout en France.
+      const { data } = lastPipelines();
+      const hasGeoMatch = data.some(
+        (stage) =>
+          '$match' in stage &&
+          'center.location.lat' in (stage as { $match: object }).$match,
+      );
+      expect(hasGeoMatch).toBe(false);
+      expect(data.some((stage) => '$addFields' in stage)).toBe(true);
+      expect(data).toContainEqual({ $sort: { distanceKm: 1 } });
+    });
+
     it('should not build any geographic filter when the position is missing', async () => {
       stubAggregations([], []);
 

@@ -11,13 +11,19 @@ globalThis.ResizeObserver = class {
 const renderWith = (geoStatus: GeolocationStatus) =>
   render(<ActivitySearchFilters geoStatus={geoStatus} onSearch={() => {}} />);
 
-/** Le déclencheur du select placé juste sous le libellé « Rayon (km) ». */
+/** Le déclencheur du select placé juste sous le libellé « Rayon ». */
 const radiusTrigger = () =>
   screen
-    .getByText('Rayon (km)')
+    .getByText('Rayon')
     .parentElement!.querySelector('[data-slot="select-trigger"]')!;
 
 describe('ActivitySearchFilters — rayon et localisation', () => {
+  it('ne présélectionne aucun rayon, pour ne pas restreindre malgré soi', () => {
+    renderWith('granted');
+
+    expect(radiusTrigger()).toHaveTextContent('Partout');
+  });
+
   it('annonce la localisation en cours et garde le rayon désactivé', () => {
     renderWith('pending');
 

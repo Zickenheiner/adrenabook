@@ -310,12 +310,12 @@ export class ActivityRepository implements IActivityRepository {
       matchFilter['$text'] = { $search: query.query };
     }
 
-    // Le rayon n'a de sens qu'avec un point d'origine : sans position, le
-    // filtre geographique et le tri par distance sont sans objet.
-    const hasOrigin =
-      query.lat !== undefined &&
-      query.lng !== undefined &&
-      query.radiusKm !== undefined;
+    // Position et rayon repondent a deux besoins distincts : la position seule
+    // suffit a classer du plus proche au plus loin, le rayon s'y ajoute pour
+    // restreindre la zone. Les lier obligerait a borner la recherche pour
+    // pouvoir la trier.
+    const hasPosition = query.lat !== undefined && query.lng !== undefined;
+    const hasRadius = hasPosition && query.radiusKm !== undefined;
 
     let sortField: string;
     let sortOrder: 1 | -1;
@@ -325,7 +325,7 @@ export class ActivityRepository implements IActivityRepository {
     } else if (query.sortBy === 'price_desc') {
       sortField = 'priceEur';
       sortOrder = -1;
-    } else if (query.sortBy === 'distance' && hasOrigin) {
+    } else if (query.sortBy === 'distance' && hasPosition) {
       sortField = 'distanceKm';
       sortOrder = 1;
     } else {
@@ -346,17 +346,20 @@ export class ActivityRepository implements IActivityRepository {
       { $unwind: { path: '$center', preserveNullAndEmptyArrays: true } },
     ];
 
-    if (hasOrigin) {
+    if (hasRadius) {
       // Les coordonnees sont portees par le centre : le filtre ne peut donc
       // s'appliquer qu'apres la jointure.
-      pipeline.push(
-        { $match: this.radiusFilter(query.lat!, query.lng!, query.radiusKm!) },
-        {
-          $addFields: {
-            distanceKm: this.distanceExpression(query.lat!, query.lng!),
-          },
+      pipeline.push({
+        $match: this.radiusFilter(query.lat!, query.lng!, query.radiusKm!),
+      });
+    }
+
+    if (hasPosition) {
+      pipeline.push({
+        $addFields: {
+          distanceKm: this.distanceExpression(query.lat!, query.lng!),
         },
-      );
+      });
     }
 
     pipeline.push({ $sort: { [sortField]: sortOrder } });
