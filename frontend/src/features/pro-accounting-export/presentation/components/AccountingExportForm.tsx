@@ -18,13 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/core/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/core/components/ui/select';
 import { Checkbox } from '@/core/components/ui/checkbox';
 import {
   Popover,
@@ -66,30 +59,6 @@ export default function AccountingExportForm({ onSubmit, isPending }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Format */}
-          <FormField
-            control={form.control}
-            name="format"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Format d&apos;export</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir un format" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="csv_generic">CSV</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Période */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
