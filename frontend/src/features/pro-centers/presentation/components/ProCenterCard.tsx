@@ -1,10 +1,8 @@
-import { Link } from 'react-router-dom';
 import { Building2, MapPin, Trash2 } from 'lucide-react';
 import { Badge } from '@/core/components/ui/badge';
 import { Button } from '@/core/components/ui/button';
 import { Card } from '@/core/components/ui/card';
 import { cn } from '@/core/utils/cn';
-import routes from '@/core/constants/routes';
 import type {
   ProCenterEntity,
   ProCenterStatus,
@@ -43,13 +41,11 @@ export default function ProCenterCard({ center, onDelete }: Props) {
   // refuserait la creation tant qu'il n'est pas approuve.
   const manageable = center.status === 'approved';
 
-  const body = (
+  return (
     <Card
       className={cn(
-        'flex h-full flex-col gap-3 p-5 transition-all duration-200',
-        manageable
-          ? 'border-border/50 hover:border-border hover:shadow-md'
-          : 'border-border/50 opacity-80',
+        'flex h-full flex-col gap-3 border-border/50 p-5',
+        !manageable && 'opacity-80',
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -76,13 +72,7 @@ export default function ProCenterCard({ center, onDelete }: Props) {
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-destructive"
             aria-label={`Supprimer ${center.name}`}
-            onClick={(e) => {
-              // La carte entiere est un lien : sans cela, supprimer
-              // naviguerait aussi vers les activites.
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete(center);
-            }}
+            onClick={() => onDelete(center)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -95,17 +85,5 @@ export default function ProCenterCard({ center, onDelete }: Props) {
         </p>
       )}
     </Card>
-  );
-
-  if (!manageable) return body;
-
-  return (
-    <Link
-      to={routes.proActivityList.replace(':centerId', center.id)}
-      className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      aria-label={`Gérer les activités de ${center.name}`}
-    >
-      {body}
-    </Link>
   );
 }
