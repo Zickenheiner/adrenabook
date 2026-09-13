@@ -1,7 +1,7 @@
 import { Button } from '@/core/components/ui/button';
 import routes from '@/core/constants/routes';
 import { Link } from 'react-router-dom';
-import { Building2, Clock, MapPin, Star } from 'lucide-react';
+import { Building2, Clock, MapPin } from 'lucide-react';
 import { Badge } from '@/core/components/ui/badge';
 import { cn } from '@/core/utils/cn';
 import type { ActivityDetailEntity } from '../../domain/entities/activity-detail.entity';
@@ -56,15 +56,6 @@ export default function ActivityHeader({ activity }: Props) {
       <h1 className="text-3xl font-bold tracking-tight">{activity.title}</h1>
 
       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-        {activity.reviewsSummary.count > 0 && (
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-            <span className="font-semibold text-foreground">
-              {activity.reviewsSummary.averageRating.toFixed(1)}
-            </span>
-            <span>({activity.reviewsSummary.count} avis)</span>
-          </div>
-        )}
         <div className="flex items-center gap-1">
           <Clock className="h-4 w-4" />
           <span>{formatDuration(activity.durationMinutes)}</span>

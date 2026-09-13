@@ -616,20 +616,6 @@ export class ActivityMonthSlotsResponseDto {
   availableMonths: string[];
 }
 
-export class ActivityDetailReviewsSummaryDto {
-  @ApiProperty({
-    description: 'Total number of verified reviews',
-    example: 42,
-  })
-  count: number;
-
-  @ApiProperty({
-    description: 'Average rating (0–5)',
-    example: 4.7,
-  })
-  averageRating: number;
-}
-
 export class ActivityDetailResponseDto {
   @ApiProperty({
     description: 'Activity ID',
@@ -709,10 +695,4 @@ export class ActivityDetailResponseDto {
     type: ActivityDetailCenterDto,
   })
   center: ActivityDetailCenterDto;
-
-  @ApiProperty({
-    description: 'Reviews summary',
-    type: ActivityDetailReviewsSummaryDto,
-  })
-  reviewsSummary: ActivityDetailReviewsSummaryDto;
 }

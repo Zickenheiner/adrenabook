@@ -21,7 +21,6 @@ export interface ActivityDetailResponseDto {
     name: string;
     location: { lat: number; lng: number; address: string };
   };
-  reviewsSummary: { count: number; averageRating: number };
 }
 
 export interface ActivityMonthSlotsResponseDto {

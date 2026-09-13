@@ -303,7 +303,6 @@ describe('ActivityRepository', () => {
       expect(result!.prerequisites).toEqual(doc.prerequisites);
       expect(result!.includedEquipment).toEqual(['combinaison', 'casque']);
       expect(result!.videos).toEqual([]);
-      expect(result!.reviewsSummary).toEqual({ count: 0, averageRating: 0 });
     });
 
     it('should build one photo entry per file id with an indexed alt text', async () => {

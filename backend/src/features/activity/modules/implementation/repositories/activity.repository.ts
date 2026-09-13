@@ -164,11 +164,6 @@ export class ActivityRepository implements IActivityRepository {
       };
     }
 
-    dto.reviewsSummary = {
-      count: 0,
-      averageRating: 0,
-    };
-
     return dto;
   }
 

@@ -29,11 +29,6 @@ export interface ActivityDetailSlot {
   priceEur: number;
 }
 
-export interface ActivityDetailReviewsSummary {
-  count: number;
-  averageRating: number;
-}
-
 export interface ActivityDetailEntity {
   id: string;
   title: string;
@@ -47,7 +42,6 @@ export interface ActivityDetailEntity {
   photos: ActivityDetailPhoto[];
   videos: ActivityDetailVideo[];
   center: ActivityDetailCenter;
-  reviewsSummary: ActivityDetailReviewsSummary;
 }
 
 export interface ActivityMonthSlotsEntity {

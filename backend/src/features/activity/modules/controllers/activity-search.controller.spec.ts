@@ -220,7 +220,6 @@ describe('ActivitySearchController', () => {
           address: '12 Rue de la Montagne, 69001 Lyon, France',
         },
       },
-      reviewsSummary: { count: 42, averageRating: 4.7 },
     };
 
     it('should return the activity detail', async () => {
