@@ -42,7 +42,10 @@ export default function AdminUserRow({ user, index }: Props) {
             navigate(routes.adminUserDetail.replace(':id', user.id))
           }
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">
+            Voir la fiche de {user.firstName} {user.lastName}
+          </span>
         </Button>
       </TableCell>
     </TableRow>

@@ -67,7 +67,10 @@ export default function ActivitySearchFilters({
 
       {/* Type d'activité */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Label
+          id="filtre-type-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
           Type d'activité
         </Label>
         <Select
@@ -78,7 +81,7 @@ export default function ActivitySearchFilters({
             )
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger aria-labelledby="filtre-type-label" className="w-full">
             <SelectValue placeholder="Tous les types" />
           </SelectTrigger>
           <SelectContent>
@@ -95,7 +98,10 @@ export default function ActivitySearchFilters({
 
       {/* Difficulté */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Label
+          id="filtre-difficulte-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
           Difficulté
         </Label>
         <Select
@@ -108,7 +114,10 @@ export default function ActivitySearchFilters({
             )
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger
+            aria-labelledby="filtre-difficulte-label"
+            className="w-full"
+          >
             <SelectValue placeholder="Tous niveaux" />
           </SelectTrigger>
           <SelectContent>
@@ -140,7 +149,10 @@ export default function ActivitySearchFilters({
 
       {/* Rayon de recherche */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Label
+          id="filtre-rayon-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
           Rayon
         </Label>
         <Select
@@ -150,7 +162,10 @@ export default function ActivitySearchFilters({
             setValue('radiusKm', v === NO_RADIUS ? undefined : Number(v))
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger
+            aria-labelledby="filtre-rayon-label"
+            className="w-full"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -197,7 +212,10 @@ export default function ActivitySearchFilters({
 
       {/* Tri */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Label
+          id="filtre-tri-label"
+          className="text-xs text-muted-foreground uppercase tracking-wide"
+        >
           Trier par
         </Label>
         <Select
@@ -206,7 +224,7 @@ export default function ActivitySearchFilters({
             setValue('sortBy', v as ActivitySearchFormData['sortBy'])
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger aria-labelledby="filtre-tri-label" className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
