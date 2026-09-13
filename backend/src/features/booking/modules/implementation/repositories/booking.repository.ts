@@ -16,6 +16,7 @@ import { Slot, SlotDocument } from '@features/slot/domains/schemas/slot.schema';
 import {
   Activity,
   ActivityDocument,
+  Prerequisites,
 } from '@features/activity/domains/schemas/activity.schema';
 import {
   Waiver,
@@ -118,6 +119,82 @@ export class BookingRepository implements IBookingRepository {
    * @throws NotFoundException creneau inexistant
    * @throws ConflictException plus assez de places pour le groupe
    */
+  /**
+   * Age atteint a une date donnee, et non age courant : une limite d'age en
+   * encadrement sportif s'apprecie le jour de la pratique.
+   */
+  private ageAt(birthDate: string, reference: Date): number {
+    const birth = new Date(birthDate);
+    let age = reference.getFullYear() - birth.getFullYear();
+    const monthDiff = reference.getMonth() - birth.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && reference.getDate() < birth.getDate())
+    ) {
+      age -= 1;
+    }
+    return age;
+  }
+
+  /**
+   * Verifie chaque participant contre les prerequis de l'activite.
+   *
+   * Ce controle appartient au serveur : le formulaire peut l'annoncer plus
+   * tot, mais un appel direct a l'API le contournerait. Les prerequis
+   * repondent a des exigences d'encadrement et d'assurance, ils ne sont pas
+   * qu'un confort d'affichage.
+   */
+  private assertParticipantsMeetPrerequisites(
+    participants: CreateBookingDto['participants'],
+    prerequisites: Prerequisites | undefined,
+    slotStartAt: Date,
+  ): void {
+    if (!prerequisites) return;
+
+    const { minAge, maxAge, minWeightKg, maxWeightKg } = prerequisites;
+    const constrainsWeight = minWeightKg != null || maxWeightKg != null;
+
+    for (const participant of participants) {
+      const who = `${participant.firstName} ${participant.lastName}`;
+      const birth = new Date(participant.birthDate);
+      if (isNaN(birth.getTime())) {
+        throw new BadRequestException(
+          `Date de naissance invalide pour ${who}.`,
+        );
+      }
+
+      const age = this.ageAt(participant.birthDate, slotStartAt);
+      if (minAge != null && age < minAge) {
+        throw new BadRequestException(
+          `${who} doit avoir au moins ${minAge} ans le jour de l'activité (${age} ans).`,
+        );
+      }
+      if (maxAge != null && age > maxAge) {
+        throw new BadRequestException(
+          `${who} dépasse l'âge maximum de ${maxAge} ans pour cette activité (${age} ans).`,
+        );
+      }
+
+      if (!constrainsWeight) continue;
+
+      if (participant.weightKg == null) {
+        throw new BadRequestException(
+          `Le poids de ${who} est requis pour cette activité.`,
+        );
+      }
+      if (minWeightKg != null && participant.weightKg < minWeightKg) {
+        throw new BadRequestException(
+          `${who} doit peser au moins ${minWeightKg} kg pour cette activité.`,
+        );
+      }
+      if (maxWeightKg != null && participant.weightKg > maxWeightKg) {
+        throw new BadRequestException(
+          `${who} dépasse le poids maximum de ${maxWeightKg} kg pour cette activité.`,
+        );
+      }
+    }
+  }
+
   async create(
     dto: CreateBookingDto,
     userId: string,
@@ -141,11 +218,17 @@ export class BookingRepository implements IBookingRepository {
     // Le creneau ne porte plus de tarif : l'activite en est la seule source.
     const activity = await this.activityModel
       .findById(slot.activityId)
-      .select('priceEur')
+      .select('priceEur prerequisites')
       .exec();
     if (!activity) {
       throw new NotFoundException('Activité introuvable');
     }
+
+    this.assertParticipantsMeetPrerequisites(
+      dto.participants,
+      activity.prerequisites,
+      slot.startAt,
+    );
 
     const priceEur = activity.priceEur * participantCount;
     const vatEur = Math.round(priceEur * VAT_RATE * 100) / 100;

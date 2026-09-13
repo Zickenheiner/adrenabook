@@ -11,6 +11,7 @@ class ProCenterMapper {
       name: dto.companyName,
       city: dto.address?.city ?? '',
       status: dto.status as ProCenterStatus,
+      activitiesCount: dto.activitiesCount ?? 0,
     };
   }
 }

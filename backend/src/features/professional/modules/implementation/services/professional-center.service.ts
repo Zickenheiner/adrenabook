@@ -1,3 +1,4 @@
+import { OwnedCenterDto } from '@features/professional/domains/dtos/professional-center.dto';
 import {
   ConflictException,
   ForbiddenException,
@@ -26,6 +27,12 @@ export class ProfessionalCenterService implements IProfessionalCenterService {
 
   async findById(id: string): Promise<ProfessionalCenterEntity | null> {
     return this.professionalCenterRepository.findById(id);
+  }
+
+  async findOwnedWithActivityCount(ownerId: string): Promise<OwnedCenterDto[]> {
+    return this.professionalCenterRepository.findOwnedWithActivityCount(
+      ownerId,
+    );
   }
 
   async findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]> {

@@ -1,3 +1,4 @@
+import { OwnedCenterDto } from '@features/professional/domains/dtos/professional-center.dto';
 import {
   CreateProfessionalCenterDto,
   UpdateProfessionalCenterDto,
@@ -14,6 +15,7 @@ export interface IProfessionalCenterService {
    * plusieurs.
    */
   findAllByOwnerId(ownerId: string): Promise<ProfessionalCenterEntity[]>;
+  findOwnedWithActivityCount(ownerId: string): Promise<OwnedCenterDto[]>;
   create(dto: CreateProfessionalCenterDto, ownerId: string): Promise<boolean>;
   update(id: string, dto: UpdateProfessionalCenterDto): Promise<boolean>;
   /**

@@ -1,3 +1,4 @@
+import { OwnedCenterDto } from '@features/professional/domains/dtos/professional-center.dto';
 import {
   CreateProfessionalCenterDto,
   UpdateProfessionalCenterDto,
@@ -46,11 +47,13 @@ export class ProfessionalCenterController {
   @ApiResponse({
     status: 200,
     description: "Centres de l'utilisateur",
-    type: [ProfessionalCenterEntity],
+    type: [OwnedCenterDto],
   })
   @Get('mine')
   async findMine(@Req() req: { user: { sub: string } }) {
-    return this.professionalCenterService.findAllByOwnerId(req.user.sub);
+    return this.professionalCenterService.findOwnedWithActivityCount(
+      req.user.sub,
+    );
   }
 
   @ApiOperation({

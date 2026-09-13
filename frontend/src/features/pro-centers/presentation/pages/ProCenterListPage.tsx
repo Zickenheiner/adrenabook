@@ -64,8 +64,12 @@ export default function ProCenterListPage() {
   const { currentCenterId, setCurrentCenterId } = useCenterStore();
   const [target, setTarget] = useState<ProCenterEntity | null>(null);
 
+  // Le backend refuse la suppression tant que le centre porte des activites :
+  // le bouton reste inactif plutot que de provoquer un 409.
+  const hasActivities = (target?.activitiesCount ?? 0) > 0;
+
   const confirmDelete = () => {
-    if (!target) return;
+    if (!target || hasActivities) return;
     deleteCenter(target.id, {
       onSuccess: () => {
         // Le centre courant ne doit pas rester sur un centre disparu : les
@@ -160,17 +164,27 @@ export default function ProCenterListPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer ce centre ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {target?.name} sera définitivement supprimé. Un centre qui porte
-              encore des activités ne peut pas être supprimé.
+              {hasActivities ? (
+                <>
+                  {target?.name} porte encore {target?.activitiesCount} activité
+                  {(target?.activitiesCount ?? 0) > 1 ? 's' : ''}. Supprimez-les
+                  avant de supprimer le centre.
+                </>
+              ) : (
+                <>
+                  {target?.name} sera définitivement supprimé. Cette action est
+                  irréversible.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteCenterIsPending}>
-              Annuler
+              {hasActivities ? 'Fermer' : 'Annuler'}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              disabled={deleteCenterIsPending}
+              disabled={deleteCenterIsPending || hasActivities}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Supprimer

@@ -192,6 +192,75 @@ describe('BookingRepository', () => {
       acceptCenterTerms: true,
     } as unknown as CreateBookingDto;
 
+    /** Reserve un creneau lointain pour un participant de l'age voulu. */
+    const bookingFor = (
+      participant: Record<string, unknown>,
+      prerequisites: Record<string, unknown>,
+    ) => {
+      const startAt = new Date('2027-06-15T09:00:00.000Z');
+      slotModel.findById.mockReturnValue(
+        mockQuery({ _id: slotId, activityId, maxParticipants: 10, startAt }),
+      );
+      activityModel.findById.mockReturnValue(
+        mockQuery({ _id: activityId, priceEur: 100, prerequisites }),
+      );
+      bookingModel.countDocuments.mockReturnValue(mockQuery(0));
+      saveMock.mockResolvedValue({ _id: bookingId });
+
+      return repository.create(
+        {
+          slotId: slotId.toString(),
+          participants: [
+            { firstName: 'Lou', lastName: 'Martin', ...participant },
+          ],
+          acceptCenterTerms: true,
+        } as unknown as CreateBookingDto,
+        userId.toString(),
+      );
+    };
+
+    it('should reject a participant below the minimum age', async () => {
+      // 2017 : 10 ans le jour du creneau, pour une activite interdite aux
+      // moins de 12 ans.
+      await expect(
+        bookingFor({ birthDate: '2017-01-01' }, { minAge: 12 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should accept a participant who reaches the minimum age by the slot date', async () => {
+      // Anniversaire des 12 ans atteint avant le creneau de juin 2027.
+      await expect(
+        bookingFor({ birthDate: '2015-03-01' }, { minAge: 12 }),
+      ).resolves.toBeTruthy();
+    });
+
+    it('should reject a participant above the maximum age', async () => {
+      await expect(
+        bookingFor({ birthDate: '1950-01-01' }, { minAge: 8, maxAge: 60 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject a weight outside the allowed range', async () => {
+      await expect(
+        bookingFor(
+          { birthDate: '1990-01-01', weightKg: 120 },
+          { minAge: 8, minWeightKg: 40, maxWeightKg: 110 },
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should require the weight when the activity constrains it', async () => {
+      await expect(
+        bookingFor({ birthDate: '1990-01-01' }, { minAge: 8, minWeightKg: 40 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should ignore the weight when the activity sets no constraint', async () => {
+      await expect(
+        bookingFor({ birthDate: '1990-01-01' }, { minAge: 8 }),
+      ).resolves.toBeTruthy();
+    });
+
     it('should throw NotFoundException when the slot does not exist', async () => {
       slotModel.findById.mockReturnValue(mockQuery(null));
 

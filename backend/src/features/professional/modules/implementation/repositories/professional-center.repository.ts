@@ -11,6 +11,7 @@ import {
   UpdateProfessionalCenterDto,
 } from '@features/professional/domains/dtos/professional-center.dto';
 import { ProfessionalCenterEntity } from '@features/professional/domains/entities/professional-center.entity';
+import { OwnedCenterDto } from '@features/professional/domains/dtos/professional-center.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { GeocodingService } from '../services/geocoding.service';
 
@@ -35,6 +36,35 @@ export class ProfessionalCenterRepository
   async findById(id: string): Promise<ProfessionalCenterEntity | null> {
     const doc = await this.professionalCenterModel.findById(id).exec();
     return doc ? this.professionalCenterMapper.toEntity(doc) : null;
+  }
+
+  async findOwnedWithActivityCount(ownerId: string): Promise<OwnedCenterDto[]> {
+    if (!Types.ObjectId.isValid(ownerId)) return [];
+
+    return this.professionalCenterModel
+      .aggregate<OwnedCenterDto>([
+        { $match: { ownerId: new Types.ObjectId(ownerId) } },
+        { $sort: { createdAt: 1 } },
+        {
+          $lookup: {
+            from: 'activities',
+            localField: '_id',
+            foreignField: 'centerId',
+            as: 'activities',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: { $toString: '$_id' },
+            companyName: 1,
+            status: 1,
+            address: 1,
+            activitiesCount: { $size: '$activities' },
+          },
+        },
+      ])
+      .exec();
   }
 
   async countActivities(id: string): Promise<number> {

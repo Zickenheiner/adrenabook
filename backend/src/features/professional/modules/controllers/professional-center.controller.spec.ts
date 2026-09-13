@@ -32,6 +32,7 @@ describe('ProfessionalCenterController', () => {
       findById: jest.fn(),
       findByOwnerId: jest.fn(),
       findAllByOwnerId: jest.fn(),
+      findOwnedWithActivityCount: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),

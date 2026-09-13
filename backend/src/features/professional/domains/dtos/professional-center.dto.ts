@@ -188,3 +188,25 @@ export class UpdateProfessionalCenterDto {
   @IsNotEmpty()
   companyName?: string;
 }
+
+/**
+ * Centre tel que son proprietaire le voit dans "Mes centres". `activitiesCount`
+ * conditionne la suppression : un centre qui porte des activites ne peut pas
+ * etre supprime.
+ */
+export class OwnedCenterDto {
+  @ApiProperty({ example: '68b4d59919d9b7a94b4fde21' })
+  id: string;
+
+  @ApiProperty({ example: 'Centre Outdoor Lyon' })
+  companyName: string;
+
+  @ApiProperty({ example: 'approved' })
+  status: string;
+
+  @ApiProperty({ type: AddressDto })
+  address: AddressDto;
+
+  @ApiProperty({ example: 3 })
+  activitiesCount: number;
+}

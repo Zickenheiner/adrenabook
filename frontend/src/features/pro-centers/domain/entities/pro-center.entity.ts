@@ -7,4 +7,6 @@ export interface ProCenterEntity {
   name: string;
   city: string;
   status: ProCenterStatus;
+  /** Conditionne la suppression : un centre qui en porte n'est pas supprimable. */
+  activitiesCount: number;
 }
