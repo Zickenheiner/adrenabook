@@ -102,8 +102,8 @@ export default function PaymentPage() {
 
       {!paymentIntentId && (
         <p className="text-center text-xs text-muted-foreground">
-          Aucun intent de paiement détecté. Retournez à la réservation pour
-          initialiser le paiement via Stripe.
+          Aucune référence de paiement. Repassez par la réservation pour
+          initialiser le paiement.
         </p>
       )}
     </motion.div>

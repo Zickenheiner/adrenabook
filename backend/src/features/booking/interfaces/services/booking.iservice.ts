@@ -1,3 +1,4 @@
+import { PaymentIntentResponseDto } from '@features/booking/domains/dtos/booking.dto';
 import {
   BookingDetailResponseDto,
   BookingResponseDto,
@@ -17,6 +18,12 @@ export interface IBookingService {
     id: string,
     userId: string,
   ): Promise<BookingDetailResponseDto>;
+  /** Prepare le paiement d'une reservation et renvoie sa reference. */
+  createPaymentIntent(
+    id: string,
+    userId: string,
+  ): Promise<PaymentIntentResponseDto>;
+
   confirmPayment(
     id: string,
     dto: ConfirmPaymentDto,

@@ -88,6 +88,39 @@ export class ConfirmPaymentDto {
   paymentIntentId: string;
 }
 
+/**
+ * Reference de paiement remise au client avant de confirmer.
+ *
+ * En attendant l'integration Stripe, elle est produite ici plutot que par un
+ * PaymentIntent : elle sert de trace, et le parcours reste inchange le jour ou
+ * Stripe la remplacera.
+ */
+export class PaymentIntentResponseDto {
+  @ApiProperty({
+    description: 'Identifiant de la reservation',
+    example: '68b4d59919d9b7a94b4fde21',
+  })
+  bookingId: string;
+
+  @ApiProperty({
+    description: 'Reference de paiement a renvoyer a la confirmation',
+    example: 'sim_68b4d59919d9b7a94b4fde21_1757770000000',
+  })
+  paymentIntentId: string;
+
+  @ApiProperty({
+    description: 'Montant a regler, en euros',
+    example: 90,
+  })
+  amountEur: number;
+
+  @ApiProperty({
+    description: "Vrai tant que le paiement n'est pas encaisse par Stripe",
+    example: true,
+  })
+  simulated: boolean;
+}
+
 export class ConfirmPaymentResponseDto {
   @ApiProperty({
     description: 'Identifiant de la reservation',

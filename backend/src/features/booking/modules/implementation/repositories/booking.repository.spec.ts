@@ -607,6 +607,74 @@ describe('BookingRepository', () => {
     });
   });
 
+  describe('createPaymentIntent()', () => {
+    const buildBooking = (overrides: Record<string, unknown> = {}) => ({
+      _id: bookingId,
+      userId,
+      slotId,
+      status: 'pending_payment',
+      reservationExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      totalEur: 90,
+      ...overrides,
+    });
+
+    it('returns a simulated reference carrying the amount due', async () => {
+      bookingModel.findById.mockReturnValue(mockQuery(buildBooking()));
+
+      const result = await repository.createPaymentIntent(
+        bookingId.toString(),
+        userId.toString(),
+      );
+
+      expect(result.amountEur).toBe(90);
+      expect(result.simulated).toBe(true);
+      // Le prefixe doit rendre la simulation reconnaissable : aucune trace ne
+      // doit pouvoir passer pour un identifiant Stripe.
+      expect(result.paymentIntentId.startsWith('sim_')).toBe(true);
+    });
+
+    it('refuses a booking belonging to someone else', async () => {
+      bookingModel.findById.mockReturnValue(mockQuery(buildBooking()));
+
+      await expect(
+        repository.createPaymentIntent(
+          bookingId.toString(),
+          '68b4d59919d9b7a94b4fde99',
+        ),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('refuses a booking that is no longer awaiting payment', async () => {
+      bookingModel.findById.mockReturnValue(
+        mockQuery(buildBooking({ status: 'confirmed' })),
+      );
+
+      await expect(
+        repository.createPaymentIntent(bookingId.toString(), userId.toString()),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('refuses a reservation whose hold has expired', async () => {
+      bookingModel.findById.mockReturnValue(
+        mockQuery(
+          buildBooking({ reservationExpiresAt: new Date(Date.now() - 1000) }),
+        ),
+      );
+
+      await expect(
+        repository.createPaymentIntent(bookingId.toString(), userId.toString()),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('reports a missing booking as not found', async () => {
+      bookingModel.findById.mockReturnValue(mockQuery(null));
+
+      await expect(
+        repository.createPaymentIntent(bookingId.toString(), userId.toString()),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
   describe('confirmPayment()', () => {
     const buildBooking = (overrides: Record<string, unknown> = {}) => ({
       _id: bookingId,

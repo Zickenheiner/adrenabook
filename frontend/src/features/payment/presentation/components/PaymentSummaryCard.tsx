@@ -63,7 +63,7 @@ export default function PaymentSummaryCard({
           <span>{formatEur(totalAmountEur)}</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Paiement sécurisé par Stripe — 3D Secure obligatoire
+          Paiement simulé — aucun encaissement réel n&apos;est effectué
         </p>
       </CardContent>
     </Card>

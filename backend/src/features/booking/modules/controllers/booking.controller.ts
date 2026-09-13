@@ -6,6 +6,7 @@ import {
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
+  PaymentIntentResponseDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { IBookingService } from '@features/booking/interfaces/services/booking.iservice';
 import { IInvoiceService } from '@features/invoice/interfaces/services/invoice.iservice';
@@ -132,6 +133,28 @@ export class BookingController {
     status: 409,
     description: 'Paiement deja traite (idempotence)',
   })
+  @ApiOperation({
+    summary: "Préparer le paiement d'une réservation",
+    description:
+      "Renvoie la référence à présenter à la confirmation. En attendant l'intégration Stripe, elle est simulée : `simulated` vaut true et aucun encaissement n'a lieu.",
+  })
+  @ApiParam({ name: 'id', description: 'Identifiant de la réservation' })
+  @ApiResponse({
+    status: 201,
+    description: 'Référence de paiement',
+    type: PaymentIntentResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Réservation non payable' })
+  @ApiResponse({ status: 403, description: 'Réservation détenue par un autre' })
+  @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @Post(':id/payment-intent')
+  async createPaymentIntent(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string } },
+  ): Promise<PaymentIntentResponseDto> {
+    return this.bookingService.createPaymentIntent(id, req.user.sub);
+  }
+
   @Post(':id/confirm-payment')
   @HttpCode(HttpStatus.OK)
   async confirmPayment(

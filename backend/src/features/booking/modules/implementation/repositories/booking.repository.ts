@@ -30,6 +30,7 @@ import {
   ConfirmPaymentDto,
   ConfirmPaymentResponseDto,
   CreateBookingDto,
+  PaymentIntentResponseDto,
 } from '@features/booking/domains/dtos/booking.dto';
 import { BookingEntity } from '@features/booking/domains/entities/booking.entity';
 import { InjectModel } from '@nestjs/mongoose';
@@ -320,6 +321,39 @@ export class BookingRepository implements IBookingRepository {
     return bookings
       ? bookings.map((doc) => this.bookingMapper.toEntity(doc))
       : null;
+  }
+
+  async createPaymentIntent(
+    id: string,
+    userId: string,
+  ): Promise<PaymentIntentResponseDto> {
+    const booking = await this.bookingModel.findById(id).exec();
+    if (!booking) {
+      throw new NotFoundException('Reservation introuvable');
+    }
+    // Une reservation ne se paie que par celui qui l'a faite.
+    if (booking.userId.toString() !== userId) {
+      throw new ForbiddenException('Cette reservation ne vous appartient pas');
+    }
+    if (booking.status !== 'pending_payment') {
+      throw new BadRequestException(
+        'Cette reservation n’est plus en attente de paiement',
+      );
+    }
+    if (booking.reservationExpiresAt.getTime() < Date.now()) {
+      throw new BadRequestException(
+        'Le delai de reservation est expire : reprenez la reservation',
+      );
+    }
+
+    return {
+      bookingId: id,
+      // Prefixe explicite : aucune trace ne doit pouvoir passer pour un
+      // identifiant Stripe une fois l'integration en place.
+      paymentIntentId: `sim_${id}_${Date.now()}`,
+      amountEur: booking.totalEur,
+      simulated: true,
+    };
   }
 
   async confirmPayment(

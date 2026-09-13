@@ -35,6 +35,7 @@ describe('BookingController', () => {
     const bookingServiceMock: jest.Mocked<IBookingService> = {
       createBooking: jest.fn(),
       getBookingDetail: jest.fn(),
+      createPaymentIntent: jest.fn(),
       confirmPayment: jest.fn(),
       cancelBooking: jest.fn(),
     };

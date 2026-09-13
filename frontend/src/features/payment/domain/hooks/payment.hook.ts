@@ -28,3 +28,15 @@ export function useConfirmPayment(bookingId: string) {
     paymentConfirmation: data,
   };
 }
+
+export function useCreatePaymentIntent(bookingId: string) {
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: () => repository.createIntent(bookingId),
+  });
+
+  return {
+    createPaymentIntentAsync: mutateAsync,
+    createPaymentIntentIsPending: isPending,
+    createPaymentIntentError: error,
+  };
+}
