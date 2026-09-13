@@ -155,24 +155,56 @@ describe('SlotController', () => {
       },
     ];
 
-    it('should return the slots of the activity for a professional user', async () => {
-      slotService.findByActivityIdForOwner.mockResolvedValue(expected);
+    const payload = { slots: expected, availableMonths: ['2026-06'] };
 
-      const result = await controller.findSlots(activityId, buildRequest());
+    it('should return the slots of the requested month', async () => {
+      slotService.findByActivityIdForOwner.mockResolvedValue(payload);
 
-      expect(result).toEqual(expected);
+      const result = await controller.findSlots(
+        activityId,
+        buildRequest(),
+        '2026-06',
+      );
+
+      expect(result).toEqual(payload);
       expect(slotService.findByActivityIdForOwner).toHaveBeenCalledWith(
         activityId,
         proUserId,
+        '2026-06',
       );
     });
 
-    it('should return an empty list when the activity has no slot', async () => {
-      slotService.findByActivityIdForOwner.mockResolvedValue([]);
+    it('should default to the current month when none is given', async () => {
+      slotService.findByActivityIdForOwner.mockResolvedValue(payload);
+
+      await controller.findSlots(activityId, buildRequest(), undefined);
+
+      expect(slotService.findByActivityIdForOwner).toHaveBeenCalledWith(
+        activityId,
+        proUserId,
+        new Date().toISOString().slice(0, 7),
+      );
+    });
+
+    it.each(['juin', '2026-13', '2026-6'])(
+      'should reject the malformed month %s',
+      async (month) => {
+        await expect(
+          controller.findSlots(activityId, buildRequest(), month),
+        ).rejects.toThrow(BadRequestException);
+        expect(slotService.findByActivityIdForOwner).not.toHaveBeenCalled();
+      },
+    );
+
+    it('should return an empty month when the activity has no slot', async () => {
+      slotService.findByActivityIdForOwner.mockResolvedValue({
+        slots: [],
+        availableMonths: [],
+      });
 
       const result = await controller.findSlots(activityId, buildRequest());
 
-      expect(result).toEqual([]);
+      expect(result.slots).toEqual([]);
     });
 
     it('should throw a ForbiddenException when the role is not "professionnel"', async () => {

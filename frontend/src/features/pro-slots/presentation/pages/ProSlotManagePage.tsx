@@ -1,18 +1,19 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { AlertCircle, ArrowLeft, CalendarClock, CalendarX } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CalendarClock } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Separator } from '@/core/components/ui/separator';
 import { Skeleton } from '@/core/components/ui/skeleton';
 import routes from '@/core/constants/routes';
 import { useCenterStore } from '@/core/stores/center.store';
-import { useCreateSlots, useProSlots } from '../../domain/hooks/slot.hook';
+import { useCreateSlots } from '../../domain/hooks/slot.hook';
 // La duree et le prix du creneau sont ceux de l'activite : on les lit a la
 // source plutot que de les ressaisir.
 import { useActivity } from '@/features/pro-activities/domain/hooks/activity.hook';
 import type { CreateSlotRequestDto } from '../../data/dtos/slot.dto';
 import SlotForm from '../components/SlotForm';
 import SlotCard, { SlotConflictCard } from '../components/SlotCard';
+import SlotCalendar from '../components/SlotCalendar';
 
 export default function ProSlotManagePage() {
   const navigate = useNavigate();
@@ -34,12 +35,13 @@ export default function ProSlotManagePage() {
     createSlotsError,
     createSlotsResult,
   } = useCreateSlots(activityId ?? '');
-  const { slots, slotsIsLoading, slotsError } = useProSlots(activityId ?? '');
   const { activity, activityIsLoading } = useActivity(activityId ?? '');
 
-  const existingSlots = slots
-    ? [...slots].sort((a, b) => a.startAt.getTime() - b.startAt.getTime())
-    : [];
+  // Les creneaux crees tombent souvent hors du mois consulte : on y amene le
+  // calendrier pour que le professionnel voie le resultat de son ajout.
+  const focusMonth = createSlotsResult?.slots.length
+    ? new Date(createSlotsResult.slots[0].startAt)
+    : null;
 
   function handleSubmit(data: CreateSlotRequestDto) {
     if (!activityId) return;
@@ -141,46 +143,7 @@ export default function ProSlotManagePage() {
             </p>
           </div>
 
-          {slotsIsLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-[70px] w-full rounded-xl" />
-              <Skeleton className="h-[70px] w-full rounded-xl" />
-              <Skeleton className="h-[70px] w-full rounded-xl" />
-            </div>
-          ) : slotsError ? (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-            >
-              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-              <span>
-                {(slotsError as Error).message ||
-                  'Les créneaux existants n’ont pas pu être chargés.'}
-              </span>
-            </div>
-          ) : existingSlots.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-4 py-8 text-center">
-              <CalendarX className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm font-medium">
-                Aucun créneau pour cette activité
-              </p>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                Utilisez le formulaire ci-dessus pour créer votre premier
-                créneau, ponctuel ou récurrent.
-              </p>
-            </div>
-          ) : (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{ visible: { transition: { staggerChildren: 0.04 } } }}
-              className="space-y-2"
-            >
-              {existingSlots.map((slot, index) => (
-                <SlotCard key={slot.id} slot={slot} index={index} />
-              ))}
-            </motion.div>
-          )}
+          <SlotCalendar activityId={activityId} focusMonth={focusMonth} />
         </section>
 
         {/* Résultat de la création */}

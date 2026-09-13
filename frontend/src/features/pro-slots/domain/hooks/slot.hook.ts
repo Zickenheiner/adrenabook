@@ -5,19 +5,29 @@ import type { CreateSlotRequestDto } from '../../data/dtos/slot.dto';
 const repository = new SlotRepositoryImpl();
 
 const QUERY_KEYS = {
-  slots: (activityId: string) => ['pro-slots', activityId] as const,
+  /** Prefixe commun : invalider sans mois vide le cache de tous les mois. */
+  allSlots: (activityId: string) => ['pro-slots', activityId] as const,
+  slots: (activityId: string, month: string) =>
+    ['pro-slots', activityId, month] as const,
 };
 
-export function useProSlots(activityId: string) {
+/**
+ * Creneaux du mois affiche.
+ *
+ * Une cle de cache par mois : changer de mois ne recharge que ce mois, et y
+ * revenir est immediat.
+ */
+export function useProSlots(activityId: string, month: string) {
   const { data, isLoading, error } = useQuery({
-    queryKey: QUERY_KEYS.slots(activityId),
-    queryFn: () => repository.listSlots(activityId),
-    enabled: !!activityId,
+    queryKey: QUERY_KEYS.slots(activityId, month),
+    queryFn: () => repository.listSlots(activityId, month),
+    enabled: !!activityId && !!month,
     retry: false,
   });
 
   return {
-    slots: data,
+    slots: data?.slots ?? [],
+    availableMonths: data?.availableMonths ?? [],
     slotsIsLoading: isLoading,
     slotsError: error,
   };
@@ -30,8 +40,10 @@ export function useCreateSlots(activityId: string) {
     mutationFn: (payload: CreateSlotRequestDto) =>
       repository.createSlots(activityId, payload),
     onSuccess: () => {
+      // Une recurrence peut deposer des creneaux sur plusieurs mois : on
+      // invalide tous les mois de cette activite, pas seulement l'affiche.
       void queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.slots(activityId),
+        queryKey: QUERY_KEYS.allSlots(activityId),
       });
     },
   });

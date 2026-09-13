@@ -215,6 +215,23 @@ export class ProSlotListItemDto {
   priceEur: number;
 }
 
+export class ProSlotMonthResponseDto {
+  @ApiProperty({
+    description: 'Creneaux du mois demande, tries par date croissante',
+    type: [ProSlotListItemDto],
+  })
+  slots: ProSlotListItemDto[];
+
+  @ApiProperty({
+    description:
+      'Mois comportant au moins un creneau, au format YYYY-MM. Inclut les ' +
+      "mois passes : le professionnel consulte aussi l'historique de son activite.",
+    example: ['2026-08', '2026-09', '2027-03'],
+    type: [String],
+  })
+  availableMonths: string[];
+}
+
 export class CreateSlotsResponseDto {
   @ApiProperty({
     description: 'Number of slots successfully created',

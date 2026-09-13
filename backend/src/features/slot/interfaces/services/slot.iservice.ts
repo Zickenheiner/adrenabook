@@ -1,7 +1,7 @@
 import {
   CreateSlotsDto,
   CreateSlotsResponseDto,
-  ProSlotListItemDto,
+  ProSlotMonthResponseDto,
   SlotDetailResponseDto,
 } from '@features/slot/domains/dtos/slot.dto';
 
@@ -10,7 +10,8 @@ export interface ISlotService {
   findByActivityIdForOwner(
     activityId: string,
     userId: string,
-  ): Promise<ProSlotListItemDto[]>;
+    month: string,
+  ): Promise<ProSlotMonthResponseDto>;
   createSlots(
     activityId: string,
     userId: string,

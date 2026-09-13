@@ -4,13 +4,16 @@ import methods from '@/core/constants/methods';
 import type {
   CreateSlotRequestDto,
   CreateSlotsResponseDto,
-  ProSlotDto,
+  ProSlotMonthResponseDto,
 } from '../dtos/slot.dto';
 
 class SlotApi {
-  async listSlots(activityId: string): Promise<ProSlotDto[]> {
-    return request<ProSlotDto[]>({
-      url: endpoints.proSlots.list(activityId),
+  async listSlots(
+    activityId: string,
+    month: string,
+  ): Promise<ProSlotMonthResponseDto> {
+    return request<ProSlotMonthResponseDto>({
+      url: endpoints.proSlots.list(activityId, month),
       method: methods.GET,
     });
   }

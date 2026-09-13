@@ -44,6 +44,7 @@ describe('SlotRepository', () => {
     })) as unknown as jest.Mock & Record<string, jest.Mock>;
     slotModel.findById = jest.fn();
     slotModel.find = jest.fn();
+    slotModel.aggregate = jest.fn();
 
     bookingModel = { countDocuments: jest.fn() };
     activityModel = { findById: jest.fn() };
@@ -137,6 +138,58 @@ describe('SlotRepository', () => {
       slotModel.find.mockReturnValue(chain(null));
 
       await expect(repository.findByActivityId(VALID_ID)).resolves.toBeNull();
+    });
+  });
+
+  describe('findByActivityIdAndMonth()', () => {
+    it('should return an empty list without querying for an invalid id', async () => {
+      expect(
+        await repository.findByActivityIdAndMonth('bad-id', '2026-06'),
+      ).toEqual([]);
+      expect(slotModel.find).not.toHaveBeenCalled();
+    });
+
+    it('should bound the query to the requested month', async () => {
+      slotModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      });
+
+      await repository.findByActivityIdAndMonth(VALID_ID, '2027-03');
+
+      const filter = slotModel.find.mock.calls[0][0] as {
+        startAt: { $gte: Date; $lt: Date };
+      };
+      expect(filter.startAt.$gte.toISOString()).toBe(
+        '2027-03-01T00:00:00.000Z',
+      );
+      expect(filter.startAt.$lt.toISOString()).toBe('2027-04-01T00:00:00.000Z');
+    });
+  });
+
+  describe('findMonthsWithSlots()', () => {
+    it('should return an empty list without querying for an invalid id', async () => {
+      expect(await repository.findMonthsWithSlots('bad-id')).toEqual([]);
+      expect(slotModel.aggregate).not.toHaveBeenCalled();
+    });
+
+    it('should not filter out past months', async () => {
+      slotModel.aggregate.mockResolvedValue([
+        { _id: '2025-12' },
+        { _id: '2026-06' },
+      ]);
+
+      const result = await repository.findMonthsWithSlots(VALID_ID);
+
+      // Le professionnel consulte aussi l'historique : filtrer sur le futur
+      // lui masquerait ses creneaux passes.
+      const stages = slotModel.aggregate.mock.calls[0][0] as Array<
+        Record<string, never>
+      >;
+      const match = stages[0]['$match'] as unknown as Record<string, unknown>;
+      expect(match).not.toHaveProperty('startAt');
+      expect(result).toEqual(['2025-12', '2026-06']);
     });
   });
 

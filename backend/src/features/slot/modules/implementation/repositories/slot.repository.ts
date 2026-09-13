@@ -60,6 +60,49 @@ export class SlotRepository implements ISlotRepository {
     return slots ? slots.map((doc) => this.slotMapper.toEntity(doc)) : null;
   }
 
+  async findByActivityIdAndMonth(
+    activityId: string,
+    month: string,
+  ): Promise<SlotEntity[]> {
+    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      return [];
+    }
+
+    const [year, monthIndex] = month.split('-').map(Number);
+    const monthStart = new Date(Date.UTC(year, monthIndex - 1, 1));
+    const monthEnd = new Date(Date.UTC(year, monthIndex, 1));
+
+    const slots = await this.slotModel
+      .find({
+        activityId: new mongoose.Types.ObjectId(activityId),
+        startAt: { $gte: monthStart, $lt: monthEnd },
+      })
+      .sort({ startAt: 1 })
+      .exec();
+
+    return slots.map((doc) => this.slotMapper.toEntity(doc));
+  }
+
+  async findMonthsWithSlots(activityId: string): Promise<string[]> {
+    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      return [];
+    }
+
+    // Passe inclus : le professionnel consulte aussi l'historique de son
+    // activite, contrairement au visiteur qui ne peut reserver qu'a venir.
+    const months = await this.slotModel.aggregate<{ _id: string }>([
+      { $match: { activityId: new mongoose.Types.ObjectId(activityId) } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$startAt' } },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    return months.map((m) => m._id);
+  }
+
   async findActivityOwnership(
     activityId: string,
   ): Promise<ActivityOwnership | null> {

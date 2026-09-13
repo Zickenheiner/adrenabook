@@ -1,8 +1,5 @@
 import type { SlotRepository } from '../../domain/repositories/slot.repository';
-import type {
-  CreateSlotsResultEntity,
-  ProSlotEntity,
-} from '../../domain/entities/slot.entity';
+import type { CreateSlotsResultEntity } from '../../domain/entities/slot.entity';
 import type { CreateSlotRequestDto } from '../dtos/slot.dto';
 import SlotApi from '../datasources/slot.api';
 import SlotMapper from '../mappers/slot.mapper';
@@ -13,9 +10,15 @@ class SlotRepositoryImpl implements SlotRepository {
     private readonly mapper: SlotMapper = new SlotMapper(),
   ) {}
 
-  async listSlots(activityId: string): Promise<ProSlotEntity[]> {
-    const dtos = await this.api.listSlots(activityId);
-    return dtos.map((dto) => this.mapper.toProSlotEntity(dto));
+  async listSlots(
+    activityId: string,
+    month: string,
+  ): Promise<ProSlotMonthEntity> {
+    const dto = await this.api.listSlots(activityId, month);
+    return {
+      slots: dto.slots.map((slot) => this.mapper.toProSlotEntity(slot)),
+      availableMonths: dto.availableMonths,
+    };
   }
 
   async createSlots(

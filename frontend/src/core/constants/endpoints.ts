@@ -35,7 +35,8 @@ const endpoints = {
   },
   proSlots: {
     create: (activityId: string) => `/pro/activities/${activityId}/slots`,
-    list: (activityId: string) => `/pro/activities/${activityId}/slots`,
+    list: (activityId: string, month: string) =>
+      `/pro/activities/${activityId}/slots?month=${month}`,
   },
   uploads: {
     create: '/uploads',
@@ -69,6 +70,7 @@ const endpoints = {
   payment: {
     confirmPayment: (bookingId: string) =>
       `/bookings/${bookingId}/confirm-payment`,
+    intent: (bookingId: string) => `/bookings/${bookingId}/payment-intent`,
   },
   invoice: {
     byBookingId: (bookingId: string) => `/bookings/${bookingId}/invoice`,

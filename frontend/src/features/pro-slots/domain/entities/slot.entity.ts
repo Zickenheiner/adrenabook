@@ -3,6 +3,11 @@ export interface SlotSummaryEntity {
   startAt: Date;
 }
 
+export interface ProSlotMonthEntity {
+  slots: ProSlotEntity[];
+  availableMonths: string[];
+}
+
 export interface ProSlotEntity {
   id: string;
   startAt: Date;

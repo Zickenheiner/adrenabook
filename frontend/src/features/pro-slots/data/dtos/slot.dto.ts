@@ -31,6 +31,12 @@ export interface ProSlotDto {
   priceEur: number;
 }
 
+export interface ProSlotMonthResponseDto {
+  slots: ProSlotDto[];
+  /** Mois comportant au moins un créneau, passés inclus, au format YYYY-MM. */
+  availableMonths: string[];
+}
+
 export interface CreateSlotsResponseDto {
   createdCount: number;
   slots: SlotSummaryDto[];

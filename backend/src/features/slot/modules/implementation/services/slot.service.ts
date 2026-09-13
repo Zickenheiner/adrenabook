@@ -14,6 +14,7 @@ import {
   CreateSlotsDto,
   CreateSlotsResponseDto,
   ProSlotListItemDto,
+  ProSlotMonthResponseDto,
   RecurrenceDto,
   SlotConflictDto,
   SlotDetailResponseDto,
@@ -43,10 +44,21 @@ export class SlotService implements ISlotService {
     return this.buildSlotDetail(slot, conditions);
   }
 
+  /**
+   * Creneaux d'un mois pour le professionnel proprietaire, et mois comportant
+   * des creneaux.
+   *
+   * Charger un mois a la fois evite d'afficher une annee de creneaux d'un seul
+   * tenant ; `availableMonths` situe les mois occupes pour ne pas naviguer a
+   * l'aveugle.
+   *
+   * @param month mois vise au format YYYY-MM
+   */
   async findByActivityIdForOwner(
     activityId: string,
     userId: string,
-  ): Promise<ProSlotListItemDto[]> {
+    month: string,
+  ): Promise<ProSlotMonthResponseDto> {
     const ownership =
       await this.slotRepository.findActivityOwnership(activityId);
     if (!ownership) {
@@ -58,11 +70,6 @@ export class SlotService implements ISlotService {
       );
     }
 
-    const slots = await this.slotRepository.findByActivityId(activityId);
-    const sorted = [...(slots ?? [])].sort(
-      (a, b) => a.getStartAt().getTime() - b.getStartAt().getTime(),
-    );
-
     // Tous ces creneaux partagent la meme activite : un seul chargement suffit.
     const conditions =
       await this.slotRepository.findActivityConditions(activityId);
@@ -70,19 +77,27 @@ export class SlotService implements ISlotService {
       throw new NotFoundException('Activité introuvable');
     }
 
+    const [slots, availableMonths] = await Promise.all([
+      this.slotRepository.findByActivityIdAndMonth(activityId, month),
+      this.slotRepository.findMonthsWithSlots(activityId),
+    ]);
+
     const details = await Promise.all(
-      sorted.map((slot) => this.buildSlotDetail(slot, conditions)),
+      slots.map((slot) => this.buildSlotDetail(slot, conditions)),
     );
 
-    // activityId est volontairement omis : il est deja porte par l'URL
-    return details.map((detail) => ({
-      id: detail.id,
-      startAt: detail.startAt,
-      durationMinutes: detail.durationMinutes,
-      maxParticipants: detail.maxParticipants,
-      remainingSeats: detail.remainingSeats,
-      priceEur: detail.priceEur,
-    }));
+    return {
+      // activityId est volontairement omis : il est deja porte par l'URL
+      slots: details.map((detail) => ({
+        id: detail.id,
+        startAt: detail.startAt,
+        durationMinutes: detail.durationMinutes,
+        maxParticipants: detail.maxParticipants,
+        remainingSeats: detail.remainingSeats,
+        priceEur: detail.priceEur,
+      })),
+      availableMonths,
+    };
   }
 
   /** Source unique du calcul de remainingSeats, partagee par GET /slots/:id */

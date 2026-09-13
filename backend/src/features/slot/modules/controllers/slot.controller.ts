@@ -1,10 +1,11 @@
 import {
   CreateSlotsDto,
   CreateSlotsResponseDto,
-  ProSlotListItemDto,
+  ProSlotMonthResponseDto,
 } from '@features/slot/domains/dtos/slot.dto';
 import { ISlotService } from '@features/slot/interfaces/services/slot.iservice';
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -14,6 +15,7 @@ import {
   Inject,
   Param,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -21,6 +23,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -86,11 +89,18 @@ export class SlotController {
     required: true,
     type: String,
   })
+  @ApiQuery({
+    name: 'month',
+    description: 'Mois vise au format YYYY-MM. Par defaut : le mois courant.',
+    required: false,
+    example: '2026-09',
+  })
   @ApiResponse({
     status: 200,
-    description: "Liste des créneaux de l'activité",
-    type: [ProSlotListItemDto],
+    description: 'Créneaux du mois et mois comportant des créneaux',
+    type: ProSlotMonthResponseDto,
   })
+  @ApiResponse({ status: 400, description: 'Mois malformé' })
   @ApiResponse({ status: 401, description: 'Non authentifié' })
   @ApiResponse({
     status: 403,
@@ -102,11 +112,18 @@ export class SlotController {
   async findSlots(
     @Param('id') id: string,
     @Req() req: { user: { sub: string; role: string } },
-  ): Promise<ProSlotListItemDto[]> {
+    @Query('month') month?: string,
+  ): Promise<ProSlotMonthResponseDto> {
     const user = req.user;
     if (!user || user.role !== 'professionnel') {
       throw new ForbiddenException('Accès réservé aux professionnels');
     }
-    return this.slotService.findByActivityIdForOwner(id, user.sub);
+
+    const target = month ?? new Date().toISOString().slice(0, 7);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(target)) {
+      throw new BadRequestException('Mois attendu au format YYYY-MM');
+    }
+
+    return this.slotService.findByActivityIdForOwner(id, user.sub, target);
   }
 }

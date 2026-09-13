@@ -25,6 +25,13 @@ export interface ISlotRepository {
   findById(id: string): Promise<SlotEntity | null>;
   countActiveBookings(slotId: string): Promise<number>;
   findByActivityId(activityId: string): Promise<SlotEntity[] | null>;
+  /** @param month mois vise au format YYYY-MM */
+  findByActivityIdAndMonth(
+    activityId: string,
+    month: string,
+  ): Promise<SlotEntity[]>;
+  /** Mois comportant au moins un creneau, format YYYY-MM, ordre croissant. */
+  findMonthsWithSlots(activityId: string): Promise<string[]>;
   /** null si l'activite n'existe pas */
   findActivityOwnership(activityId: string): Promise<ActivityOwnership | null>;
   /** null si l'activite n'existe pas */
