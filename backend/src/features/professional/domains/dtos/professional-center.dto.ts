@@ -214,6 +214,12 @@ export class OwnedCenterDto {
   @ApiProperty({ example: 'approved' })
   status: string;
 
+  @ApiProperty({ example: 'contact@alpes-aventures.fr' })
+  contactEmail: string;
+
+  @ApiProperty({ example: '+33450123456' })
+  contactPhone: string;
+
   @ApiProperty({ type: AddressDto })
   address: AddressDto;
 

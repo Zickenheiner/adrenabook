@@ -59,6 +59,8 @@ export class ProfessionalCenterRepository
             id: { $toString: '$_id' },
             companyName: 1,
             status: 1,
+            contactEmail: 1,
+            contactPhone: 1,
             address: 1,
             activitiesCount: { $size: '$activities' },
           },
