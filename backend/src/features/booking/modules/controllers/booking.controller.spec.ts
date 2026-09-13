@@ -43,6 +43,7 @@ describe('BookingController', () => {
 
     const invoiceServiceMock: jest.Mocked<IInvoiceService> = {
       getInvoiceByBookingId: jest.fn(),
+      renderInvoicePdf: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -10,6 +10,9 @@ import { IInvoiceRepository } from '@features/invoice/interfaces/repositories/in
 import { IBookingRepository } from '@features/booking/interfaces/repositories/booking.irepository';
 import { InvoiceMetadataResponseDto } from '@features/invoice/domains/dtos/invoice.dto';
 
+import { IUserRepository } from '@features/auth/interfaces/repositories/user.irepository';
+import { buildInvoicePdf } from '@features/invoice/utils/invoice-pdf';
+
 @Injectable()
 export class InvoiceService implements IInvoiceService {
   constructor(
@@ -17,6 +20,8 @@ export class InvoiceService implements IInvoiceService {
     private readonly invoiceRepository: IInvoiceRepository,
     @Inject('IBookingRepository')
     private readonly bookingRepository: IBookingRepository,
+    @Inject('IUserRepository')
+    private readonly userRepository: IUserRepository,
   ) {}
 
   async getInvoiceByBookingId(
@@ -68,5 +73,39 @@ export class InvoiceService implements IInvoiceService {
       vatEur: invoice.getVatEur(),
       downloadUrl,
     };
+  }
+
+  async renderInvoicePdf(bookingId: string, userId: string): Promise<Buffer> {
+    // Les memes controles que les metadonnees : proprietaire et paiement.
+    const invoice = await this.getInvoiceByBookingId(bookingId, userId);
+
+    const [detail] = await this.bookingRepository.findMine(userId, bookingId);
+    const user = await this.userRepository.findById(userId);
+
+    const participants = detail?.participants || 1;
+    const unitPrice =
+      participants > 0
+        ? Math.round((invoice.totalEur / participants) * 100) / 100
+        : invoice.totalEur;
+
+    return buildInvoicePdf({
+      invoiceNumber: invoice.invoiceNumber,
+      issuedAt: new Date(invoice.issuedAt),
+      customerName: user
+        ? `${user.getFirstName() ?? ''} ${user.getLastName() ?? ''}`.trim()
+        : '',
+      customerEmail: user?.getEmail() ?? '',
+      centerName: detail?.centerName ?? '',
+      centerAddress: detail?.centerAddress ?? '',
+      lines: [
+        {
+          label: detail?.activityTitle || 'Activité',
+          quantity: participants,
+          unitPriceEur: unitPrice,
+        },
+      ],
+      totalEur: invoice.totalEur,
+      vatEur: invoice.vatEur,
+    });
   }
 }

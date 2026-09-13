@@ -11,10 +11,14 @@ import { BookingBaseModule } from '@features/booking/modules/booking.module';
 
 // Aucun controller ici : la seule route de facture est exposee par
 // BookingController (GET /bookings/:id/invoice), qui injecte IInvoiceService.
+import { UserBaseModule } from '@features/auth/modules/user.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Invoice.name, schema: InvoiceSchema }]),
     forwardRef(() => BookingBaseModule),
+    // Fournit IUserRepository : la facture nomme son destinataire.
+    UserBaseModule,
   ],
   providers: [
     InvoiceMapper,

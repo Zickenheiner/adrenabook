@@ -322,8 +322,9 @@ export class BookingRepository implements IBookingRepository {
       : null;
   }
 
-  async findMine(userId: string): Promise<MyBookingDto[]> {
+  async findMine(userId: string, bookingId?: string): Promise<MyBookingDto[]> {
     if (!mongoose.Types.ObjectId.isValid(userId)) return [];
+    if (bookingId && !mongoose.Types.ObjectId.isValid(bookingId)) return [];
 
     const docs = await this.bookingModel
       .aggregate<{
@@ -351,7 +352,14 @@ export class BookingRepository implements IBookingRepository {
         };
         waiverCount?: number;
       }>([
-        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+        {
+          $match: {
+            userId: new mongoose.Types.ObjectId(userId),
+            ...(bookingId
+              ? { _id: new mongoose.Types.ObjectId(bookingId) }
+              : {}),
+          },
+        },
         {
           $lookup: {
             from: 'slots',

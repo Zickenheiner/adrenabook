@@ -22,7 +22,7 @@ export interface IBookingService {
     userId: string,
   ): Promise<BookingDetailResponseDto>;
   /** Reservations de l'utilisateur, de la plus proche a la plus lointaine. */
-  findMine(userId: string): Promise<MyBookingDto[]>;
+  findMine(userId: string, bookingId?: string): Promise<MyBookingDto[]>;
 
   /** Prepare le paiement d'une reservation et renvoie sa reference. */
   createPaymentIntent(

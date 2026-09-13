@@ -77,6 +77,7 @@ const endpoints = {
   },
   invoice: {
     byBookingId: (bookingId: string) => `/bookings/${bookingId}/invoice`,
+    pdfByBookingId: (bookingId: string) => `/bookings/${bookingId}/invoice/pdf`,
   },
   notificationPreferences: {
     update: '/users/me/notification-preferences',

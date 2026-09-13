@@ -44,8 +44,8 @@ export class BookingService implements IBookingService {
     return this.bookingRepository.findDetailById(id, userId);
   }
 
-  async findMine(userId: string): Promise<MyBookingDto[]> {
-    return this.bookingRepository.findMine(userId);
+  async findMine(userId: string, bookingId?: string): Promise<MyBookingDto[]> {
+    return this.bookingRepository.findMine(userId, bookingId);
   }
 
   async createPaymentIntent(

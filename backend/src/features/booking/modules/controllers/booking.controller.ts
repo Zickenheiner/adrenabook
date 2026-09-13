@@ -22,6 +22,7 @@ import {
   Param,
   Post,
   Req,
+  Res,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -31,6 +32,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+
+import type { Response } from 'express';
 
 @ApiTags('Bookings')
 @ApiBearerAuth()
@@ -217,6 +220,34 @@ export class BookingController {
     @Req() req: { user: { sub: string } },
   ): Promise<InvoiceMetadataResponseDto> {
     return this.invoiceService.getInvoiceByBookingId(id, req.user.sub);
+  }
+
+  @ApiOperation({
+    summary: "Télécharger la facture PDF d'une réservation",
+    description:
+      'Renvoie le document PDF. Mêmes conditions que ses métadonnées : la réservation doit appartenir au demandeur et être payée.',
+  })
+  @ApiParam({ name: 'id', description: 'Identifiant de la réservation' })
+  @ApiResponse({ status: 200, description: 'Document PDF' })
+  @Get(':id/invoice/pdf')
+  async getInvoicePdf(
+    @Param('id') id: string,
+    @Req() req: { user: { sub: string } },
+    @Res() res: Response,
+  ): Promise<void> {
+    const pdf = await this.invoiceService.renderInvoicePdf(id, req.user.sub);
+    const { invoiceNumber } = await this.invoiceService.getInvoiceByBookingId(
+      id,
+      req.user.sub,
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', pdf.length);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="facture-${invoiceNumber}.pdf"`,
+    );
+    res.end(pdf);
   }
 
   @ApiOperation({

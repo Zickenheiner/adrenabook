@@ -12,9 +12,11 @@ import InvoiceDownloadButton from './InvoiceDownloadButton';
 
 interface Props {
   invoice: InvoiceEntity;
+  /** Le PDF est servi par la reservation, pas par le numero de facture. */
+  bookingId: string;
 }
 
-export default function InvoiceCard({ invoice }: Props) {
+export default function InvoiceCard({ invoice, bookingId }: Props) {
   const formattedDate = invoice.issuedAt.toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
@@ -68,7 +70,7 @@ export default function InvoiceCard({ invoice }: Props) {
         </div>
 
         <InvoiceDownloadButton
-          downloadUrl={invoice.downloadUrl}
+          bookingId={bookingId}
           invoiceNumber={invoice.invoiceNumber}
         />
       </CardContent>
