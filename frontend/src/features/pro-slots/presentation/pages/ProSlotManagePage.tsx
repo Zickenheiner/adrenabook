@@ -50,11 +50,15 @@ export default function ProSlotManagePage() {
     createSlots(data, {
       onSuccess: (result) => {
         toast.success(
-          `${result.createdCount} créneau${result.createdCount > 1 ? 'x' : ''} créé${result.createdCount > 1 ? 's' : ''}`,
+          result.createdCount > 1
+            ? `Vos ${result.createdCount} créneaux ont été créés avec succès.`
+            : 'Votre créneau a été créé avec succès.',
         );
         if (result.conflicts.length > 0) {
           toast.warning(
-            `${result.conflicts.length} créneau${result.conflicts.length > 1 ? 'x' : ''} ignoré${result.conflicts.length > 1 ? 's' : ''} (conflit)`,
+            result.conflicts.length > 1
+              ? `${result.conflicts.length} créneaux n'ont pas été créés : ils chevauchent des créneaux existants.`
+              : "1 créneau n'a pas été créé : il chevauche un créneau existant.",
           );
         }
       },

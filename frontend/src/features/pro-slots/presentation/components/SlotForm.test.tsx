@@ -46,7 +46,9 @@ describe('SlotForm — soumission', () => {
       screen.getByLabelText(/Date et heure de début/i),
       '2030-06-01T10:00',
     );
-    await user.click(screen.getByRole('button', { name: /Créer les créneaux/i }));
+    await user.click(
+      screen.getByRole('button', { name: /Créer les créneaux/i }),
+    );
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit.mock.calls[0][0]).toMatchObject({

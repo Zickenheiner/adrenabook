@@ -54,10 +54,11 @@ export default function CenterEditDialog({ center, onClose }: Props) {
       { id: center.id, data },
       {
         onSuccess: () => {
-          toast.success('Centre mis à jour');
+          toast.success('Votre centre a été mis à jour avec succès.');
           onClose();
         },
-        onError: () => toast.error('La mise à jour a échoué.'),
+        onError: () =>
+          toast.error('La mise à jour du centre a échoué. Veuillez réessayer.'),
       },
     );
   };

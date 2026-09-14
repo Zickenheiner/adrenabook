@@ -28,11 +28,11 @@ export default function ProActivityCreatePage() {
   function handleSubmit(data: CreateActivityFormData) {
     createActivity(toCreatePayload(data), {
       onSuccess: () => {
-        toast.success('Activité créée avec succès');
+        toast.success('Votre activité a été créée avec succès.');
         navigate(routes.proActivityList.replace(':centerId', centerId));
       },
       onError: () => {
-        toast.error('Une erreur est survenue lors de la création');
+        toast.error("La création de l'activité a échoué. Veuillez réessayer.");
       },
     });
   }
