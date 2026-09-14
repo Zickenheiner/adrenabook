@@ -141,6 +141,13 @@
   --info: #0ea5e9;
   --info-foreground: #0f172a;
 
+  /* Variantes lisibles en texte sur fond clair : les teintes ci-dessus
+     plafonnent a 2,15:1 - 3,76:1 sur blanc, sous le seuil AA de 4,5:1. */
+  --success-strong: #047857;
+  --destructive-strong: #b91c1c;
+  --warning-strong: #a16207;
+  --info-strong: #0369a1;
+
   /* Bordures & inputs */
   --border: #e2e8f0;
   --input: #e2e8f0;
@@ -221,6 +228,13 @@
   --warning-foreground: #0f172a;
   --info: #38bdf8;
   --info-foreground: #0f172a;
+
+  /* Sur le fond sombre des surfaces, les teintes du mode sombre passent
+     deja AA en texte : pas de variante dediee. */
+  --success-strong: var(--success);
+  --destructive-strong: var(--destructive);
+  --warning-strong: var(--warning);
+  --info-strong: var(--info);
 
   /* Bordures & inputs */
   --border: #334155;
