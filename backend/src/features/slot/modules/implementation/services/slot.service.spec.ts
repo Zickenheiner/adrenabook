@@ -460,6 +460,88 @@ describe('SlotService', () => {
       expect(result.conflicts).toEqual([]);
     });
 
+    it('should read the recurrence hours in the given timezone', async () => {
+      slotRepository.findByActivityId.mockResolvedValue([]);
+      slotRepository.createMany.mockImplementation((_id, _dto, dates) =>
+        Promise.resolve(
+          dates.map((date, index) =>
+            buildSlot({ id: `slot-${index}`, startAt: date.toISOString() }),
+          ),
+        ),
+      );
+
+      const dto: CreateSlotsDto = {
+        ...baseDto,
+        singleStartAt: undefined,
+        recurrence: {
+          // 9h00 chez le professionnel, pas 9h00 UTC.
+          rrule:
+            'FREQ=WEEKLY;DTSTART=20260901T000000Z;BYDAY=TU;BYHOUR=9;BYMINUTE=0',
+          untilDate: '2026-09-16T00:00:00.000Z',
+          timezone: 'Europe/Paris',
+        },
+      };
+
+      const result = await service.createSlots(activityId, userId, dto);
+
+      // Paris est a UTC+2 en septembre : 9h locales = 07h00 UTC.
+      expect(result.slots.map((s) => s.startAt)).toEqual([
+        '2026-09-01T07:00:00.000Z',
+        '2026-09-08T07:00:00.000Z',
+        '2026-09-15T07:00:00.000Z',
+      ]);
+    });
+
+    it('should keep the same local hour across a DST change', async () => {
+      slotRepository.findByActivityId.mockResolvedValue([]);
+      slotRepository.createMany.mockImplementation((_id, _dto, dates) =>
+        Promise.resolve(
+          dates.map((date, index) =>
+            buildSlot({ id: `slot-${index}`, startAt: date.toISOString() }),
+          ),
+        ),
+      );
+
+      const dto: CreateSlotsDto = {
+        ...baseDto,
+        singleStartAt: undefined,
+        recurrence: {
+          rrule:
+            'FREQ=WEEKLY;DTSTART=20261020T000000Z;BYDAY=TU;BYHOUR=9;BYMINUTE=0',
+          untilDate: '2026-11-04T00:00:00.000Z',
+          timezone: 'Europe/Paris',
+        },
+      };
+
+      const result = await service.createSlots(activityId, userId, dto);
+
+      // La France repasse a UTC+1 le 25 octobre 2026 : l'instant UTC change,
+      // l'heure vue par le professionnel reste 9h.
+      expect(result.slots.map((s) => s.startAt)).toEqual([
+        '2026-10-20T07:00:00.000Z',
+        '2026-10-27T08:00:00.000Z',
+        '2026-11-03T08:00:00.000Z',
+      ]);
+    });
+
+    it('should reject an unknown timezone', async () => {
+      slotRepository.findByActivityId.mockResolvedValue([]);
+
+      const dto: CreateSlotsDto = {
+        ...baseDto,
+        singleStartAt: undefined,
+        recurrence: {
+          rrule: 'FREQ=WEEKLY;BYDAY=TU;BYHOUR=9',
+          untilDate: '2026-09-30T00:00:00.000Z',
+          timezone: 'Europe/Atlantis',
+        },
+      };
+
+      await expect(
+        service.createSlots(activityId, userId, dto),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('should fall back to a twelve month horizon without untilDate', async () => {
       slotRepository.findByActivityId.mockResolvedValue([]);
       slotRepository.createMany.mockImplementation((_id, _dto, dates) =>

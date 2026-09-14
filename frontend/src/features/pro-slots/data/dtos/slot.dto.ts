@@ -1,6 +1,11 @@
 export interface RecurrenceDto {
   rrule: string; // RFC 5545 RRULE
   untilDate?: string;
+  /**
+   * Fuseau IANA dans lequel lire les heures de la regle. Sans lui, l'API lit
+   * BYHOUR en UTC : un cours de 9h tomberait a 11h chez un pro en UTC+2.
+   */
+  timezone?: string;
 }
 
 export interface CreateSlotRequestDto {

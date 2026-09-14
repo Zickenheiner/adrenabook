@@ -29,6 +29,16 @@ export class RecurrenceDto {
   @IsISO8601()
   @IsOptional()
   untilDate?: string;
+
+  @ApiProperty({
+    description:
+      'Fuseau IANA dans lequel lire les heures de la RRULE. Omis, elles sont lues en UTC. Sans lui, BYHOUR=9 designerait 9h UTC et non 9h chez le professionnel.',
+    example: 'Europe/Paris',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  timezone?: string;
 }
 
 export class CreateSlotsDto {

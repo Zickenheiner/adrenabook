@@ -58,3 +58,28 @@ describe('SlotForm — soumission', () => {
     });
   });
 });
+
+describe('SlotForm — fuseau horaire', () => {
+  it('joint le fuseau du professionnel à la récurrence', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <SlotForm
+        onSubmit={onSubmit}
+        isPending={false}
+        activityDurationMinutes={60}
+        activityPriceEur={40}
+      />,
+    );
+
+    await user.click(screen.getByText('Récurrent'));
+    await user.click(
+      screen.getByRole('button', { name: /Créer les créneaux/i }),
+    );
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit.mock.calls[0][0].recurrence.timezone).toBe(
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    );
+  });
+});

@@ -67,8 +67,13 @@ export default function SlotForm({
       payload.singleStartAt = values.singleStartAt;
     } else if (values.slotType === 'recurring' && values.recurrence) {
       const { rrule, untilDate } = values.recurrence;
+      // La regle ne porte que des heures murales : sans le fuseau du pro,
+      // l'API les lirait en UTC et decalerait tous les creneaux.
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       // Un champ vide ne doit pas partir comme date : l'API la validerait.
-      payload.recurrence = untilDate?.trim() ? { rrule, untilDate } : { rrule };
+      payload.recurrence = untilDate?.trim()
+        ? { rrule, untilDate, timezone }
+        : { rrule, timezone };
     }
 
     onSubmit(payload);
