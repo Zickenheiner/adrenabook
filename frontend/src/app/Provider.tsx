@@ -1,6 +1,7 @@
 import { queryClient } from '@/core/config/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, type ReactNode } from 'react';
+import { Toaster } from '@/core/components/ui/sonner';
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,9 @@ export default function Provider({ children }: Props) {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <Toaster />
+    </QueryClientProvider>
   );
 }
