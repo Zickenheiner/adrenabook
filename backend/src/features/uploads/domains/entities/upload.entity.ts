@@ -12,7 +12,7 @@ import mongoose from 'mongoose';
 export class UploadEntity {
   @ApiProperty({
     example: '68b4d59919d9b7a94b4fde21',
-    description: 'Identifiant du fichier dans GridFS',
+    description: 'Identifier of the file in GridFS',
   })
   private readonly id: mongoose.Types.ObjectId;
 

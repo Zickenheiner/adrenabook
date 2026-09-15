@@ -77,14 +77,14 @@ export default function ProCenterListPage() {
         // Le centre courant ne doit pas rester sur un centre disparu : les
         // ecrans pro continueraient de s'y referer.
         if (currentCenterId === target.id) setCurrentCenterId(null);
-        toast.success('Centre supprimé');
+        toast.success('Votre centre a été supprimé avec succès.');
         setTarget(null);
       },
       onError: (error) => {
         toast.error(
           error instanceof ApiError && error.status === 409
-            ? 'Supprimez d’abord les activités de ce centre.'
-            : 'La suppression a échoué.',
+            ? 'Ce centre ne peut pas être supprimé : supprimez d’abord ses activités.'
+            : 'La suppression du centre a échoué. Veuillez réessayer.',
         );
         setTarget(null);
       },

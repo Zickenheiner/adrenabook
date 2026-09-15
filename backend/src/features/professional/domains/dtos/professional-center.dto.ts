@@ -13,22 +13,22 @@ import {
 import { Type } from 'class-transformer';
 
 export class AddressDto {
-  @ApiProperty({ description: 'Rue', example: '12 rue des Alpes' })
+  @ApiProperty({ description: 'Street', example: '12 rue des Alpes' })
   @IsString()
   @IsNotEmpty()
   street: string;
 
-  @ApiProperty({ description: 'Ville', example: 'Chamonix' })
+  @ApiProperty({ description: 'City', example: 'Chamonix' })
   @IsString()
   @IsNotEmpty()
   city: string;
 
-  @ApiProperty({ description: 'Code postal', example: '74400' })
+  @ApiProperty({ description: 'Postal code', example: '74400' })
   @IsString()
   @IsNotEmpty()
   postalCode: string;
 
-  @ApiProperty({ description: 'Pays', example: 'France' })
+  @ApiProperty({ description: 'Country', example: 'France' })
   @IsString()
   @IsNotEmpty()
   country: string;
@@ -36,7 +36,7 @@ export class AddressDto {
 
 export class DocumentsDto {
   @ApiProperty({
-    description: 'ID du fichier Kbis uploadé via /uploads',
+    description: 'ID of the Kbis file uploaded via /uploads',
     example: 'file_abc123',
   })
   @IsString()
@@ -44,7 +44,8 @@ export class DocumentsDto {
   kbisFileId: string;
 
   @ApiProperty({
-    description: 'ID du fichier RC Pro uploadé via /uploads',
+    description:
+      'ID of the RC Pro liability insurance file uploaded via /uploads',
     example: 'file_def456',
   })
   @IsString()
@@ -52,7 +53,7 @@ export class DocumentsDto {
   rcProFileId: string;
 
   @ApiProperty({
-    description: 'IDs des diplômes des encadrants uploadés via /uploads',
+    description: 'IDs of the instructor diplomas uploaded via /uploads',
     example: ['file_dip001', 'file_dip002'],
     type: [String],
   })
@@ -69,7 +70,7 @@ export class DocumentsDto {
  */
 export class RegisterProfessionalDto {
   @ApiProperty({
-    description: 'Nom de la société / du centre outdoor',
+    description: 'Name of the company / outdoor center',
     example: 'Alpes Aventures SARL',
   })
   @IsString()
@@ -77,7 +78,7 @@ export class RegisterProfessionalDto {
   companyName: string;
 
   @ApiProperty({
-    description: 'Numéro SIRET (14 chiffres, validation Luhn)',
+    description: 'SIRET number (14 digits, Luhn validation)',
     example: '73282932000074',
   })
   @IsString()
@@ -88,7 +89,7 @@ export class RegisterProfessionalDto {
   siret: string;
 
   @ApiProperty({
-    description: 'Email de contact du centre',
+    description: 'Contact email of the center',
     example: 'contact@alpesaventures.fr',
   })
   @IsString()
@@ -96,7 +97,7 @@ export class RegisterProfessionalDto {
   contactEmail: string;
 
   @ApiProperty({
-    description: 'Téléphone de contact du centre',
+    description: 'Contact phone number of the center',
     example: '+33450000000',
   })
   @IsString()
@@ -104,7 +105,7 @@ export class RegisterProfessionalDto {
   contactPhone: string;
 
   @ApiProperty({
-    description: 'Adresse du centre',
+    description: 'Address of the center',
     type: AddressDto,
   })
   @IsDefined()
@@ -114,7 +115,7 @@ export class RegisterProfessionalDto {
   address: AddressDto;
 
   @ApiProperty({
-    description: 'Documents KYC (Kbis, RC Pro, diplômes encadrants)',
+    description: 'KYC documents (Kbis, RC Pro, instructor diplomas)',
     type: DocumentsDto,
   })
   @IsDefined()
@@ -129,21 +130,21 @@ export class RegisterProfessionalDto {
  */
 export class RegisterProfessionalResponseDto {
   @ApiProperty({
-    description: 'Identifiant unique du centre créé',
+    description: 'Unique identifier of the created center',
     example: '68b4d59919d9b7a94b4fde21',
   })
   centerId: string;
 
   @ApiProperty({
-    description: 'Statut du dossier soumis',
+    description: 'Status of the submitted application',
     example: 'pending_review',
     enum: ['pending_review'],
   })
   status: 'pending_review';
 
   @ApiProperty({
-    description: 'Délai estimé de revue du dossier',
-    example: '48h ouvrées',
+    description: 'Estimated review time for the application',
+    example: '48 business hours',
   })
   estimatedReviewTime: string;
 }
@@ -160,7 +161,7 @@ export class CreateProfessionalCenterDto extends RegisterProfessionalDto {}
  */
 export class UpdateProfessionalCenterDto {
   @ApiProperty({
-    description: 'Nom de la société',
+    description: 'Company name',
     example: 'Alpes Aventures SARL',
     required: false,
   })
@@ -170,7 +171,7 @@ export class UpdateProfessionalCenterDto {
   companyName?: string;
 
   @ApiProperty({
-    description: 'Email de contact',
+    description: 'Contact email',
     example: 'contact@alpes-aventures.fr',
     required: false,
   })
@@ -179,7 +180,7 @@ export class UpdateProfessionalCenterDto {
   contactEmail?: string;
 
   @ApiProperty({
-    description: 'Téléphone de contact',
+    description: 'Contact phone number',
     example: '+33450123456',
     required: false,
   })
@@ -189,7 +190,7 @@ export class UpdateProfessionalCenterDto {
   contactPhone?: string;
 
   @ApiProperty({
-    description: 'Adresse du centre. Sa modification déclenche un regéocodage.',
+    description: 'Address of the center. Changing it triggers a re-geocoding.',
     type: AddressDto,
     required: false,
   })

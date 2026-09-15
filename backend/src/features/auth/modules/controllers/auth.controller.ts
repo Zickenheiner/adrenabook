@@ -39,28 +39,28 @@ export class AuthController {
   ) {}
 
   @ApiOperation({
-    summary: "Inscription d'un aventurier (US-01)",
+    summary: 'Adventurer sign-up',
     description:
-      'Cree un compte aventurier avec email, mot de passe fort, et acceptation des CGU + RGPD. Envoie un email de verification.',
+      'Creates an adventurer account with an email address, a strong password, and acceptance of the terms of service and the GDPR policy. Sends a verification email.',
   })
   @ApiBody({
     type: RegisterDto,
-    description: "Donnees d'inscription de l'aventurier",
+    description: 'Sign-up data of the adventurer',
     required: true,
   })
   @ApiResponse({
     status: 201,
-    description: 'Compte cree, email de verification envoye',
+    description: 'Account created, verification email sent',
     type: RegisterResponseDto,
   })
   @ApiResponse({
     status: 400,
     description:
-      'Validation echouee (email invalide, mot de passe faible, mineur, CGU/RGPD non acceptes)',
+      'Validation failed (invalid email, weak password, user under legal age, terms of service or GDPR policy not accepted)',
   })
   @ApiResponse({
     status: 409,
-    description: 'Email deja utilise',
+    description: 'Email address already in use',
   })
   @Public()
   @Post('register')
@@ -70,28 +70,28 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: 'Connexion securisee (US-02)',
+    summary: 'Secure sign-in',
     description:
-      'Authentifie un utilisateur via email + mot de passe (et code 2FA si active). Retourne un accessToken (15 min) et un refreshToken (7 jours, egalement defini en cookie httpOnly). Blocage du compte apres 5 tentatives echouees pendant 15 minutes.',
+      'Authenticates a user with email + password (and a 2FA code when 2FA is enabled). Returns an accessToken (15 min) and a refreshToken (7 days, also set as an httpOnly cookie). The account is locked for 15 minutes after 5 failed attempts.',
   })
   @ApiBody({
     type: LoginDto,
-    description: 'Identifiants de connexion',
+    description: 'Sign-in credentials',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Connexion reussie',
+    description: 'Sign-in successful',
     type: LoginResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Validation echouee' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({
     status: 401,
-    description: 'Identifiants invalides ou 2FA requis',
+    description: 'Invalid credentials, or 2FA code required',
   })
   @ApiResponse({
     status: 423,
-    description: 'Compte verrouille (trop de tentatives)',
+    description: 'Account locked (too many attempts)',
   })
   @Public()
   @Post('login')
@@ -121,24 +121,24 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: 'Renouveler la paire de jetons (US-02)',
+    summary: 'Renew the token pair',
     description:
-      'Echange un refresh token valide contre un nouvel access token et un nouveau ' +
-      "refresh token. Le refresh token est tourne a chaque appel : l'ancien devient " +
-      'inutilisable. Le jeton est lu dans le corps de la requete, ou a defaut dans le ' +
-      'cookie httpOnly pose a la connexion.',
+      'Exchanges a valid refresh token for a new access token and a new refresh ' +
+      'token. The refresh token is rotated on every call: the previous one becomes ' +
+      'unusable. The token is read from the request body, or failing that from the ' +
+      'httpOnly cookie set at sign-in.',
   })
   @ApiBody({ type: RefreshTokenDto, required: false })
   @ApiResponse({
     status: 200,
-    description: 'Nouvelle paire de jetons',
+    description: 'New token pair',
     type: LoginResponseDto,
   })
   @ApiResponse({
     status: 401,
-    description: 'Refresh token absent, invalide, expire ou deja tourne',
+    description: 'Refresh token missing, invalid, expired or already rotated',
   })
-  @ApiResponse({ status: 403, description: 'Compte suspendu ou desactive' })
+  @ApiResponse({ status: 403, description: 'Account suspended or deactivated' })
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -169,24 +169,24 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: 'Demande de reinitialisation du mot de passe (US-03)',
+    summary: 'Password reset request',
     description:
-      "Envoie un lien magique par email valable 1h pour reinitialiser le mot de passe. La reponse est generique (meme message si l'email n'existe pas) afin d'eviter l'enumeration d'utilisateurs.",
+      'Sends a magic link by email, valid for 1 hour, to reset the password. The response is generic (the same message is returned when the email does not exist) in order to prevent user enumeration.',
   })
   @ApiBody({
     type: PasswordResetRequestDto,
-    description: "Email de l'utilisateur qui demande la reinitialisation",
+    description: 'Email address of the user requesting the password reset',
     required: true,
   })
   @ApiResponse({
     status: 200,
     description:
-      'Demande acceptee (reponse generique, indique uniquement que la demande a ete traitee)',
+      'Request accepted (generic response, only indicating that the request has been processed)',
     type: PasswordResetRequestResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation echouee (email invalide)',
+    description: 'Validation failed (invalid email)',
   })
   @Public()
   @Post('password-reset/request')
@@ -198,23 +198,23 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: 'Confirmation de la reinitialisation du mot de passe (US-03)',
+    summary: 'Password reset confirmation',
     description:
-      'Verifie le token signe HMAC (expiration 1h, usage unique), met a jour le mot de passe et invalide les sessions existantes (refresh tokens). Reinitialise egalement les tentatives echouees.',
+      'Verifies the HMAC-signed token (expires after 1 hour, single use), updates the password and invalidates the existing sessions (refresh tokens). Also resets the failed login attempts counter.',
   })
   @ApiBody({
     type: PasswordResetConfirmDto,
-    description: 'Token de reinitialisation et nouveau mot de passe',
+    description: 'Reset token and new password',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Mot de passe modifie avec succes',
+    description: 'Password changed successfully',
     type: PasswordResetConfirmResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation echouee, token invalide ou expire',
+    description: 'Validation failed, invalid or expired token',
   })
   @Public()
   @Post('password-reset/confirm')

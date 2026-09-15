@@ -40,23 +40,23 @@ export class ActivityController {
   ) {}
 
   @ApiOperation({
-    summary: 'Créer une activité (US-18)',
+    summary: 'Create an activity',
     description:
-      "Crée une nouvelle activité pour le centre du professionnel authentifié. Rôle professionnel requis. L'activité est toujours créée non publiée : sa mise en ligne se fait ensuite via PATCH.",
+      "Creates a new activity for the authenticated professional's center. Professional role required. The activity is always created unpublished: it is put online afterwards through PATCH.",
   })
   @ApiBody({
     type: CreateActivityDto,
-    description: "Données de l'activité à créer",
+    description: 'The activity data to create',
     required: true,
   })
   @ApiResponse({
     status: 201,
-    description: 'Activité créée',
+    description: 'Activity created',
     type: ActivityResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Validation échouée' })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 403, description: 'Centre non validé par admin' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Center not validated by an admin' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(
@@ -80,22 +80,22 @@ export class ActivityController {
   }
 
   @ApiOperation({
-    summary: 'Lister les activités du centre courant',
+    summary: 'List the activities of the current center',
     description:
-      'Retourne toutes les activités du centre du professionnel authentifié.',
+      "Returns all the activities of the authenticated professional's center.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Liste des activités',
+    description: 'List of activities',
     type: [ActivityEntity],
   })
   @ApiQuery({
     name: 'centerId',
-    description: 'Centre dont on veut les activités',
+    description: 'The center whose activities are requested',
     required: true,
     type: String,
   })
-  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
+  @ApiResponse({ status: 403, description: 'Center not owned by the account' })
   @Get('my')
   async findMine(
     @Req() req: { user: { sub: string } },
@@ -105,12 +105,12 @@ export class ActivityController {
   }
 
   @ApiOperation({
-    summary: 'Récupérer toutes les activités',
-    description: 'Retourne toutes les activités (accès admin/interne)',
+    summary: 'Get all activities',
+    description: 'Returns all activities (admin/internal access)',
   })
   @ApiResponse({
     status: 200,
-    description: 'Liste de toutes les activités',
+    description: 'List of all activities',
     type: [ActivityEntity],
   })
   @Get()
@@ -119,21 +119,21 @@ export class ActivityController {
   }
 
   @ApiOperation({
-    summary: 'Récupérer une activité par ID',
-    description: 'Retourne une activité par son identifiant unique',
+    summary: 'Get an activity by ID',
+    description: 'Returns an activity by its unique identifier',
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant de l'activité",
+    description: 'The activity identifier',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: "L'activité demandée",
+    description: 'The requested activity',
     type: ActivityEntity,
   })
-  @ApiResponse({ status: 404, description: 'Activité introuvable' })
+  @ApiResponse({ status: 404, description: 'Activity not found' })
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ActivityEntity> {
     const activity = await this.activityService.findById(id);
@@ -144,29 +144,29 @@ export class ActivityController {
   }
 
   @ApiOperation({
-    summary: 'Mettre à jour une activité',
+    summary: 'Update an activity',
     description:
-      "Met à jour les champs d'une activité existante, statut de publication compris. Rôle professionnel requis.",
+      'Updates the fields of an existing activity, including its publication status. Professional role required.',
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant de l'activité à mettre à jour",
+    description: 'The identifier of the activity to update',
     required: true,
     type: String,
   })
   @ApiBody({
     type: UpdateActivityDto,
-    description: "Les données mises à jour de l'activité",
+    description: 'The updated activity data',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Activité mise à jour',
+    description: 'Activity updated',
     type: Boolean,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 403, description: 'Accès interdit' })
-  @ApiResponse({ status: 404, description: 'Activité introuvable' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Access forbidden' })
+  @ApiResponse({ status: 404, description: 'Activity not found' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -181,24 +181,23 @@ export class ActivityController {
   }
 
   @ApiOperation({
-    summary: 'Supprimer une activité',
-    description:
-      'Supprime définitivement une activité. Rôle professionnel requis.',
+    summary: 'Delete an activity',
+    description: 'Permanently deletes an activity. Professional role required.',
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant de l'activité à supprimer",
+    description: 'The identifier of the activity to delete',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Activité supprimée',
+    description: 'Activity deleted',
     type: Boolean,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 403, description: 'Accès interdit' })
-  @ApiResponse({ status: 404, description: 'Activité introuvable' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Access forbidden' })
+  @ApiResponse({ status: 404, description: 'Activity not found' })
   @Delete(':id')
   async delete(
     @Param('id') id: string,

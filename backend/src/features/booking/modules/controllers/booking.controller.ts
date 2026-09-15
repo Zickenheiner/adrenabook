@@ -47,27 +47,27 @@ export class BookingController {
   ) {}
 
   @ApiOperation({
-    summary: 'Réserver un créneau (US-11)',
+    summary: 'Book a slot',
     description:
-      "Crée une réservation pour un créneau d'activité. Vérifie les places disponibles en temps réel et bloque la réservation 15 minutes en attente de paiement.",
+      'Creates a booking for an activity slot. Checks the remaining seats in real time and holds the booking for 15 minutes pending payment.',
   })
   @ApiBody({
     type: CreateBookingDto,
-    description: 'Données de réservation',
+    description: 'Booking data',
     required: true,
   })
   @ApiResponse({
     status: 201,
-    description: 'Réservation créée, en attente paiement',
+    description: 'Booking created, pending payment',
     type: BookingResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Prérequis non respectés ou validation échouée',
+    description: 'Prerequisites not met or validation failed',
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 404, description: 'Créneau introuvable' })
-  @ApiResponse({ status: 409, description: 'Plus assez de places disponibles' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 404, description: 'Slot not found' })
+  @ApiResponse({ status: 409, description: 'Not enough remaining seats' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createBooking(
@@ -78,34 +78,34 @@ export class BookingController {
   }
 
   @ApiOperation({
-    summary: 'Récupérer une réservation',
+    summary: 'Get a booking',
     description:
-      "Retourne l'état d'une réservation et le récapitulatif nécessaire à la page de confirmation (participants, activité, créneau, décharge). Réservé au propriétaire de la réservation. Le client secret Stripe n'est jamais exposé par cette route.",
+      'Returns the state of a booking and the summary needed by the confirmation page (participants, activity, slot, waiver). Restricted to the owner of the booking. The Stripe client secret is never exposed by this route.',
   })
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'Identifiant de la réservation',
+    description: 'Booking identifier',
   })
   @ApiResponse({
     status: 200,
-    description: 'Détail de la réservation',
+    description: 'Booking details',
     type: BookingDetailResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
   @ApiResponse({
     status: 403,
-    description: 'La réservation appartient à un autre utilisateur',
+    description: 'The booking belongs to another user',
   })
-  @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
   @ApiOperation({
-    summary: 'Lister ses réservations',
+    summary: 'List your own bookings',
     description:
-      "Retourne les réservations de l'utilisateur authentifié, de la plus proche à la plus ancienne, tous statuts confondus.",
+      'Returns the bookings of the authenticated user, from the nearest to the oldest, whatever their status.',
   })
   @ApiResponse({
     status: 200,
-    description: "Réservations de l'utilisateur",
+    description: "The user's bookings",
     type: [MyBookingDto],
   })
   @Get('me')
@@ -125,49 +125,49 @@ export class BookingController {
   }
 
   @ApiOperation({
-    summary: 'Confirmer le paiement Stripe (US-12)',
+    summary: 'Confirm the Stripe payment',
     description:
-      "Confirme le paiement d'une reservation. Le montant est regle en une fois : la reservation passe en confirmed. Idempotent : rejet si la reservation est deja payee.",
+      'Confirms the payment of a booking. The amount is paid in one go: the booking moves to confirmed. Idempotent: rejected if the booking is already paid.',
   })
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'Identifiant de la reservation',
+    description: 'Booking identifier',
   })
   @ApiBody({
     type: ConfirmPaymentDto,
-    description: 'PaymentIntent Stripe',
+    description: 'Stripe PaymentIntent',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Paiement confirme',
+    description: 'Payment confirmed',
     type: ConfirmPaymentResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'PaymentIntent invalide ou montant incoherent',
+    description: 'Invalid PaymentIntent or inconsistent amount',
   })
-  @ApiResponse({ status: 401, description: 'Non authentifie' })
-  @ApiResponse({ status: 404, description: 'Reservation introuvable' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
   @ApiResponse({
     status: 409,
-    description: 'Paiement deja traite (idempotence)',
+    description: 'Payment already processed (idempotency)',
   })
   @ApiOperation({
-    summary: "Préparer le paiement d'une réservation",
+    summary: 'Prepare the payment of a booking',
     description:
-      "Renvoie la référence à présenter à la confirmation. En attendant l'intégration Stripe, elle est simulée : `simulated` vaut true et aucun encaissement n'a lieu.",
+      'Returns the reference to present at confirmation. Pending the Stripe integration, it is simulated: `simulated` is true and no payment is collected.',
   })
-  @ApiParam({ name: 'id', description: 'Identifiant de la réservation' })
+  @ApiParam({ name: 'id', description: 'Booking identifier' })
   @ApiResponse({
     status: 201,
-    description: 'Référence de paiement',
+    description: 'Payment reference',
     type: PaymentIntentResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Réservation non payable' })
-  @ApiResponse({ status: 403, description: 'Réservation détenue par un autre' })
-  @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @ApiResponse({ status: 400, description: 'Booking is not payable' })
+  @ApiResponse({ status: 403, description: 'Booking owned by another user' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
   @Post(':id/payment-intent')
   async createPaymentIntent(
     @Param('id') id: string,
@@ -186,32 +186,32 @@ export class BookingController {
   }
 
   @ApiOperation({
-    summary: "Obtenir la facture PDF d'une réservation (US-15)",
+    summary: 'Get the PDF invoice of a booking',
     description:
-      "Retourne les métadonnées de la facture PDF pour une réservation payée. Génère la facture automatiquement si elle n'existe pas encore. Requiert que le paiement soit complet ou partiel.",
+      'Returns the metadata of the PDF invoice for a paid booking. Generates the invoice automatically if it does not exist yet. Requires the payment to be complete or partial.',
   })
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'Identifiant de la réservation',
+    description: 'Booking identifier',
   })
   @ApiResponse({
     status: 200,
-    description: 'Métadonnées de la facture retournées',
+    description: 'Invoice metadata returned',
     type: InvoiceMetadataResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
   @ApiResponse({
     status: 403,
-    description: 'La réservation appartient à un autre utilisateur',
+    description: 'The booking belongs to another user',
   })
   @ApiResponse({
     status: 404,
-    description: 'Réservation ou facture introuvable',
+    description: 'Booking or invoice not found',
   })
   @ApiResponse({
     status: 409,
-    description: 'Facture non encore générée (paiement incomplet)',
+    description: 'Invoice not generated yet (incomplete payment)',
   })
   @Get(':id/invoice')
   @HttpCode(HttpStatus.OK)
@@ -223,12 +223,12 @@ export class BookingController {
   }
 
   @ApiOperation({
-    summary: "Télécharger la facture PDF d'une réservation",
+    summary: 'Download the PDF invoice of a booking',
     description:
-      'Renvoie le document PDF. Mêmes conditions que ses métadonnées : la réservation doit appartenir au demandeur et être payée.',
+      'Returns the PDF document. Same conditions as its metadata: the booking must belong to the requester and be paid.',
   })
-  @ApiParam({ name: 'id', description: 'Identifiant de la réservation' })
-  @ApiResponse({ status: 200, description: 'Document PDF' })
+  @ApiParam({ name: 'id', description: 'Booking identifier' })
+  @ApiResponse({ status: 200, description: 'PDF document' })
   @Get(':id/invoice/pdf')
   async getInvoicePdf(
     @Param('id') id: string,
@@ -251,35 +251,35 @@ export class BookingController {
   }
 
   @ApiOperation({
-    summary: 'Annuler une réservation (US-13)',
+    summary: 'Cancel a booking',
     description:
-      'Annule une réservation et déclenche un remboursement Stripe automatique selon les CGV du centre : remboursement 100% si > J-15, 50% entre J-7 et J-15, 0% si < J-7.',
+      "Cancels a booking and triggers an automatic Stripe refund according to the center's terms and conditions: 100% refund more than 15 days before, 50% between 7 and 15 days before, 0% less than 7 days before.",
   })
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'Identifiant de la réservation',
+    description: 'Booking identifier',
   })
   @ApiBody({
     type: CancelBookingDto,
-    description: "Motif et commentaire d'annulation",
+    description: 'Cancellation reason and comment',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Annulation traitée',
+    description: 'Cancellation processed',
     type: CancelBookingResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Validation échouée' })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
   @ApiResponse({
     status: 403,
-    description: 'Réservation appartient à un autre utilisateur',
+    description: 'The booking belongs to another user',
   })
-  @ApiResponse({ status: 404, description: 'Réservation introuvable' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
   @ApiResponse({
     status: 409,
-    description: 'Déjà annulée ou activité déjà réalisée',
+    description: 'Already cancelled or activity already completed',
   })
   @Post(':id/cancel')
   @HttpCode(HttpStatus.OK)

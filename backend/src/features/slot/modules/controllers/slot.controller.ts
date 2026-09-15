@@ -41,32 +41,32 @@ export class SlotController {
   ) {}
 
   @ApiOperation({
-    summary: 'Créer des créneaux pour une activité (US-19)',
+    summary: 'Create slots for an activity',
     description:
-      "Crée un ou plusieurs créneaux pour l'activité spécifiée. Supporte les créneaux récurrents via RRULE iCal. Rôle professionnel requis.",
+      'Creates one or more slots for the specified activity. Supports recurring slots through an iCal RRULE. Professional role required.',
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant de l'activité",
+    description: 'The activity identifier',
     required: true,
     type: String,
   })
   @ApiBody({
     type: CreateSlotsDto,
-    description: 'Données de création des créneaux',
+    description: 'Slot creation payload',
     required: true,
   })
   @ApiResponse({
     status: 201,
-    description: 'Créneaux créés',
+    description: 'Slots created',
     type: CreateSlotsResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'RRULE invalide ou paramètres incohérents',
+    description: 'Invalid RRULE or inconsistent parameters',
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 404, description: 'Activité introuvable' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 404, description: 'Activity not found' })
   @Post(':id/slots')
   @HttpCode(HttpStatus.CREATED)
   async createSlots(
@@ -82,34 +82,35 @@ export class SlotController {
   }
 
   @ApiOperation({
-    summary: "Lister les créneaux d'une activité (US-19)",
+    summary: "List an activity's slots",
     description:
-      "Retourne les créneaux de l'activité, triés par date de début croissante, avec le nombre de places encore disponibles. Réservé au professionnel propriétaire de l'activité.",
+      "Returns the activity's slots, sorted by ascending start date, with the number of remaining seats. Restricted to the professional who owns the activity.",
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant de l'activité",
+    description: 'The activity identifier',
     required: true,
     type: String,
   })
   @ApiQuery({
     name: 'month',
-    description: 'Mois vise au format YYYY-MM. Par defaut : le mois courant.',
+    description:
+      'Target month in YYYY-MM format. Defaults to the current month.',
     required: false,
     example: '2026-09',
   })
   @ApiResponse({
     status: 200,
-    description: 'Créneaux du mois et mois comportant des créneaux',
+    description: 'Slots for the month and the months that contain slots',
     type: ProSlotMonthResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Mois malformé' })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 400, description: 'Malformed month' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
   @ApiResponse({
     status: 403,
-    description: "Accès réservé au professionnel propriétaire de l'activité",
+    description: 'Restricted to the professional who owns the activity',
   })
-  @ApiResponse({ status: 404, description: 'Activité introuvable' })
+  @ApiResponse({ status: 404, description: 'Activity not found' })
   @Get(':id/slots')
   @HttpCode(HttpStatus.OK)
   async findSlots(
@@ -130,22 +131,22 @@ export class SlotController {
     return this.slotService.findByActivityIdForOwner(id, user.sub, target);
   }
   @ApiOperation({
-    summary: 'Modifier un créneau (US-19)',
+    summary: 'Update a slot',
     description:
-      "Modifie la date/heure ou le nombre de places d'un créneau. Un créneau " +
-      'déjà réservé ne peut pas être déplacé, et sa capacité ne peut pas ' +
-      'descendre sous le nombre de places déjà prises.',
+      'Updates the start date-time or the seat count of a slot. A slot that ' +
+      'already carries bookings cannot be moved, and its capacity cannot drop ' +
+      'below the number of seats already taken.',
   })
-  @ApiParam({ name: 'id', description: "L'identifiant de l'activité" })
-  @ApiParam({ name: 'slotId', description: "L'identifiant du créneau" })
+  @ApiParam({ name: 'id', description: 'The activity identifier' })
+  @ApiParam({ name: 'slotId', description: 'The slot identifier' })
   @ApiBody({ type: UpdateSlotDto })
-  @ApiResponse({ status: 200, description: 'Créneau modifié', type: Boolean })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 403, description: 'Accès réservé au propriétaire' })
-  @ApiResponse({ status: 404, description: 'Activité ou créneau introuvable' })
+  @ApiResponse({ status: 200, description: 'Slot updated', type: Boolean })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Restricted to the owner' })
+  @ApiResponse({ status: 404, description: 'Activity or slot not found' })
   @ApiResponse({
     status: 409,
-    description: 'Créneau réservé : déplacement ou réduction impossible',
+    description: 'Slot has bookings: it cannot be moved or reduced',
   })
   @Patch(':id/slots/:slotId')
   @HttpCode(HttpStatus.OK)
@@ -163,18 +164,18 @@ export class SlotController {
   }
 
   @ApiOperation({
-    summary: 'Supprimer un créneau (US-19)',
+    summary: 'Delete a slot',
     description:
-      "Supprime un créneau de l'activité. Refusé tant qu'il porte des " +
-      'réservations actives.',
+      'Deletes a slot from the activity. Refused as long as it carries active ' +
+      'bookings.',
   })
-  @ApiParam({ name: 'id', description: "L'identifiant de l'activité" })
-  @ApiParam({ name: 'slotId', description: "L'identifiant du créneau" })
-  @ApiResponse({ status: 200, description: 'Créneau supprimé', type: Boolean })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 403, description: 'Accès réservé au propriétaire' })
-  @ApiResponse({ status: 404, description: 'Activité ou créneau introuvable' })
-  @ApiResponse({ status: 409, description: 'Créneau réservé' })
+  @ApiParam({ name: 'id', description: 'The activity identifier' })
+  @ApiParam({ name: 'slotId', description: 'The slot identifier' })
+  @ApiResponse({ status: 200, description: 'Slot deleted', type: Boolean })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Restricted to the owner' })
+  @ApiResponse({ status: 404, description: 'Activity or slot not found' })
+  @ApiResponse({ status: 409, description: 'Slot has bookings' })
   @Delete(':id/slots/:slotId')
   @HttpCode(HttpStatus.OK)
   async deleteSlot(

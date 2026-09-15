@@ -26,7 +26,7 @@ import { UserEntity } from '@features/auth/domains/entities/user.entity';
  */
 export class RegisterDto {
   @ApiProperty({
-    description: "Email de l'aventurier (format RFC 5322)",
+    description: "Adventurer's email address (RFC 5322 format)",
     example: 'aventurier@example.com',
   })
   @IsEmail({}, { message: "L'email doit etre au format valide (RFC 5322)" })
@@ -35,7 +35,7 @@ export class RegisterDto {
 
   @ApiProperty({
     description:
-      'Mot de passe (min 12 caracteres, au moins 1 majuscule, 1 chiffre et 1 caractere special)',
+      'Password (minimum 12 characters, including at least 1 uppercase letter, 1 digit and 1 special character)',
     example: 'MySecureP@ssw0rd!',
     minLength: 12,
   })
@@ -51,7 +51,7 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({
-    description: "Prenom de l'aventurier",
+    description: "Adventurer's first name",
     example: 'Jean',
   })
   @IsString()
@@ -59,7 +59,7 @@ export class RegisterDto {
   firstName: string;
 
   @ApiProperty({
-    description: "Nom de l'aventurier",
+    description: "Adventurer's last name",
     example: 'Dupont',
   })
   @IsString()
@@ -67,7 +67,8 @@ export class RegisterDto {
   lastName: string;
 
   @ApiProperty({
-    description: 'Date de naissance au format ISO 8601 (majeur requis)',
+    description:
+      'Date of birth in ISO 8601 format (the user must be of legal age)',
     example: '1995-05-15',
   })
   @IsDateString(
@@ -78,8 +79,7 @@ export class RegisterDto {
   birthDate: string;
 
   @ApiProperty({
-    description:
-      "Acceptation des Conditions Generales d'Utilisation (doit etre true)",
+    description: 'Acceptance of the terms of service (must be true)',
     example: true,
   })
   @IsBoolean()
@@ -87,7 +87,7 @@ export class RegisterDto {
   acceptCgu: boolean;
 
   @ApiProperty({
-    description: 'Acceptation de la politique RGPD (doit etre true)',
+    description: 'Acceptance of the GDPR policy (must be true)',
     example: true,
   })
   @IsBoolean()
@@ -100,19 +100,19 @@ export class RegisterDto {
  */
 export class RegisterResponseDto {
   @ApiProperty({
-    description: "Identifiant unique de l'utilisateur cree",
+    description: 'Unique identifier of the created user',
     example: '68b4d59919d9b7a94b4fde21',
   })
   userId: string;
 
   @ApiProperty({
-    description: "Email de l'utilisateur cree",
+    description: 'Email address of the created user',
     example: 'aventurier@example.com',
   })
   email: string;
 
   @ApiProperty({
-    description: "Indique si l'email de verification a ete envoye",
+    description: 'Indicates whether the verification email has been sent',
     example: true,
   })
   emailVerificationSent: boolean;
@@ -127,7 +127,7 @@ export class RegisterResponseDto {
  */
 export class LoginDto {
   @ApiProperty({
-    description: "Email de l'utilisateur",
+    description: "User's email address",
     example: 'aventurier@example.com',
   })
   @IsEmail({}, { message: "L'email doit etre au format valide (RFC 5322)" })
@@ -135,7 +135,7 @@ export class LoginDto {
   email: string;
 
   @ApiProperty({
-    description: "Mot de passe de l'utilisateur",
+    description: "User's password",
     example: 'MySecureP@ssw0rd!',
   })
   @IsString()
@@ -143,7 +143,7 @@ export class LoginDto {
   password: string;
 
   @ApiProperty({
-    description: 'Code 2FA recu par email (requis si 2FA active)',
+    description: '2FA code received by email (required when 2FA is enabled)',
     example: '123456',
     required: false,
   })
@@ -157,19 +157,19 @@ export class LoginDto {
  */
 export class UserPublicDto {
   @ApiProperty({
-    description: "Identifiant unique de l'utilisateur",
+    description: 'Unique identifier of the user',
     example: '68b4d59919d9b7a94b4fde21',
   })
   id: string;
 
   @ApiProperty({
-    description: "Email de l'utilisateur",
+    description: "User's email address",
     example: 'aventurier@example.com',
   })
   email: string;
 
   @ApiProperty({
-    description: "Role de l'utilisateur",
+    description: "User's role",
     example: 'aventurier',
     enum: ['aventurier', 'professionnel', 'admin'],
   })
@@ -181,20 +181,20 @@ export class UserPublicDto {
  */
 export class LoginResponseDto {
   @ApiProperty({
-    description: 'JWT access token (duree de vie 15 minutes)',
+    description: 'JWT access token (15-minute lifetime)',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
   accessToken: string;
 
   @ApiProperty({
     description:
-      'Refresh token (duree de vie 7 jours, egalement defini en cookie httpOnly)',
+      'Refresh token (7-day lifetime, also set as an httpOnly cookie)',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
   refreshToken: string;
 
   @ApiProperty({
-    description: "Informations publiques de l'utilisateur connecte",
+    description: 'Public information about the signed-in user',
     type: UserPublicDto,
   })
   user: UserPublicDto;
@@ -207,7 +207,7 @@ export class LoginResponseDto {
  */
 export class PasswordResetRequestDto {
   @ApiProperty({
-    description: "Email de l'utilisateur qui demande la reinitialisation",
+    description: 'Email address of the user requesting the password reset',
     example: 'aventurier@example.com',
   })
   @IsEmail({}, { message: "L'email doit etre au format valide (RFC 5322)" })
@@ -222,9 +222,9 @@ export class PasswordResetRequestDto {
 export class PasswordResetRequestResponseDto {
   @ApiProperty({
     description:
-      "Message generique. Renvoye que l'email existe ou non, pour eviter l'enumeration d'utilisateurs.",
+      'Generic message. Returned whether or not the email exists, in order to prevent user enumeration.',
     example:
-      'Si un compte existe pour cet email, un lien de reinitialisation a ete envoye.',
+      'If an account exists for this email address, a reset link has been sent.',
   })
   message: string;
 }
@@ -238,7 +238,7 @@ export class PasswordResetRequestResponseDto {
 export class PasswordResetConfirmDto {
   @ApiProperty({
     description:
-      'Token signe HMAC recu par email (expiration 1h, usage unique)',
+      'HMAC-signed token received by email (expires after 1 hour, single use)',
     example: 'a1b2c3d4e5f6.7g8h9i0j1k2l.m3n4o5p6q7r8',
   })
   @IsString()
@@ -247,7 +247,7 @@ export class PasswordResetConfirmDto {
 
   @ApiProperty({
     description:
-      'Nouveau mot de passe (min 12 caracteres, au moins 1 majuscule, 1 chiffre et 1 caractere special)',
+      'New password (minimum 12 characters, including at least 1 uppercase letter, 1 digit and 1 special character)',
     example: 'MyN3wSecureP@ss!',
     minLength: 12,
   })
@@ -268,7 +268,7 @@ export class PasswordResetConfirmDto {
  */
 export class PasswordResetConfirmResponseDto {
   @ApiProperty({
-    description: 'Message de succes',
+    description: 'Success message',
     example: 'Mot de passe modifie avec succes',
   })
   message: string;
@@ -279,7 +279,7 @@ export class PasswordResetConfirmResponseDto {
  */
 export class EmergencyContactDto {
   @ApiProperty({
-    description: 'Nom complet de la personne a prevenir',
+    description: 'Full name of the emergency contact',
     example: 'Marie Dupont',
   })
   @IsString()
@@ -287,7 +287,7 @@ export class EmergencyContactDto {
   fullName: string;
 
   @ApiProperty({
-    description: 'Relation avec la personne a prevenir',
+    description: 'Relationship to the emergency contact',
     example: 'Conjoint(e)',
   })
   @IsString()
@@ -295,7 +295,7 @@ export class EmergencyContactDto {
   relation: string;
 
   @ApiProperty({
-    description: 'Numero de telephone de la personne a prevenir',
+    description: 'Phone number of the emergency contact',
     example: '+33612345678',
   })
   @IsString()
@@ -309,7 +309,7 @@ export class EmergencyContactDto {
  */
 export class HealthProfileDto {
   @ApiProperty({
-    description: 'Poids en kg (requis pour saut elastique)',
+    description: 'Weight in kg (required for bungee jumping)',
     example: 75,
     required: false,
   })
@@ -318,7 +318,7 @@ export class HealthProfileDto {
   weight?: number;
 
   @ApiProperty({
-    description: 'Taille en cm',
+    description: 'Height in cm',
     example: 178,
     required: false,
   })
@@ -327,7 +327,7 @@ export class HealthProfileDto {
   height?: number;
 
   @ApiProperty({
-    description: 'Contre-indications medicales (stockees chiffrees en AES-256)',
+    description: 'Medical contraindications (stored AES-256 encrypted)',
     example: ['Hypertension', 'Asthme'],
     required: false,
     type: [String],
@@ -338,7 +338,7 @@ export class HealthProfileDto {
   medicalContraindications?: string[];
 
   @ApiProperty({
-    description: "Personne a prevenir en cas d'urgence",
+    description: 'Person to contact in case of emergency',
     type: EmergencyContactDto,
   })
   @ValidateNested()
@@ -347,7 +347,7 @@ export class HealthProfileDto {
 
   @ApiProperty({
     description:
-      'Identifiant du fichier certificat medical (requis pour certaines activites)',
+      'Identifier of the medical certificate file (required for some activities)',
     example: 'file-abc123',
     required: false,
   })
@@ -361,13 +361,13 @@ export class HealthProfileDto {
  */
 export class HealthProfileResponseDto {
   @ApiProperty({
-    description: 'Indique si le profil a ete mis a jour',
+    description: 'Indicates whether the profile has been updated',
     example: true,
   })
   updated: boolean;
 
   @ApiProperty({
-    description: 'Liste des champs chiffres pour tracabilite',
+    description: 'List of the encrypted fields, for traceability',
     example: ['medicalContraindications'],
     type: [String],
   })
@@ -388,26 +388,26 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ description: 'Prenom', example: 'Jean' })
+  @ApiProperty({ description: 'First name', example: 'Jean' })
   @IsString()
   @IsNotEmpty()
   firstName: string;
 
-  @ApiProperty({ description: 'Nom', example: 'Dupont' })
+  @ApiProperty({ description: 'Last name', example: 'Dupont' })
   @IsString()
   @IsNotEmpty()
   lastName: string;
 
-  @ApiProperty({ description: 'Date de naissance', example: '1995-05-15' })
+  @ApiProperty({ description: 'Date of birth', example: '1995-05-15' })
   @IsDateString()
   @IsNotEmpty()
   birthDate: string;
 
-  @ApiProperty({ description: 'Acceptation CGU', example: true })
+  @ApiProperty({ description: 'Terms of service acceptance', example: true })
   @IsBoolean()
   acceptCgu: boolean;
 
-  @ApiProperty({ description: 'Acceptation RGPD', example: true })
+  @ApiProperty({ description: 'GDPR policy acceptance', example: true })
   @IsBoolean()
   acceptRgpd: boolean;
 }
@@ -421,7 +421,7 @@ export class CreateUserDto {
  */
 export class UserResponseDto {
   @ApiProperty({
-    description: "Identifiant unique de l'utilisateur",
+    description: 'Unique identifier of the user',
     example: '68b4d59919d9b7a94b4fde21',
   })
   id: string;
@@ -429,42 +429,42 @@ export class UserResponseDto {
   @ApiProperty({ description: 'Email', example: 'user@example.com' })
   email: string;
 
-  @ApiProperty({ description: 'Prenom', example: 'Jean' })
+  @ApiProperty({ description: 'First name', example: 'Jean' })
   firstName: string;
 
-  @ApiProperty({ description: 'Nom', example: 'Dupont' })
+  @ApiProperty({ description: 'Last name', example: 'Dupont' })
   lastName: string;
 
   @ApiProperty({
-    description: 'Date de naissance (ISO 8601)',
+    description: 'Date of birth (ISO 8601)',
     example: '1995-05-15T00:00:00.000Z',
   })
   birthDate: string;
 
   @ApiProperty({
-    description: "Role de l'utilisateur",
+    description: "User's role",
     example: 'aventurier',
     enum: ['aventurier', 'professionnel', 'admin'],
   })
   role: string;
 
   @ApiProperty({
-    description: 'Statut du compte',
+    description: 'Account status',
     example: 'active',
     enum: ['active', 'suspended', 'banned'],
   })
   status: string;
 
-  @ApiProperty({ description: 'Email verifie', example: true })
+  @ApiProperty({ description: 'Email verified', example: true })
   emailVerified: boolean;
 
-  @ApiProperty({ description: 'Acceptation CGU', example: true })
+  @ApiProperty({ description: 'Terms of service acceptance', example: true })
   acceptCgu: boolean;
 
-  @ApiProperty({ description: 'Acceptation RGPD', example: true })
+  @ApiProperty({ description: 'GDPR policy acceptance', example: true })
   acceptRgpd: boolean;
 
-  @ApiProperty({ description: '2FA activee', example: false })
+  @ApiProperty({ description: '2FA enabled', example: false })
   twoFactorEnabled: boolean;
 
   static fromEntity(entity: UserEntity): UserResponseDto {
@@ -496,12 +496,12 @@ export class UpdateUserDto {
   @IsOptional()
   email?: string;
 
-  @ApiProperty({ description: 'Prenom', example: 'Jean', required: false })
+  @ApiProperty({ description: 'First name', example: 'Jean', required: false })
   @IsString()
   @IsOptional()
   firstName?: string;
 
-  @ApiProperty({ description: 'Nom', example: 'Dupont', required: false })
+  @ApiProperty({ description: 'Last name', example: 'Dupont', required: false })
   @IsString()
   @IsOptional()
   lastName?: string;
@@ -514,7 +514,7 @@ export class UpdateUserDto {
  */
 export class NotificationPreferencesEmailDto {
   @ApiProperty({
-    description: 'Recevoir les confirmations de reservation par email',
+    description: 'Receive booking confirmations by email',
     example: true,
   })
   @IsBoolean()
@@ -522,7 +522,7 @@ export class NotificationPreferencesEmailDto {
   bookingConfirmation: boolean;
 
   @ApiProperty({
-    description: 'Recevoir les rappels par email',
+    description: 'Receive reminders by email',
     example: true,
   })
   @IsBoolean()
@@ -530,7 +530,7 @@ export class NotificationPreferencesEmailDto {
   reminders: boolean;
 
   @ApiProperty({
-    description: 'Recevoir les emails marketing',
+    description: 'Receive marketing emails',
     example: false,
   })
   @IsBoolean()
@@ -543,7 +543,7 @@ export class NotificationPreferencesEmailDto {
  */
 export class NotificationPreferencesSmsDto {
   @ApiProperty({
-    description: 'Recevoir les confirmations de reservation par SMS',
+    description: 'Receive booking confirmations by SMS',
     example: true,
   })
   @IsBoolean()
@@ -551,7 +551,7 @@ export class NotificationPreferencesSmsDto {
   bookingConfirmation: boolean;
 
   @ApiProperty({
-    description: 'Recevoir les rappels par SMS',
+    description: 'Receive reminders by SMS',
     example: true,
   })
   @IsBoolean()
@@ -564,7 +564,7 @@ export class NotificationPreferencesSmsDto {
  */
 export class NotificationPreferencesDto {
   @ApiProperty({
-    description: 'Preferences de notifications par email',
+    description: 'Email notification preferences',
     type: NotificationPreferencesEmailDto,
   })
   @ValidateNested()
@@ -573,7 +573,7 @@ export class NotificationPreferencesDto {
   email: NotificationPreferencesEmailDto;
 
   @ApiProperty({
-    description: 'Preferences de notifications par SMS',
+    description: 'SMS notification preferences',
     type: NotificationPreferencesSmsDto,
   })
   @ValidateNested()
@@ -587,13 +587,13 @@ export class NotificationPreferencesDto {
  */
 export class NotificationPreferencesResponseDto {
   @ApiProperty({
-    description: 'Indique si les preferences ont ete mises a jour',
+    description: 'Indicates whether the preferences have been updated',
     example: true,
   })
   updated: boolean;
 
   @ApiProperty({
-    description: 'Preferences de notifications mises a jour',
+    description: 'Updated notification preferences',
     type: NotificationPreferencesDto,
   })
   preferences: NotificationPreferencesDto;
@@ -649,7 +649,7 @@ export class RgpdExportHealthProfileDto {
   height?: number;
 
   @ApiProperty({
-    description: 'Contre-indications medicales dechiffrees',
+    description: 'Decrypted medical contraindications',
     example: ['Hypertension'],
     type: [String],
     required: false,
@@ -739,26 +739,26 @@ export class RgpdExportDataDto {
  */
 export class RgpdExportResponseDto {
   @ApiProperty({
-    description: "Identifiant unique de la demande d'export",
+    description: 'Unique identifier of the export request',
     example: 'rgpd-export-68b4d59919d9b7a94b4fde21',
   })
   requestId: string;
 
   @ApiProperty({
-    description: "Statut de la demande d'export",
+    description: 'Status of the export request',
     example: 'completed',
     enum: ['completed'],
   })
   status: 'completed';
 
   @ApiProperty({
-    description: "Date de realisation de l'export (ISO 8601)",
+    description: 'Date on which the export was completed (ISO 8601)',
     example: '2026-05-13T12:00:00.000Z',
   })
   completedAt: string;
 
   @ApiProperty({
-    description: "Contenu complet de l'export",
+    description: 'Full content of the export',
     type: RgpdExportDataDto,
   })
   data: RgpdExportDataDto;
@@ -770,7 +770,7 @@ export class RgpdExportResponseDto {
  */
 export class RgpdDeleteDto {
   @ApiProperty({
-    description: 'Code de confirmation recu par email (double consentement)',
+    description: 'Confirmation code received by email (double consent)',
     example: 'CONFIRM-ABC123',
   })
   @IsString()
@@ -778,7 +778,7 @@ export class RgpdDeleteDto {
   confirmationCode: string;
 
   @ApiProperty({
-    description: 'Raison optionnelle de la demande de suppression',
+    description: 'Optional reason for the deletion request',
     example: 'Je ne souhaite plus utiliser le service',
     required: false,
   })
@@ -792,20 +792,20 @@ export class RgpdDeleteDto {
  */
 export class RgpdDeleteResponseDto {
   @ApiProperty({
-    description: 'Identifiant unique de la demande de suppression',
+    description: 'Unique identifier of the deletion request',
     example: 'rgpd-delete-68b4d59919d9b7a94b4fde21',
   })
   requestId: string;
 
   @ApiProperty({
-    description: 'Date planifiee de suppression (J+30 — delai de retractation)',
+    description: 'Scheduled deletion date (D+30 — withdrawal period)',
     example: '2026-06-12T12:00:00.000Z',
   })
   scheduledDeletionAt: string;
 
   @ApiProperty({
     description:
-      'Donnees conservees pour obligation legale (ex. factures 10 ans)',
+      'Data retained to meet a legal obligation (e.g. invoices kept for 10 years)',
     example: ['invoices for legal retention'],
     type: [String],
   })
@@ -819,38 +819,38 @@ export class RgpdDeleteResponseDto {
  */
 export class BookingSummaryDto {
   @ApiProperty({
-    description: 'Identifiant de la réservation',
+    description: 'Booking identifier',
     example: '68b4d59919d9b7a94b4fde21',
   })
   bookingId: string;
 
   @ApiProperty({
-    description: "Titre de l'activité réservée",
+    description: 'Title of the booked activity',
     example: 'Parachute en tandem',
   })
   activityTitle: string;
 
   @ApiProperty({
-    description: 'Date de début du créneau (ISO 8601)',
+    description: 'Slot start date (ISO 8601)',
     example: '2026-06-15T09:00:00.000Z',
   })
   slotStartAt: string;
 
   @ApiProperty({
-    description: 'Nom du centre qui propose l’activité',
+    description: 'Name of the center offering the activity',
     example: 'Chamonix Vertical',
   })
   centerName: string;
 
   @ApiProperty({
     description:
-      'Identifiant de l’image de couverture, à résoudre via GET /activities/photos/:fileId',
+      'Cover image identifier, to be resolved via GET /activities/photos/:fileId',
     example: '68b4d59919d9b7a94b4fde99',
   })
   coverPhotoUrl: string;
 
   @ApiProperty({
-    description: 'Statut de la réservation',
+    description: 'Booking status',
     example: 'confirmed',
     enum: [
       'pending_payment',
@@ -868,50 +868,50 @@ export class BookingSummaryDto {
  */
 export class ActivitySummaryDto {
   @ApiProperty({
-    description: "Identifiant de l'activité",
+    description: 'Activity identifier',
     example: '68b4d59919d9b7a94b4fde21',
   })
   activityId: string;
 
   @ApiProperty({
-    description: "Titre de l'activité",
+    description: 'Activity title',
     example: 'Parachute en tandem',
   })
   title: string;
 
   @ApiProperty({
-    description: "Type de l'activité",
+    description: 'Activity type',
     example: 'parachute',
   })
   type: string;
 
   @ApiProperty({
-    description: 'Prix par participant en euros',
+    description: 'Price per participant in euros',
     example: 150,
   })
   priceEur: number;
 
   @ApiProperty({
-    description: "Durée de l'activité en minutes",
+    description: 'Activity duration in minutes',
     example: 120,
   })
   durationMinutes: number;
 
   @ApiProperty({
-    description: 'Niveau de difficulté',
+    description: 'Difficulty level',
     example: 'beginner',
     enum: ['beginner', 'intermediate', 'advanced'],
   })
   difficulty: string;
 
   @ApiProperty({
-    description: "Nom du centre proposant l'activité",
+    description: 'Name of the center offering the activity',
     example: 'Arkose Toulouse',
   })
   centerName: string;
 
   @ApiProperty({
-    description: 'Identifiant du fichier photo de couverture',
+    description: 'Cover photo file identifier',
     example: '68b4d59919d9b7a94b4fde21',
   })
   coverPhotoUrl: string;
@@ -922,20 +922,19 @@ export class ActivitySummaryDto {
  */
 export class DashboardResponseDto {
   @ApiProperty({
-    description: "Prénom de l'utilisateur connecté",
+    description: "Signed-in user's first name",
     example: 'Rémi',
   })
   firstName: string;
 
   @ApiProperty({
-    description: "Les 3 prochaines réservations de l'utilisateur",
+    description: "The user's 3 next bookings",
     type: [BookingSummaryDto],
   })
   upcomingBookings: BookingSummaryDto[];
 
   @ApiProperty({
-    description:
-      "4 activités suggérées (basées sur l'historique ou aléatoires)",
+    description: '4 suggested activities (based on booking history, or random)',
     type: [ActivitySummaryDto],
   })
   suggestedActivities: ActivitySummaryDto[];
@@ -944,8 +943,8 @@ export class DashboardResponseDto {
 export class RefreshTokenDto {
   @ApiProperty({
     description:
-      'Refresh token obtenu a la connexion. Optionnel : a defaut, le jeton est ' +
-      'lu dans le cookie httpOnly refresh_token.',
+      'Refresh token obtained at sign-in. Optional: by default, the token is ' +
+      'read from the refresh_token httpOnly cookie.',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     required: false,
   })

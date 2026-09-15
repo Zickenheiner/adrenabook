@@ -14,7 +14,7 @@ import { Type } from 'class-transformer';
 
 export class ParticipantDto {
   @ApiProperty({
-    description: 'Prénom du participant',
+    description: 'Participant first name',
     example: 'Jean',
   })
   @IsString()
@@ -22,7 +22,7 @@ export class ParticipantDto {
   firstName: string;
 
   @ApiProperty({
-    description: 'Nom du participant',
+    description: 'Participant last name',
     example: 'Dupont',
   })
   @IsString()
@@ -30,7 +30,7 @@ export class ParticipantDto {
   lastName: string;
 
   @ApiProperty({
-    description: 'Date de naissance au format ISO 8601 (YYYY-MM-DD)',
+    description: 'Date of birth in ISO 8601 format (YYYY-MM-DD)',
     example: '1990-05-15',
   })
   @IsString()
@@ -38,8 +38,7 @@ export class ParticipantDto {
   birthDate: string;
 
   @ApiProperty({
-    description:
-      'Poids en kilogrammes (optionnel, requis pour certaines activités)',
+    description: 'Weight in kilograms (optional, required for some activities)',
     example: 75,
     required: false,
   })
@@ -50,7 +49,7 @@ export class ParticipantDto {
 
 export class CreateBookingDto {
   @ApiProperty({
-    description: 'Identifiant du créneau à réserver',
+    description: 'Identifier of the slot to book',
     example: '68b4d59919d9b7a94b4fde21',
   })
   @IsString()
@@ -58,7 +57,7 @@ export class CreateBookingDto {
   slotId: string;
 
   @ApiProperty({
-    description: 'Liste des participants (au moins 1)',
+    description: 'List of participants (at least 1)',
     type: [ParticipantDto],
   })
   @IsArray()
@@ -68,7 +67,7 @@ export class CreateBookingDto {
   participants: ParticipantDto[];
 
   @ApiProperty({
-    description: 'Acceptation des conditions spécifiques au centre',
+    description: "Acceptance of the center's specific terms",
     example: true,
   })
   @IsBoolean()
@@ -80,7 +79,7 @@ export class UpdateBookingDto {}
 
 export class ConfirmPaymentDto {
   @ApiProperty({
-    description: 'Identifiant du PaymentIntent Stripe',
+    description: 'Stripe PaymentIntent identifier',
     example: 'pi_3OxxxxxxxxxxxxxxxxxxxxXX',
   })
   @IsString()
@@ -97,25 +96,25 @@ export class ConfirmPaymentDto {
  */
 export class PaymentIntentResponseDto {
   @ApiProperty({
-    description: 'Identifiant de la reservation',
+    description: 'Booking identifier',
     example: '68b4d59919d9b7a94b4fde21',
   })
   bookingId: string;
 
   @ApiProperty({
-    description: 'Reference de paiement a renvoyer a la confirmation',
+    description: 'Payment reference to send back at confirmation',
     example: 'sim_68b4d59919d9b7a94b4fde21_1757770000000',
   })
   paymentIntentId: string;
 
   @ApiProperty({
-    description: 'Montant a regler, en euros',
+    description: 'Amount to pay, in euros',
     example: 90,
   })
   amountEur: number;
 
   @ApiProperty({
-    description: "Vrai tant que le paiement n'est pas encaisse par Stripe",
+    description: 'True as long as the payment has not been collected by Stripe',
     example: true,
   })
   simulated: boolean;
@@ -174,7 +173,7 @@ export class MyBookingDto {
   coverPhotoUrl: string;
 
   @ApiProperty({
-    description: 'Date limite de paiement, pour une reservation en attente',
+    description: 'Payment deadline, for a pending booking',
     example: '2026-08-20T12:15:00.000Z',
     required: false,
   })
@@ -183,26 +182,26 @@ export class MyBookingDto {
 
 export class ConfirmPaymentResponseDto {
   @ApiProperty({
-    description: 'Identifiant de la reservation',
+    description: 'Booking identifier',
     example: '68b4d59919d9b7a94b4fde21',
   })
   bookingId: string;
 
   @ApiProperty({
-    description: 'Statut du paiement',
+    description: 'Payment status',
     example: 'confirmed',
     enum: ['confirmed', 'partial_paid'],
   })
   status: 'confirmed' | 'partial_paid';
 
   @ApiProperty({
-    description: 'Montant paye en euros',
+    description: 'Amount paid in euros',
     example: 36.0,
   })
   paidAmountEur: number;
 
   @ApiProperty({
-    description: 'Montant restant a payer en euros',
+    description: 'Remaining amount to pay in euros',
     example: 84.0,
   })
   remainingAmountEur: number;
@@ -210,7 +209,7 @@ export class ConfirmPaymentResponseDto {
 
 export class CancelBookingDto {
   @ApiProperty({
-    description: "Motif de l'annulation",
+    description: 'Cancellation reason',
     example: 'personal',
     enum: ['personal', 'health', 'weather', 'other'],
   })
@@ -220,7 +219,7 @@ export class CancelBookingDto {
   reason: 'personal' | 'health' | 'weather' | 'other';
 
   @ApiProperty({
-    description: "Commentaire libre sur l'annulation",
+    description: 'Free-text comment about the cancellation',
     example: 'Empêchement de dernière minute',
     required: false,
   })
@@ -231,26 +230,26 @@ export class CancelBookingDto {
 
 export class CancelBookingResponseDto {
   @ApiProperty({
-    description: 'Identifiant de la réservation annulée',
+    description: 'Identifier of the cancelled booking',
     example: '68b4d59919d9b7a94b4fde21',
   })
   bookingId: string;
 
   @ApiProperty({
-    description: 'Statut de la réservation après annulation',
+    description: 'Booking status after cancellation',
     example: 'cancelled',
   })
   status: 'cancelled';
 
   @ApiProperty({
-    description: 'Montant remboursé en euros',
+    description: 'Refunded amount in euros',
     example: 120.0,
   })
   refundedAmountEur: number;
 
   @ApiProperty({
     description:
-      "Règle de remboursement appliquée d'après les CGV, indépendamment du montant réellement encaissé",
+      'Refund rule applied according to the terms and conditions, regardless of the amount actually collected',
     example: 'full',
     enum: ['full', 'partial', 'none'],
   })
@@ -258,7 +257,7 @@ export class CancelBookingResponseDto {
 
   @ApiProperty({
     description:
-      "Message destiné à l'utilisateur : délai de remboursement lorsqu'un montant est remboursé, motif explicite sinon (annulation trop tardive ou aucun paiement encaissé)",
+      'Message intended for the user: refund lead time when an amount is refunded, otherwise an explicit reason (cancellation too late or no payment collected)',
     example: 'Remboursement effectué sous 5 à 10 jours ouvrés',
   })
   refundEta: string;
@@ -266,13 +265,13 @@ export class CancelBookingResponseDto {
 
 export class BookingParticipantSummaryDto {
   @ApiProperty({
-    description: 'Prénom du participant',
+    description: 'Participant first name',
     example: 'Jean',
   })
   firstName: string;
 
   @ApiProperty({
-    description: 'Nom du participant',
+    description: 'Participant last name',
     example: 'Dupont',
   })
   lastName: string;
@@ -280,13 +279,13 @@ export class BookingParticipantSummaryDto {
 
 export class BookingDetailResponseDto {
   @ApiProperty({
-    description: 'Identifiant de la réservation',
+    description: 'Booking identifier',
     example: '68b4d59919d9b7a94b4fde21',
   })
   bookingId: string;
 
   @ApiProperty({
-    description: 'Statut courant de la réservation',
+    description: 'Current booking status',
     example: 'pending_payment',
     enum: [
       'pending_payment',
@@ -305,7 +304,7 @@ export class BookingDetailResponseDto {
 
   @ApiProperty({
     description:
-      "Date d'expiration de la réservation temporaire (ISO 8601). null lorsque la réservation n'expire plus (paiement encaissé, annulation ou activité réalisée).",
+      'Expiry date of the temporary booking (ISO 8601). null once the booking no longer expires (payment collected, cancellation, or activity completed).',
     example: '2026-05-11T09:15:00.000Z',
     nullable: true,
     type: String,
@@ -313,37 +312,37 @@ export class BookingDetailResponseDto {
   reservationExpiresAt: string | null;
 
   @ApiProperty({
-    description: 'Montant total en euros',
+    description: 'Total amount in euros',
     example: 120.0,
   })
   totalEur: number;
 
   @ApiProperty({
-    description: 'Montant TVA en euros',
+    description: 'VAT amount in euros',
     example: 20.0,
   })
   vatEur: number;
 
   @ApiProperty({
-    description: 'Participants inscrits sur la réservation',
+    description: 'Participants registered on the booking',
     type: [BookingParticipantSummaryDto],
   })
   participants: BookingParticipantSummaryDto[];
 
   @ApiProperty({
-    description: "Titre de l'activité réservée",
+    description: 'Title of the booked activity',
     example: 'Saut en parachute tandem',
   })
   activityTitle: string;
 
   @ApiProperty({
-    description: 'Date et heure de début du créneau réservé (ISO 8601)',
+    description: 'Start date and time of the booked slot (ISO 8601)',
     example: '2026-09-16T09:00:00.000Z',
   })
   slotStartAt: string;
 
   @ApiProperty({
-    description: 'Indique si la décharge de responsabilité a été signée',
+    description: 'Whether the liability waiver has been signed',
     example: false,
   })
   waiverSigned: boolean;
@@ -351,38 +350,37 @@ export class BookingDetailResponseDto {
 
 export class BookingResponseDto {
   @ApiProperty({
-    description: 'Identifiant de la réservation créée',
+    description: 'Identifier of the created booking',
     example: '68b4d59919d9b7a94b4fde21',
   })
   bookingId: string;
 
   @ApiProperty({
-    description: 'Statut initial de la réservation',
+    description: 'Initial booking status',
     example: 'pending_payment',
   })
   status: 'pending_payment';
 
   @ApiProperty({
-    description:
-      "Date d'expiration de la réservation temporaire (ISO 8601, +15 min)",
+    description: 'Expiry date of the temporary booking (ISO 8601, +15 min)',
     example: '2026-05-11T09:15:00.000Z',
   })
   reservationExpiresAt: string;
 
   @ApiProperty({
-    description: 'Montant total en euros',
+    description: 'Total amount in euros',
     example: 120.0,
   })
   totalEur: number;
 
   @ApiProperty({
-    description: 'Montant TVA en euros',
+    description: 'VAT amount in euros',
     example: 20.0,
   })
   vatEur: number;
 
   @ApiProperty({
-    description: 'Client secret Stripe pour finaliser le paiement',
+    description: 'Stripe client secret to complete the payment',
     example: 'pi_3Oxxxxxx_secret_xxxxxx',
   })
   paymentIntentClientSecret: string;

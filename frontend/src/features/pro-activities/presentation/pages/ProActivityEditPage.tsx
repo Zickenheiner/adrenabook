@@ -81,11 +81,13 @@ export default function ProActivityEditPage() {
       { id, data: toUpdatePayload(data) },
       {
         onSuccess: () => {
-          toast.success('Activité mise à jour');
+          toast.success('Votre activité a été mise à jour avec succès.');
           backToActivities();
         },
         onError: () => {
-          toast.error('Une erreur est survenue lors de la mise à jour');
+          toast.error(
+            "La mise à jour de l'activité a échoué. Veuillez réessayer.",
+          );
         },
       },
     );

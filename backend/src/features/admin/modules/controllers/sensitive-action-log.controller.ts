@@ -26,7 +26,7 @@ export class SensitiveActionLogController {
   ) {}
 
   @ApiOperation({
-    summary: 'Get audit logs (US-25)',
+    summary: 'Get audit logs',
     description:
       'Returns paginated audit logs for sensitive actions. Requires admin role. Supports filtering by actorId, actionType, date range, and severity.',
   })

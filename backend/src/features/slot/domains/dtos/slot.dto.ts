@@ -22,13 +22,23 @@ export class RecurrenceDto {
 
   @ApiProperty({
     description:
-      'ISO 8601 date until which the recurrence applies. Omise, la recurrence est generee sur 12 mois : une regle sans borne est infinie et ne peut pas etre developpee.',
+      'ISO 8601 date until which the recurrence applies. When omitted, the recurrence is generated over 12 months: a rule without a bound is infinite and cannot be expanded.',
     example: '2026-12-31',
     required: false,
   })
   @IsISO8601()
   @IsOptional()
   untilDate?: string;
+
+  @ApiProperty({
+    description:
+      'IANA timezone in which the RRULE hours are read. When omitted, they are read in UTC. Without it, BYHOUR=9 would mean 09:00 UTC and not 09:00 local time for the professional.',
+    example: 'Europe/Paris',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  timezone?: string;
 }
 
 export class CreateSlotsDto {
@@ -73,7 +83,7 @@ export class CreateSlotsDto {
 
 export class UpdateSlotDto {
   @ApiProperty({
-    description: 'Nouvelle date/heure de debut (ISO 8601)',
+    description: 'New start date-time (ISO 8601)',
     example: '2026-06-15T09:00:00.000Z',
     required: false,
   })
@@ -82,7 +92,7 @@ export class UpdateSlotDto {
   startAt?: string;
 
   @ApiProperty({
-    description: 'Nouveau nombre maximum de participants',
+    description: 'New maximum number of participants',
     example: 12,
     required: false,
   })
@@ -121,27 +131,27 @@ export class SlotConflictDto {
 }
 
 export class SlotPrerequisitesDto {
-  @ApiProperty({ description: 'Âge minimum requis', example: 12 })
+  @ApiProperty({ description: 'Minimum age required', example: 12 })
   minAge: number;
 
-  @ApiProperty({ description: 'Âge maximum autorisé', required: false })
+  @ApiProperty({ description: 'Maximum age allowed', required: false })
   maxAge?: number;
 
   @ApiProperty({
-    description: 'Poids minimum requis en kilogrammes',
+    description: 'Minimum weight required in kilograms',
     required: false,
     example: 40,
   })
   minWeightKg?: number;
 
   @ApiProperty({
-    description: 'Poids maximum autorisé en kilogrammes',
+    description: 'Maximum weight allowed in kilograms',
     required: false,
     example: 110,
   })
   maxWeightKg?: number;
 
-  @ApiProperty({ description: 'Certificat médical exigé', example: false })
+  @ApiProperty({ description: 'Medical certificate required', example: false })
   medicalCertificateRequired: boolean;
 }
 
@@ -190,8 +200,8 @@ export class SlotDetailResponseDto {
 
   @ApiProperty({
     description:
-      "Prerequis de participation herites de l'activite. Le client peut ainsi " +
-      'les annoncer a la saisie, mais leur respect est verifie a la reservation.',
+      'Participation prerequisites inherited from the activity. The client can ' +
+      'display them upfront, but compliance is verified at booking time.',
     type: SlotPrerequisitesDto,
     required: false,
   })
@@ -238,15 +248,15 @@ export class ProSlotListItemDto {
 
 export class ProSlotMonthResponseDto {
   @ApiProperty({
-    description: 'Creneaux du mois demande, tries par date croissante',
+    description: 'Slots for the requested month, sorted by ascending date',
     type: [ProSlotListItemDto],
   })
   slots: ProSlotListItemDto[];
 
   @ApiProperty({
     description:
-      'Mois comportant au moins un creneau, au format YYYY-MM. Inclut les ' +
-      "mois passes : le professionnel consulte aussi l'historique de son activite.",
+      'Months containing at least one slot, in YYYY-MM format. Includes past ' +
+      "months: the professional also reviews their activity's history.",
     example: ['2026-08', '2026-09', '2027-03'],
     type: [String],
   })

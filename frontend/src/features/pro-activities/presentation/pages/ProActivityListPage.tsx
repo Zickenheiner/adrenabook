@@ -120,10 +120,13 @@ export default function ProActivityListPage() {
         onSuccess: () =>
           toast.success(
             status === 'published'
-              ? 'Activité publiée'
-              : 'Activité retirée de la publication',
+              ? 'Votre activité est désormais visible par les aventuriers.'
+              : "Votre activité a été retirée de la publication : elle n'est plus visible par les aventuriers.",
           ),
-        onError: () => toast.error('Le changement de statut a échoué'),
+        onError: () =>
+          toast.error(
+            "Le changement de statut de l'activité a échoué. Veuillez réessayer.",
+          ),
         onSettled: () => setStatusPendingId(null),
       },
     );

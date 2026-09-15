@@ -23,6 +23,11 @@ import {
 } from '@features/slot/domains/dtos/slot.dto';
 import { SlotEntity } from '@features/slot/domains/entities/slot.entity';
 import { RRule } from 'rrule';
+import {
+  isValidTimeZone,
+  utcToWallClock,
+  wallClockToUtc,
+} from '../../../utils/timezone';
 
 @Injectable()
 export class SlotService implements ISlotService {
@@ -271,11 +276,13 @@ export class SlotService implements ISlotService {
   } {
     if (dto.recurrence) {
       const until = this.resolveUntil(dto.recurrence.untilDate);
+      const timezone = this.resolveTimezone(dto.recurrence.timezone);
       return {
-        dates: this.expandRrule(dto.recurrence.rrule, until),
+        dates: this.expandRrule(dto.recurrence.rrule, until, timezone),
         recurrence: {
           rrule: dto.recurrence.rrule,
           untilDate: until.toISOString(),
+          timezone,
         },
       };
     }
@@ -301,6 +308,13 @@ export class SlotService implements ISlotService {
     return until;
   }
 
+  /** Maintenant, en heure murale du fuseau et a la seconde ronde. */
+  private static wallClockNow(timezone: string): Date {
+    const now = utcToWallClock(new Date(), timezone);
+    now.setUTCSeconds(0, 0);
+    return now;
+  }
+
   /** Horizon applique a une recurrence sans date de fin : 12 mois. */
   private static defaultRecurrenceHorizon(): Date {
     const horizon = new Date();
@@ -308,17 +322,36 @@ export class SlotService implements ISlotService {
     return horizon;
   }
 
+  /** Fuseau de lecture des heures de la regle. Absent, elles restent en UTC. */
+  private resolveTimezone(timezone?: string): string {
+    if (!timezone) return 'UTC';
+    if (!isValidTimeZone(timezone)) {
+      throw new BadRequestException(`Fuseau horaire inconnu: ${timezone}`);
+    }
+    return timezone;
+  }
+
   // Une RRULE sans borne est infinie : `all()` ne peut pas la developper, d'ou
   // la borne obligatoire resolue en amont par resolveUntil().
-  private expandRrule(rruleStr: string, until: Date): Date[] {
+  //
+  // `rrule` lit et produit des composantes UTC : BYHOUR=9 donne 09h00 UTC. On
+  // developpe donc la regle en heure murale, puis on rattache chaque occurrence
+  // au fuseau du professionnel. Le decalage etant recalcule occurrence par
+  // occurrence, un creneau de 9h le reste apres le changement d'heure.
+  private expandRrule(rruleStr: string, until: Date, timezone: string): Date[] {
     try {
       const rule = RRule.fromString(`RRULE:${rruleStr}`);
       const ruleWithUntil = new RRule({
         ...rule.origOptions,
-        until,
+        // Sans dtstart, `rrule` part de l'instant courant : les occurrences
+        // heritent de ses secondes, et le point de depart est lu en UTC alors
+        // que la regle decrit des heures murales. Un DTSTART porte par la regle
+        // reste prioritaire, et se lit comme le reste : en heure murale.
+        dtstart: rule.origOptions.dtstart ?? SlotService.wallClockNow(timezone),
+        until: utcToWallClock(until, timezone),
       });
 
-      return ruleWithUntil.all();
+      return ruleWithUntil.all().map((date) => wallClockToUtc(date, timezone));
     } catch (e) {
       if (e instanceof BadRequestException) throw e;
       throw new BadRequestException(

@@ -14,6 +14,7 @@ export class SlotMapper {
       entity.setRecurrence({
         rrule: doc.recurrence.rrule,
         untilDate: doc.recurrence.untilDate,
+        timezone: doc.recurrence.timezone,
       });
     }
     return entity;

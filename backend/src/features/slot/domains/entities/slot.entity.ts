@@ -13,7 +13,7 @@ export class SlotEntity {
   private startAt: Date;
   private maxParticipants: number;
   private instructorIds: string[];
-  private recurrence?: { rrule: string; untilDate: string };
+  private recurrence?: { rrule: string; untilDate: string; timezone?: string };
 
   constructor(_id: Slot) {
     this.id = _id;
@@ -45,7 +45,9 @@ export class SlotEntity {
     return this.instructorIds;
   }
 
-  getRecurrence(): { rrule: string; untilDate: string } | undefined {
+  getRecurrence():
+    | { rrule: string; untilDate: string; timezone?: string }
+    | undefined {
     return this.recurrence;
   }
 
@@ -67,7 +69,9 @@ export class SlotEntity {
     this.instructorIds = value;
   }
 
-  setRecurrence(value: { rrule: string; untilDate: string } | undefined): void {
+  setRecurrence(
+    value: { rrule: string; untilDate: string; timezone?: string } | undefined,
+  ): void {
     this.recurrence = value;
   }
 }

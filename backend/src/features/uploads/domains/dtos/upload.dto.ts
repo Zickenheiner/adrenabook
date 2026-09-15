@@ -35,26 +35,26 @@ export interface UploadedFileLike {
 
 export class UploadResponseDto {
   @ApiProperty({
-    description: 'Identifiant du fichier, a reporter dans le dossier KYC',
+    description: 'File identifier, to be reported in the KYC dossier',
     example: '68b4d59919d9b7a94b4fde21',
   })
   fileId: string;
 
   @ApiProperty({
-    description: "Nom du fichier tel que fourni a l'upload",
+    description: 'File name as provided at upload time',
     example: 'kbis-alpes-aventures.pdf',
   })
   filename: string;
 
   @ApiProperty({
-    description: 'Type MIME valide du fichier',
+    description: 'Validated MIME type of the file',
     example: 'application/pdf',
     enum: ALLOWED_UPLOAD_MIME_TYPES,
   })
   mimeType: string;
 
   @ApiProperty({
-    description: 'Taille du fichier en octets',
+    description: 'File size in bytes',
     example: 148223,
   })
   sizeBytes: number;

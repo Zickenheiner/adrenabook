@@ -41,7 +41,7 @@ export class CenterReviewController {
   ) {}
 
   @ApiOperation({
-    summary: 'Review a professional center KYC dossier (US-23)',
+    summary: 'Review a professional center KYC dossier',
     description:
       'Allows an admin to approve, reject or request more info on a pending center registration. Updates the center status and notifies the applicant.',
   })
@@ -86,32 +86,32 @@ export class CenterReviewController {
   }
 
   @ApiOperation({
-    summary: 'Lister les dossiers de centres professionnels (US-23)',
+    summary: 'List professional center dossiers',
     description:
-      "Renvoie les dossiers d'inscription de centres, du plus récent au plus ancien. " +
-      'Filtrable par statut. Les pièces justificatives sont exposées par leur ' +
-      'identifiant de fichier : le client les récupère via GET /uploads/:id, qui ' +
-      "contrôle le droit d'accès.",
+      'Returns center registration dossiers, from the most recent to the oldest. ' +
+      'Filterable by status. Supporting documents are exposed through their file ' +
+      'identifier: the client retrieves them via GET /uploads/:id, which enforces ' +
+      'access control.',
   })
   @ApiQuery({
     name: 'status',
     required: false,
     enum: ['pending_review', 'approved', 'rejected'],
-    description: 'Filtre optionnel sur le statut du dossier',
+    description: 'Optional filter on the dossier status',
   })
   @ApiResponse({ status: 200, type: [PendingCenterDto] })
-  @ApiResponse({ status: 403, description: 'Réservé aux administrateurs' })
+  @ApiResponse({ status: 403, description: 'Restricted to administrators' })
   @Get()
   async list(@Query('status') status?: string): Promise<PendingCenterDto[]> {
     return this.centerReviewService.listCenters(status);
   }
 
   @ApiOperation({
-    summary: "Détail d'un dossier de centre professionnel (US-23)",
+    summary: 'Get a professional center dossier',
   })
-  @ApiParam({ name: 'id', description: 'Identifiant du centre', type: String })
+  @ApiParam({ name: 'id', description: 'Center identifier', type: String })
   @ApiResponse({ status: 200, type: PendingCenterDto })
-  @ApiResponse({ status: 404, description: 'Dossier introuvable' })
+  @ApiResponse({ status: 404, description: 'Dossier not found' })
   @Get(':id')
   async getOne(@Param('id') id: string): Promise<PendingCenterDto> {
     return this.centerReviewService.getCenter(id);

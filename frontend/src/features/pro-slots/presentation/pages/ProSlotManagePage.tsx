@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 import { AlertCircle, ArrowLeft, CalendarClock } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Separator } from '@/core/components/ui/separator';
@@ -12,7 +13,6 @@ import { useCreateSlots } from '../../domain/hooks/slot.hook';
 import { useActivity } from '@/features/pro-activities/domain/hooks/activity.hook';
 import type { CreateSlotRequestDto } from '../../data/dtos/slot.dto';
 import SlotForm from '../components/SlotForm';
-import SlotCard, { SlotConflictCard } from '../components/SlotCard';
 import SlotCalendar from '../components/SlotCalendar';
 
 export default function ProSlotManagePage() {
@@ -45,7 +45,24 @@ export default function ProSlotManagePage() {
 
   function handleSubmit(data: CreateSlotRequestDto) {
     if (!activityId) return;
-    createSlots(data);
+    // Les creneaux crees apparaissent dans le calendrier : seul le compte est
+    // annonce, et les conflits ignores qui eux n'y figurent pas.
+    createSlots(data, {
+      onSuccess: (result) => {
+        toast.success(
+          result.createdCount > 1
+            ? `Vos ${result.createdCount} créneaux ont été créés avec succès.`
+            : 'Votre créneau a été créé avec succès.',
+        );
+        if (result.conflicts.length > 0) {
+          toast.warning(
+            result.conflicts.length > 1
+              ? `${result.conflicts.length} créneaux n'ont pas été créés : ils chevauchent des créneaux existants.`
+              : "1 créneau n'a pas été créé : il chevauche un créneau existant.",
+          );
+        }
+      },
+    });
   }
 
   if (!activityId) {
@@ -145,54 +162,6 @@ export default function ProSlotManagePage() {
 
           <SlotCalendar activityId={activityId} focusMonth={focusMonth} />
         </section>
-
-        {/* Résultat de la création */}
-        {createSlotsResult && (
-          <>
-            <Separator />
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{ visible: { transition: { staggerChildren: 0.04 } } }}
-              className="space-y-4"
-            >
-              <div>
-                <h2 className="text-base font-semibold">
-                  {createSlotsResult.createdCount} créneau
-                  {createSlotsResult.createdCount > 1 ? 'x' : ''} créé
-                  {createSlotsResult.createdCount > 1 ? 's' : ''}
-                </h2>
-                {createSlotsResult.slots.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {createSlotsResult.slots.map((slot, index) => (
-                      <SlotCard key={slot.id} slot={slot} index={index} />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {createSlotsResult.conflicts.length > 0 && (
-                <div>
-                  <h2 className="text-base font-semibold">
-                    {createSlotsResult.conflicts.length} conflit
-                    {createSlotsResult.conflicts.length > 1 ? 's' : ''} ignoré
-                    {createSlotsResult.conflicts.length > 1 ? 's' : ''}
-                  </h2>
-                  <div className="mt-3 space-y-2">
-                    {createSlotsResult.conflicts.map((conflict, index) => (
-                      <SlotConflictCard
-                        key={`${conflict.startAt.toISOString()}-${index}`}
-                        startAt={conflict.startAt}
-                        reason={conflict.reason}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </>
-        )}
       </div>
     </div>
   );

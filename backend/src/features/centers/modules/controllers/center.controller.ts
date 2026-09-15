@@ -48,7 +48,7 @@ export class CenterController {
   })
   @ApiResponse({
     status: 400,
-    description: 'BBox malformée',
+    description: 'Malformed bounding box',
   })
   @Get('map')
   async getMap(
@@ -101,17 +101,17 @@ export class CenterController {
 
   @Public()
   @ApiOperation({
-    summary: "Fiche publique d'un centre",
+    summary: 'Public profile of a center',
     description:
-      "Retourne l'identite d'un centre approuve et les activites publiees qu'il propose. Les donnees du dossier (SIRET, representant legal, justificatifs) ne sont pas exposees.",
+      'Returns the identity of an approved center and the published activities it offers. The application data (SIRET number, legal representative, supporting documents) is not exposed.',
   })
-  @ApiParam({ name: 'id', description: 'Identifiant du centre', type: String })
+  @ApiParam({ name: 'id', description: 'Center identifier', type: String })
   @ApiResponse({
     status: 200,
-    description: 'Fiche du centre',
+    description: 'Center profile',
     type: CenterDetailResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Centre introuvable' })
+  @ApiResponse({ status: 404, description: 'Center not found' })
   @Get(':id')
   async getCenterDetail(
     @Param('id') id: string,

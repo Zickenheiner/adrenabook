@@ -38,7 +38,7 @@ export default function InvoiceDownloadButton({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success('Facture téléchargée avec succès');
+      toast.success('Votre facture a été téléchargée avec succès.');
     } catch {
       toast.error('Impossible de télécharger la facture. Veuillez réessayer.');
     } finally {

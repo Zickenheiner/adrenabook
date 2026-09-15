@@ -10,6 +10,11 @@ export class RecurrenceRule {
 
   @Prop({ required: true, type: String })
   untilDate: string;
+
+  // Les heures de la regle sont murales : sans le fuseau qui les a produites,
+  // la recurrence stockee n'est plus relisable sans ambiguite.
+  @Prop({ required: false, type: String })
+  timezone?: string;
 }
 
 @Schema({ timestamps: true })

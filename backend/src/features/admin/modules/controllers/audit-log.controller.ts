@@ -46,7 +46,7 @@ export class AdminUserStatusController {
   ) {}
 
   @ApiOperation({
-    summary: 'Update user status (US-22)',
+    summary: 'Update user status',
     description:
       'Allows an admin to set a user status to active, suspended or banned. A mandatory reason must be provided. Creates an audit log entry for every change.',
   })
@@ -87,14 +87,14 @@ export class AdminUserStatusController {
   }
 
   @ApiOperation({
-    summary: 'Lister les comptes (US-22)',
+    summary: 'List user accounts',
     description:
-      'Liste paginee des comptes, du plus recent au plus ancien. Reservee aux ' +
-      'administrateurs. La reponse ne contient aucun secret : ni mot de passe, ni ' +
-      'refresh token, ni jeton de verification.',
+      'Paginated list of user accounts, from the most recent to the oldest. ' +
+      'Restricted to administrators. The response contains no secret: no password, ' +
+      'no refresh token, no verification token.',
   })
   @ApiResponse({ status: 200, type: AdminUserListResponseDto })
-  @ApiResponse({ status: 403, description: 'Reserve aux administrateurs' })
+  @ApiResponse({ status: 403, description: 'Restricted to administrators' })
   @Get()
   async list(
     @Query() query: AdminUserListQueryDto,
@@ -107,10 +107,10 @@ export class AdminUserStatusController {
     return this.adminUserStatusService.listUsers(page, limit);
   }
 
-  @ApiOperation({ summary: "Fiche d'un compte (US-22)" })
-  @ApiParam({ name: 'id', description: 'Identifiant du compte', type: String })
+  @ApiOperation({ summary: 'Get a single user account' })
+  @ApiParam({ name: 'id', description: 'Account identifier', type: String })
   @ApiResponse({ status: 200, type: AdminUserListItemDto })
-  @ApiResponse({ status: 404, description: 'Compte introuvable' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
   @Get(':id')
   async getOne(@Param('id') id: string): Promise<AdminUserListItemDto> {
     return this.adminUserStatusService.getUser(id);

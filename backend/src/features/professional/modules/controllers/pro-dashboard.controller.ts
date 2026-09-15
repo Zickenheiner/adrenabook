@@ -7,7 +7,7 @@ import {
   DashboardResponseDto,
 } from '@features/professional/domains/dtos/pro-dashboard.dto';
 
-@ApiTags('pro-dashboard')
+@ApiTags('Pro — Dashboard')
 @Controller('pro/dashboard')
 export class ProDashboardController {
   constructor(
@@ -46,18 +46,18 @@ export class ProDashboardController {
   @ApiResponse({ status: 401, description: 'Not authenticated' })
   @ApiResponse({ status: 403, description: 'Not a professional role' })
   @ApiOperation({
-    summary: 'Lister les réservations prises sur les activités du centre',
+    summary: 'List the bookings made on the center activities',
     description:
-      'Retourne les réservations des activités du centre, de la plus proche à la plus ancienne. Sans centerId, couvre tous les centres du professionnel. Un centre qui ne lui appartient pas ne renvoie rien.',
+      'Returns the bookings made on the center activities, from the soonest to the oldest. Without centerId, covers every center of the professional. A center that does not belong to them returns nothing.',
   })
   @ApiQuery({
     name: 'centerId',
     required: false,
-    description: 'Restreint la liste à un centre',
+    description: 'Restricts the list to a single center',
   })
   @ApiResponse({
     status: 200,
-    description: 'Réservations du centre',
+    description: 'Bookings of the center',
     type: [CenterBookingDto],
   })
   @Get('bookings')

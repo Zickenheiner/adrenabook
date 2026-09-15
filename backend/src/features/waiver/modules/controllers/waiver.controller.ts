@@ -32,36 +32,36 @@ export class WaiverController {
   ) {}
 
   @ApiOperation({
-    summary: 'Signer la décharge électronique (US-16)',
+    summary: 'Sign the electronic waiver',
     description:
-      "Permet à un aventurier de signer la décharge de responsabilité en ligne avant l'activité. " +
-      'Supporte la signature manuscrite (canvas base64) ou OTP SMS (code 6 chiffres). ' +
-      'Le document est horodaté et son intégrité garantie par un hash SHA-256 (niveau eIDAS simple).',
+      'Lets an adventurer sign the liability waiver online before the activity. ' +
+      'Supports handwritten signature (base64 canvas) or SMS OTP (6-digit code). ' +
+      'The document is timestamped and its integrity is guaranteed by a SHA-256 hash (simple eIDAS level).',
   })
   @ApiParam({
     name: 'id',
-    description: 'Identifiant de la réservation',
+    description: 'Booking identifier',
     required: true,
     type: String,
   })
   @ApiBody({
     type: SignWaiverDto,
-    description: 'Données de signature de la décharge',
+    description: 'Waiver signature data',
     required: true,
   })
   @ApiResponse({
     status: 201,
-    description: 'Décharge signée avec succès',
+    description: 'Waiver signed successfully',
     type: SignWaiverResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Signature invalide ou OTP incorrect',
+    description: 'Invalid signature or incorrect OTP',
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
   @ApiResponse({
     status: 409,
-    description: 'Décharge déjà signée pour cette réservation',
+    description: 'Waiver already signed for this booking',
   })
   @Post(':id/waiver/sign')
   @HttpCode(HttpStatus.CREATED)

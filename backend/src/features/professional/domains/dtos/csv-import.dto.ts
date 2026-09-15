@@ -44,7 +44,7 @@ export class CsvImportDto {
 
   @ApiProperty({
     description:
-      "Centre auquel rattacher les lignes importees. Facultatif si le professionnel n'en detient qu'un.",
+      'Center the imported rows are attached to. Optional if the professional owns only one.',
     example: '68b4d59919d9b7a94b4fde21',
     required: false,
   })

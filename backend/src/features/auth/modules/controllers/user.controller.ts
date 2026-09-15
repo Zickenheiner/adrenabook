@@ -51,16 +51,16 @@ export class UserController {
   ) {}
 
   @ApiOperation({
-    summary: 'Tableau de bord aventurier (US-29)',
+    summary: 'Adventurer dashboard',
     description:
-      "Retourne les 3 prochaines réservations de l'utilisateur connecté et 4 activités suggérées (basées sur l'historique ou aléatoires).",
+      "Returns the signed-in user's 3 next bookings and 4 suggested activities (based on booking history, or random).",
   })
   @ApiResponse({
     status: 200,
-    description: 'Données du tableau de bord',
+    description: 'Dashboard data',
     type: DashboardResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
   @Get('me/dashboard')
   @HttpCode(HttpStatus.OK)
   async getDashboard(
@@ -72,15 +72,15 @@ export class UserController {
   @ApiOperation({
     summary: 'Get all users (admin)',
     description:
-      'Retrieve a list of all users. Reserve aux administrateurs. Les secrets (mot de passe, tokens, codes 2FA) ne sont jamais exposes.',
+      'Retrieve a list of all users. Restricted to administrators. Secrets (password, tokens, 2FA codes) are never exposed.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of all users',
     type: [UserResponseDto],
   })
-  @ApiResponse({ status: 401, description: 'Non authentifie' })
-  @ApiResponse({ status: 403, description: 'Reserve aux administrateurs' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Restricted to administrators' })
   @Roles('admin')
   @Get()
   async findAll(): Promise<UserResponseDto[]> {
@@ -89,9 +89,9 @@ export class UserController {
   }
 
   @ApiOperation({
-    summary: 'Get user by id (proprietaire ou admin)',
+    summary: 'Get user by id (owner or admin)',
     description:
-      'Retrieve a user by its id. Accessible uniquement par le proprietaire du compte ou par un administrateur. Les secrets ne sont jamais exposes.',
+      'Retrieve a user by its id. Accessible only by the account owner or by an administrator. Secrets are never exposed.',
   })
   @ApiParam({
     name: 'id',
@@ -104,9 +104,9 @@ export class UserController {
     description: 'The user with the given id',
     type: UserResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifie' })
-  @ApiResponse({ status: 403, description: 'Acces refuse' })
-  @ApiResponse({ status: 404, description: 'Utilisateur introuvable' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Access denied' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
   async findById(
     @Param('id') id: string,
@@ -122,7 +122,7 @@ export class UserController {
 
   @ApiOperation({
     summary: 'Create user (admin)',
-    description: 'Create a new user. Reserve aux administrateurs.',
+    description: 'Create a new user. Restricted to administrators.',
   })
   @ApiBody({
     type: CreateUserDto,
@@ -134,8 +134,8 @@ export class UserController {
     description: 'The created user',
     type: Boolean,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifie' })
-  @ApiResponse({ status: 403, description: 'Reserve aux administrateurs' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Restricted to administrators' })
   @Roles('admin')
   @Post()
   async create(@Body() dto: CreateUserDto) {
@@ -143,9 +143,9 @@ export class UserController {
   }
 
   @ApiOperation({
-    summary: 'Update user (proprietaire ou admin)',
+    summary: 'Update user (owner or admin)',
     description:
-      'Update a user. Accessible uniquement par le proprietaire du compte ou par un administrateur.',
+      'Update a user. Accessible only by the account owner or by an administrator.',
   })
   @ApiParam({
     name: 'id',
@@ -163,8 +163,8 @@ export class UserController {
     description: 'The updated user',
     type: Boolean,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifie' })
-  @ApiResponse({ status: 403, description: 'Acces refuse' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Access denied' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -177,7 +177,7 @@ export class UserController {
 
   @ApiOperation({
     summary: 'Delete user (admin)',
-    description: 'Delete a user. Reserve aux administrateurs.',
+    description: 'Delete a user. Restricted to administrators.',
   })
   @ApiParam({
     name: 'id',
@@ -190,8 +190,8 @@ export class UserController {
     description: 'The deleted user',
     type: Boolean,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifie' })
-  @ApiResponse({ status: 403, description: 'Reserve aux administrateurs' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 403, description: 'Restricted to administrators' })
   @Roles('admin')
   @Delete(':id')
   async delete(@Param('id') id: string) {

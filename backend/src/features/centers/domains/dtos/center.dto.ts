@@ -146,7 +146,7 @@ export class CenterActivityItemDto {
   @ApiProperty({
     example: '68b4d59919d9b7a94b4fde99',
     description:
-      "Identifiant de l'image de couverture, a resoudre via GET /activities/photos/:fileId. Vide si l'activite n'en a pas.",
+      'Identifier of the cover image, to be resolved through GET /activities/photos/:fileId. Empty if the activity has none.',
   })
   coverPhotoUrl: string;
 }

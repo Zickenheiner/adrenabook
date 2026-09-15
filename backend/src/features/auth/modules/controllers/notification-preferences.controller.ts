@@ -23,27 +23,27 @@ export class NotificationPreferencesController {
   ) {}
 
   @ApiOperation({
-    summary: 'Mettre a jour les preferences de notifications (US-14)',
+    summary: 'Update the notification preferences',
     description:
-      "Met a jour les preferences de notifications email et SMS de l'aventurier connecte. Permet l'opt-out par canal. Auth JWT requise.",
+      'Updates the email and SMS notification preferences of the signed-in adventurer. Allows opting out per channel. JWT authentication required.',
   })
   @ApiBody({
     type: NotificationPreferencesDto,
-    description: 'Preferences de notifications email et SMS',
+    description: 'Email and SMS notification preferences',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Preferences de notifications mises a jour',
+    description: 'Notification preferences updated',
     type: NotificationPreferencesResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation echouee',
+    description: 'Validation failed',
   })
   @ApiResponse({
     status: 401,
-    description: 'Non authentifie',
+    description: 'Not authenticated',
   })
   @Patch('notification-preferences')
   @HttpCode(HttpStatus.OK)

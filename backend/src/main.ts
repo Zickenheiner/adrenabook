@@ -24,8 +24,10 @@ async function bootstrap() {
     }),
   );
   const config = new DocumentBuilder()
-    .setTitle('Mon API')
-    .setDescription('Documentation API')
+    .setTitle('Adrenabook API')
+    .setDescription(
+      'REST API for the Adrenabook outdoor activity booking platform.',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
