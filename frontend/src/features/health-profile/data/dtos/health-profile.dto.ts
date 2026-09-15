@@ -9,7 +9,6 @@ export interface HealthProfileRequestDto {
   height?: number;
   medicalContraindications?: string[];
   emergencyContact: EmergencyContactDto;
-  medicalCertificateFileId?: string;
 }
 
 export interface HealthProfileResponseDto {
