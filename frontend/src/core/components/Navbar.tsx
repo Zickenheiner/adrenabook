@@ -1,7 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   BadgeCheck,
-  Bell,
   Briefcase,
   Building2,
   CalendarCheck,
@@ -177,15 +176,6 @@ export default function Navbar() {
                 >
                   <Heart className="h-4 w-4" />
                   Profil santé
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  to={routes.notificationPreferences}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Bell className="h-4 w-4" />
-                  Notifications
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
