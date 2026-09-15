@@ -32,7 +32,8 @@ export default function CenterSwitcher() {
     }
   }, [selectable, currentCenterId, setCurrentCenterId]);
 
-  if (selectable.length === 0) return null;
+  // Un seul centre : le selecteur n'offre aucun choix, on l'efface.
+  if (selectable.length < 2) return null;
 
   return (
     <Select
