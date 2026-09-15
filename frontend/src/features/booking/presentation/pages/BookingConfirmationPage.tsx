@@ -40,9 +40,9 @@ function BookingConfirmationError({ error }: { error: unknown }) {
           ? "Cette réservation n'est pas la vôtre, vous ne pouvez pas en consulter le détail."
           : "Cette réservation n'existe pas ou n'est plus disponible."}
       </p>
-      <Button variant="outline" onClick={() => navigate(routes.activitySearch)}>
+      <Button variant="outline" onClick={() => navigate(routes.myBookings)}>
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Retour à la recherche
+        Retour à mes réservations
       </Button>
     </div>
   );
@@ -102,15 +102,18 @@ export default function BookingConfirmationPage() {
       transition={{ duration: 0.3 }}
       className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-2xl space-y-6"
     >
-      {/* Navigation retour */}
+      {/* Navigation retour : la page est atteignable depuis le tunnel, la
+          decharge, le paiement, la facture et la liste des reservations. La
+          reservation figurant dans tous les cas dans « Mes reservations »,
+          c'est la seule destination valable quelle que soit la provenance. */}
       <Button
         variant="ghost"
         size="sm"
         className="-ml-2 text-muted-foreground hover:text-foreground"
-        onClick={() => navigate(routes.activitySearch)}
+        onClick={() => navigate(routes.myBookings)}
       >
         <ArrowLeft className="mr-1.5 h-4 w-4" />
-        Retour à la recherche
+        Retour à mes réservations
       </Button>
 
       {/* Timer de réservation (masqué si l'API ne renvoie pas de délai) */}

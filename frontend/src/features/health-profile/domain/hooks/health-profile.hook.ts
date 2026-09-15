@@ -23,7 +23,6 @@ export const healthProfileSchema = z.object({
   height: z.number().min(50).max(250).optional(),
   medicalContraindications: z.array(z.string()).optional(),
   emergencyContact: emergencyContactSchema,
-  medicalCertificateFileId: z.string().optional(),
 });
 
 export type HealthProfileFormData = z.infer<typeof healthProfileSchema>;

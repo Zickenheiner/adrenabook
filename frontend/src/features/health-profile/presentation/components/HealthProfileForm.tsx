@@ -14,7 +14,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/core/components/ui/form';
 import { Input } from '@/core/components/ui/input';
 import { Button } from '@/core/components/ui/button';
@@ -41,7 +40,6 @@ export default function HealthProfileForm() {
         relation: '',
         phone: '',
       },
-      medicalCertificateFileId: undefined,
     },
   });
 
@@ -57,7 +55,6 @@ export default function HealthProfileForm() {
       height: data.height,
       medicalContraindications: data.medicalContraindications,
       emergencyContact: data.emergencyContact,
-      medicalCertificateFileId: data.medicalCertificateFileId,
     });
   }
 
@@ -240,31 +237,6 @@ export default function HealthProfileForm() {
         )}
 
         {/* Submit */}
-        <FormField
-          control={form.control}
-          name="medicalCertificateFileId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Certificat médical{' '}
-                <span className="text-muted-foreground">(optionnel)</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="ID du fichier (téléversé séparément)"
-                  {...field}
-                  value={field.value ?? ''}
-                  onChange={(e) => field.onChange(e.target.value || undefined)}
-                />
-              </FormControl>
-              <FormDescription>
-                Requis pour certaines activités à risque élevé
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <Button
           type="submit"
           className="w-full"

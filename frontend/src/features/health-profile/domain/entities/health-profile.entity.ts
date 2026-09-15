@@ -14,5 +14,4 @@ export interface HealthProfileFormEntity {
   height?: number;
   medicalContraindications?: string[];
   emergencyContact: EmergencyContactEntity;
-  medicalCertificateFileId?: string;
 }

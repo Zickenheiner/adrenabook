@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import {
-  Bell,
   CalendarCheck,
   Heart,
   LogOut,
@@ -40,7 +39,6 @@ interface Props {
 const profileLinks = [
   { label: 'Mes réservations', to: routes.myBookings, icon: CalendarCheck },
   { label: 'Profil santé', to: routes.healthProfile, icon: Heart },
-  { label: 'Notifications', to: routes.notificationPreferences, icon: Bell },
   { label: 'Mes droits RGPD', to: routes.rgpdProfile, icon: ShieldCheck },
 ];
 
