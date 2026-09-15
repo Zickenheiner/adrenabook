@@ -25,23 +25,23 @@ export class SlotDetailController {
   ) {}
 
   @ApiOperation({
-    summary: 'Récupérer un créneau par ID',
+    summary: 'Get a slot by ID',
     description:
-      "Retourne le détail d'un créneau, dont le nombre de places encore disponibles (places maximum moins les réservations non annulées). Accessible à tout utilisateur authentifié.",
+      'Returns the details of a slot, including the number of remaining seats (maximum seats minus non-cancelled bookings). Accessible to any authenticated user.',
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant du créneau",
+    description: 'The slot identifier',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Le créneau demandé',
+    description: 'The requested slot',
     type: SlotDetailResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Non authentifié' })
-  @ApiResponse({ status: 404, description: 'Créneau introuvable' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  @ApiResponse({ status: 404, description: 'Slot not found' })
   @Get(':id')
   async findById(@Param('id') id: string): Promise<SlotDetailResponseDto> {
     const slot = await this.slotService.findDetailById(id);

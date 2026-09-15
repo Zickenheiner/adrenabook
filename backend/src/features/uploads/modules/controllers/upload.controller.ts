@@ -39,11 +39,12 @@ export class UploadController {
   ) {}
 
   @ApiOperation({
-    summary: 'Déposer un justificatif',
+    summary: 'Upload a supporting document',
     description:
-      "Dépose un fichier et renvoie son identifiant, à reporter dans le dossier d'inscription " +
-      "d'un centre professionnel (US-04 : extrait Kbis, attestation RC Pro, diplômes d'encadrants). " +
-      'Formats acceptés : PDF, JPEG, PNG. Taille maximale : 5 Mo.',
+      'Uploads a file and returns its identifier, to be reported in the registration ' +
+      'dossier of a professional center (Kbis extract, professional liability ' +
+      'insurance certificate, instructor diplomas). ' +
+      'Accepted formats: PDF, JPEG, PNG. Maximum size: 5 MB.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -57,11 +58,11 @@ export class UploadController {
   })
   @ApiResponse({
     status: 201,
-    description: 'Fichier déposé',
+    description: 'File uploaded',
     type: UploadResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Format de fichier non accepté' })
-  @ApiResponse({ status: 413, description: 'Fichier trop volumineux (> 5 Mo)' })
+  @ApiResponse({ status: 400, description: 'File format not accepted' })
+  @ApiResponse({ status: 413, description: 'File too large (> 5 MB)' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
@@ -75,16 +76,16 @@ export class UploadController {
   }
 
   @ApiOperation({
-    summary: 'Télécharger un justificatif',
+    summary: 'Download a supporting document',
     description:
-      'Renvoie le contenu du fichier. Accessible au déposant lui-même et aux ' +
-      'administrateurs, qui doivent pouvoir instruire un dossier KYC (US-23). Toute autre ' +
-      'demande est refusée.',
+      'Returns the file content. Accessible to the uploader themselves and to ' +
+      'administrators, who must be able to review a KYC dossier. Any other ' +
+      'request is denied.',
   })
-  @ApiParam({ name: 'id', description: 'Identifiant du fichier', type: String })
-  @ApiResponse({ status: 200, description: 'Contenu du fichier' })
-  @ApiResponse({ status: 403, description: 'Accès refusé à ce fichier' })
-  @ApiResponse({ status: 404, description: 'Fichier introuvable' })
+  @ApiParam({ name: 'id', description: 'File identifier', type: String })
+  @ApiResponse({ status: 200, description: 'File content' })
+  @ApiResponse({ status: 403, description: 'Access to this file denied' })
+  @ApiResponse({ status: 404, description: 'File not found' })
   @Get(':id')
   async download(
     @Param('id') id: string,

@@ -23,17 +23,17 @@ export class PaymentController {
 
   @Public()
   @ApiOperation({
-    summary: 'Webhook Stripe (US-12)',
+    summary: 'Stripe webhook',
     description:
-      "Endpoint Stripe webhook. Reçoit les événements signés par Stripe et traite : payment_intent.succeeded, payment_intent.payment_failed, charge.refunded. L'authentification est assurée par la signature Stripe (header Stripe-Signature).",
+      'Stripe webhook endpoint. Receives the events signed by Stripe and handles: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded. Authentication is provided by the Stripe signature (Stripe-Signature header).',
   })
   @ApiResponse({
     status: 200,
-    description: 'Webhook traite avec succes',
+    description: 'Webhook processed successfully',
   })
   @ApiResponse({
     status: 400,
-    description: 'Signature Stripe invalide ou payload malformate',
+    description: 'Invalid Stripe signature or malformed payload',
   })
   @Post('webhook/stripe')
   @HttpCode(HttpStatus.OK)

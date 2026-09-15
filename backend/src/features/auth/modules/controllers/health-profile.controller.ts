@@ -23,27 +23,27 @@ export class HealthProfileController {
   ) {}
 
   @ApiOperation({
-    summary: 'Mettre a jour le profil de sante (US-05)',
+    summary: 'Update the health profile',
     description:
-      "Met a jour les donnees de sante de l'aventurier connecte. Les contre-indications medicales sont chiffrees en AES-256 en base de donnees. Auth JWT requise.",
+      'Updates the health data of the signed-in adventurer. Medical contraindications are AES-256 encrypted in the database. JWT authentication required.',
   })
   @ApiBody({
     type: HealthProfileDto,
-    description: "Donnees de sante de l'aventurier",
+    description: 'Health data of the adventurer',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Profil sante mis a jour',
+    description: 'Health profile updated',
     type: HealthProfileResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation echouee',
+    description: 'Validation failed',
   })
   @ApiResponse({
     status: 401,
-    description: 'Non authentifie',
+    description: 'Not authenticated',
   })
   @Patch('health-profile')
   @HttpCode(HttpStatus.OK)

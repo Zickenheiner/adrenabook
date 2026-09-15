@@ -244,7 +244,7 @@ export class UpdateActivityDto {
 
   @ApiProperty({
     description:
-      "Statut de publication. Une activite non publiee reste invisible du public et n'est pas reservable.",
+      'Publication status. An unpublished activity stays invisible to the public and cannot be booked.',
     example: 'unpublished',
     enum: ['unpublished', 'published'],
     required: false,
@@ -601,15 +601,15 @@ export class ActivityDetailUpcomingSlotDto {
 
 export class ActivityMonthSlotsResponseDto {
   @ApiProperty({
-    description: 'Creneaux du mois demande, tries par date croissante',
+    description: 'Slots for the requested month, sorted by ascending date',
     type: [ActivityDetailUpcomingSlotDto],
   })
   slots: ActivityDetailUpcomingSlotDto[];
 
   @ApiProperty({
     description:
-      'Mois a venir comportant au moins un creneau, au format YYYY-MM. ' +
-      "Permet de sauter directement a un mois ouvert plutot que de naviguer a l'aveugle.",
+      'Upcoming months containing at least one slot, in YYYY-MM format. ' +
+      'Lets the user jump straight to an open month rather than navigating blindly.',
     example: ['2026-09', '2026-10', '2027-03'],
     type: [String],
   })

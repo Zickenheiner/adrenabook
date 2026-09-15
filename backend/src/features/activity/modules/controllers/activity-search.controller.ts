@@ -38,9 +38,9 @@ export class ActivitySearchController {
 
   @Public()
   @ApiOperation({
-    summary: 'Rechercher des activités avec filtres (US-06)',
+    summary: 'Search activities with filters',
     description:
-      'Recherche publique des activités publiées avec filtres multi-critères (type, prix, difficulté, texte libre). Pagination 20 résultats par page, tri par pertinence/prix.',
+      'Public search over published activities with multi-criteria filters (type, price, difficulty, free text). Pagination of 20 results per page, sorted by relevance or price.',
   })
   @ApiQuery({ name: 'query', required: false, type: String })
   @ApiQuery({
@@ -76,10 +76,10 @@ export class ActivitySearchController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Résultats de la recherche',
+    description: 'Search results',
     type: SearchActivitiesResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Paramètres invalides' })
+  @ApiResponse({ status: 400, description: 'Invalid parameters' })
   @Get('search')
   async search(
     @Query() query: SearchActivitiesQueryDto,
@@ -89,13 +89,13 @@ export class ActivitySearchController {
 
   @Public()
   @ApiOperation({
-    summary: "Photo publique d'une activité",
+    summary: 'Public photo of an activity',
     description:
-      'Sert une image sans authentification, uniquement si une activité publiée la référence. Les autres fichiers du dépôt (justificatifs KYC) restent protégés par GET /uploads/:id.',
+      'Serves an image without authentication, only if a published activity references it. The other stored files (KYC supporting documents) stay protected behind GET /uploads/:id.',
   })
-  @ApiParam({ name: 'fileId', description: 'Identifiant du fichier' })
-  @ApiResponse({ status: 200, description: "Contenu de l'image" })
-  @ApiResponse({ status: 404, description: 'Photo introuvable' })
+  @ApiParam({ name: 'fileId', description: 'The file identifier' })
+  @ApiResponse({ status: 200, description: 'The image content' })
+  @ApiResponse({ status: 404, description: 'Photo not found' })
   @Get('photos/:fileId')
   async photo(
     @Param('fileId') fileId: string,
@@ -120,52 +120,53 @@ export class ActivitySearchController {
 
   @Public()
   @ApiOperation({
-    summary: "Fiche détaillée d'une activité (US-07)",
+    summary: 'Detailed page of an activity',
     description:
-      "Retourne la fiche complète d'une activité publiée : galerie photos/vidéos, description, prérequis, équipement fourni, créneaux disponibles sur 90 jours, résumé des avis vérifiés.",
+      'Returns the full page of a published activity: photo and video gallery, description, prerequisites, included equipment, slots available over 90 days, summary of verified reviews.',
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant de l'activité",
+    description: 'The activity identifier',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: "Fiche détaillée de l'activité",
+    description: 'The detailed activity page',
     type: ActivityDetailResponseDto,
   })
   @ApiResponse({
     status: 404,
-    description: 'Activité introuvable ou désactivée',
+    description: 'Activity not found or disabled',
   })
   @Public()
   @ApiOperation({
-    summary: "Creneaux d'une activite pour un mois donne (US-07)",
+    summary: "An activity's slots for a given month",
     description:
-      'Retourne les creneaux du mois demande et la liste des mois a venir qui ' +
-      'en comportent. Charger un mois a la fois evite de transmettre une annee ' +
-      'entiere de creneaux pour une recurrence longue.',
+      'Returns the slots for the requested month and the list of upcoming ' +
+      'months that contain some. Loading one month at a time avoids sending a ' +
+      'whole year of slots for a long recurrence.',
   })
   @ApiParam({
     name: 'id',
-    description: "L'identifiant de l'activite",
+    description: 'The activity identifier',
     required: true,
     type: String,
   })
   @ApiQuery({
     name: 'month',
-    description: 'Mois vise au format YYYY-MM. Par defaut : le mois courant.',
+    description:
+      'Target month in YYYY-MM format. Defaults to the current month.',
     required: false,
     example: '2026-09',
   })
   @ApiResponse({
     status: 200,
-    description: 'Creneaux du mois et mois disponibles',
+    description: 'Slots for the month and available months',
     type: ActivityMonthSlotsResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Mois malforme' })
-  @ApiResponse({ status: 404, description: 'Activite introuvable' })
+  @ApiResponse({ status: 400, description: 'Malformed month' })
+  @ApiResponse({ status: 404, description: 'Activity not found' })
   @Get(':id/slots')
   async findSlotsByMonth(
     @Param('id') id: string,

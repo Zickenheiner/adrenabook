@@ -60,7 +60,7 @@ export class CreateAccountingExportDto {
 
   @ApiProperty({
     description:
-      "Centre sur lequel porte l'export. Facultatif si le professionnel n'en detient qu'un.",
+      'Center the export applies to. Optional if the professional owns only one.',
     example: '68b4d59919d9b7a94b4fde21',
     required: false,
   })

@@ -12,7 +12,7 @@ import {
   CreateAccountingExportDto,
 } from '@features/professional/domains/dtos/accounting-export.dto';
 
-@ApiTags('pro-exports')
+@ApiTags('Pro — Exports')
 @ApiBearerAuth()
 @Controller('pro/exports')
 export class AccountingExportController {

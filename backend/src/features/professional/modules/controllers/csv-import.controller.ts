@@ -14,7 +14,7 @@ import {
   CsvImportResponseDto,
 } from '@features/professional/domains/dtos/csv-import.dto';
 
-@ApiTags('pro-imports')
+@ApiTags('Pro — Imports')
 @Controller('pro/imports')
 export class CsvImportController {
   constructor(
@@ -23,7 +23,7 @@ export class CsvImportController {
   ) {}
 
   @ApiOperation({
-    summary: 'Import CSV file (US-20)',
+    summary: 'Import CSV file',
     description:
       'Launches an asynchronous import job for slots, customers or activities from a previously uploaded CSV file. Supports dry-run mode for validation without persisting data.',
   })

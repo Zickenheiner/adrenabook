@@ -15,7 +15,7 @@ import {
 } from '@features/auth/domains/dtos/user.dto';
 import { IUserService } from '@features/auth/interfaces/services/user.iservice';
 
-@ApiTags('RGPD')
+@ApiTags('GDPR')
 @Controller('users/me/rgpd')
 export class RgpdController {
   constructor(
@@ -24,19 +24,18 @@ export class RgpdController {
   ) {}
 
   @ApiOperation({
-    summary: 'Export RGPD (US-24)',
+    summary: 'GDPR export',
     description:
-      "Exporte immediatement (traitement synchrone) toutes les donnees personnelles de l'utilisateur connecte : profil, profil de sante (contre-indications dechiffrees), preferences de notifications, reservations et factures. Les donnees sont renvoyees directement dans la reponse au format JSON. Auth JWT requise.",
+      'Immediately exports (synchronous processing) all the personal data of the signed-in user: profile, health profile (with decrypted contraindications), notification preferences, bookings and invoices. The data is returned directly in the response in JSON format. JWT authentication required.',
   })
   @ApiResponse({
     status: 200,
-    description:
-      'Export realise, donnees retournees dans le corps de la reponse',
+    description: 'Export completed, data returned in the response body',
     type: RgpdExportResponseDto,
   })
   @ApiResponse({
     status: 401,
-    description: 'Non authentifie',
+    description: 'Not authenticated',
   })
   @Post('export')
   @HttpCode(HttpStatus.OK)
@@ -48,31 +47,31 @@ export class RgpdController {
   }
 
   @ApiOperation({
-    summary: 'Demande de suppression RGPD (US-24)',
+    summary: 'GDPR deletion request',
     description:
-      'Demande la suppression de toutes les donnees personnelles. Necessite un code de confirmation envoye par email (double consentement). La suppression est planifiee a J+30 (delai de retractation). Les donnees comptables sont conservees pour obligation legale (10 ans). Auth JWT requise.',
+      'Requests the deletion of all the personal data. Requires a confirmation code sent by email (double consent). The deletion is scheduled for D+30 (withdrawal period). Accounting data is retained to meet a legal obligation (10 years). JWT authentication required.',
   })
   @ApiBody({
     type: RgpdDeleteDto,
-    description: 'Code de confirmation et raison optionnelle',
+    description: 'Confirmation code and optional reason',
     required: true,
   })
   @ApiResponse({
     status: 202,
-    description: 'Demande de suppression acceptee et planifiee a J+30',
+    description: 'Deletion request accepted and scheduled for D+30',
     type: RgpdDeleteResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Code de confirmation invalide',
+    description: 'Invalid confirmation code',
   })
   @ApiResponse({
     status: 401,
-    description: 'Non authentifie',
+    description: 'Not authenticated',
   })
   @ApiResponse({
     status: 409,
-    description: 'Une demande de suppression RGPD est deja planifiee',
+    description: 'A GDPR deletion request is already scheduled',
   })
   @Post('delete')
   @HttpCode(HttpStatus.ACCEPTED)

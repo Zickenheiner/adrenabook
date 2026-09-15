@@ -131,7 +131,7 @@ export class CenterBookingDto {
   @ApiProperty({
     example: ['Marie Dupont', 'Paul Dupont'],
     type: [String],
-    description: 'Participants annonces a la reservation',
+    description: 'Participant names declared when the booking was made',
   })
   participantNames: string[];
 

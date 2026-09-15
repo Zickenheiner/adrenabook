@@ -40,13 +40,13 @@ export class ProfessionalCenterController {
   }
 
   @ApiOperation({
-    summary: 'Lister ses propres centres',
+    summary: 'List your own centers',
     description:
-      "Retourne les centres dont l'utilisateur authentifie est proprietaire, du plus ancien au plus recent, quel que soit leur statut d'instruction.",
+      'Returns the centers owned by the authenticated user, from the oldest to the most recent, whatever their review status.',
   })
   @ApiResponse({
     status: 200,
-    description: "Centres de l'utilisateur",
+    description: 'Centers of the user',
     type: [OwnedCenterDto],
   })
   @Get('mine')
@@ -118,8 +118,8 @@ export class ProfessionalCenterController {
     description: 'The updated professional-center',
     type: Boolean,
   })
-  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
-  @ApiResponse({ status: 404, description: 'Centre introuvable' })
+  @ApiResponse({ status: 403, description: 'Center not owned by the account' })
+  @ApiResponse({ status: 404, description: 'Center not found' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -144,9 +144,12 @@ export class ProfessionalCenterController {
     description: 'The deleted professional-center',
     type: Boolean,
   })
-  @ApiResponse({ status: 403, description: 'Centre non détenu par le compte' })
-  @ApiResponse({ status: 404, description: 'Centre introuvable' })
-  @ApiResponse({ status: 409, description: 'Le centre porte des activités' })
+  @ApiResponse({ status: 403, description: 'Center not owned by the account' })
+  @ApiResponse({ status: 404, description: 'Center not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'The center still holds activities',
+  })
   @Delete(':id')
   async delete(@Param('id') id: string, @Req() req: { user: { sub: string } }) {
     return this.professionalCenterService.delete(id, req.user.sub);
